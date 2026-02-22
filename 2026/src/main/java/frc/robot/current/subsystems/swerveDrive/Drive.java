@@ -40,7 +40,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.current.Constants;
-import frc.robot.current.subsystems.swerveDrive.GyroIOInputsAutoLogged;
 import frc.robot.lib.util.LocalADStarAK;
 
 import java.util.concurrent.locks.Lock;

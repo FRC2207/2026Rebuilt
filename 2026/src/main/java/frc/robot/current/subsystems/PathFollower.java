@@ -3,8 +3,6 @@ package frc.robot.current.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
@@ -14,7 +12,6 @@ import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -25,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
-import frc.robot.lib.commands.DriveToPose;
 import frc.robot.lib.util.AllianceFlipUtil;
 import frc.robot.lib.util.LocalADStarAK;
 
@@ -34,7 +30,6 @@ public class PathFollower {
         public static List<Pose2d> trenchPositions = new ArrayList<>();
         StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
                         .getStructArrayTopic("PosArr", Pose2d.struct).publish();
-        private static Boolean ReefProtection = false;
 
         private static PathConstraints constraints;
 
@@ -140,11 +135,11 @@ public class PathFollower {
 
                 if (drive.getPose().getX() < FieldConstants.neutralLine) {      // If we are inside
                         goalPosition = new Pose2d(
-                                        whichTrench.getTranslation().plus(new Translation2d(1.5, 0)),
+                                        whichTrench.getTranslation().plus(new Translation2d(Units.inchesToMeters(55), 0)),
                                         whichTrench.getRotation());
                 } else {                                                        // If we are outside
                         goalPosition = new Pose2d(
-                                        whichTrench.getTranslation().minus(new Translation2d(1, 0)),
+                                        whichTrench.getTranslation().minus(new Translation2d(Units.inchesToMeters(22), 0)),
                                         whichTrench.getRotation());
                 }
 
