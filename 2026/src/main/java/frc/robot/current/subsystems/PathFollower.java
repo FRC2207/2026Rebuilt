@@ -6,7 +6,11 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -23,6 +27,7 @@ import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.DriveToPose;
 import frc.robot.lib.util.AllianceFlipUtil;
+import frc.robot.lib.util.LocalADStarAK;
 
 public class PathFollower {
         private Drive drive;
@@ -60,12 +65,28 @@ public class PathFollower {
                 this.drive = drive;
                 Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
-                System.out.print("after flip");
+                // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also in Drive subsystem.
+                AutoBuilder.configure(
+                                drive::getPose,
+                                drive::setPose,
+                                drive::getChassisSpeeds,
+                                drive::runVelocity,
+                                new PPHolonomicDriveController(
+                                                new PIDConstants(DriveConstants.driveKp, DriveConstants.driveKi,
+                                                                DriveConstants.driveKd),
+                                                new PIDConstants(DriveConstants.turnKp, DriveConstants.turnKi,
+                                                                DriveConstants.turnKd)),
+                                DriveConstants.ppConfig,
+                                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                                drive);
+                Pathfinding.setPathfinder(new LocalADStarAK());
 
-                this.drive = drive;
+
                 constraints = new PathConstraints(
                                 DriveConstants.maxSpeedMetersPerSec, 4.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
+
+                PathfindingCommand.warmupCommand().schedule(); // Helps remove delay when running the first path.
         }
 
         public void periodic() {
@@ -107,14 +128,28 @@ public class PathFollower {
                 return Math.sqrt(Math.pow(p1.getX() - p2.getX(), 2) + Math.pow(p1.getY() - p2.getY(), 2));
         }
 
-        /** Returns a command to drive through the trench. This currently stops directly under the trench. 
-         * TODO: Expand this so if we are outside, it will drive through to the alliance area, and if we are inside, it will drive through to the outside.
+        /**
+         * Returns a command to drive through the trench. This currently stops directly
+         * under the trench.
+         * TODO: Expand this so if we are outside, it will drive through to the alliance
+         * area, and if we are inside, it will drive through to the outside.
          */
         public Command driveThruTrench() {
-                Pose2d goalTarget = closestGoal(drive.getPose(), trenchPositions);
+                Pose2d whichTrench = closestGoal(drive.getPose(), trenchPositions);
+                Pose2d goalPosition;
+
+                if (drive.getPose().getX() < FieldConstants.neutralLine) {      // If we are inside
+                        goalPosition = new Pose2d(
+                                        whichTrench.getTranslation().plus(new Translation2d(1.5, 0)),
+                                        whichTrench.getRotation());
+                } else {                                                        // If we are outside
+                        goalPosition = new Pose2d(
+                                        whichTrench.getTranslation().minus(new Translation2d(1, 0)),
+                                        whichTrench.getRotation());
+                }
 
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
-                                goalTarget,
+                                goalPosition,
                                 constraints,
                                 0.0);
 

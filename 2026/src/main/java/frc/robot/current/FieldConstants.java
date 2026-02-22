@@ -35,6 +35,7 @@ import edu.wpi.first.math.util.Units;
 public class FieldConstants {
   public static double fieldLength = Units.inchesToMeters(651.22);
   public static double fieldWidth = Units.inchesToMeters(317.7);
+  public static double neutralLine = 4.0;
 
   /** The centers of the blue alliance elements */
   public static final class Elements {
