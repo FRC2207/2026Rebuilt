@@ -7,6 +7,9 @@ package frc.robot.current;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,6 +23,7 @@ import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
@@ -47,6 +51,7 @@ public class RobotContainer {
   private Intake intake;
   private Vision vision;
   private Outtake outtake;
+  private PathFollower pathFollower;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -80,6 +85,7 @@ public class RobotContainer {
         ); 
 
     outtake = new Outtake(drive);
+    pathFollower = new PathFollower(drive);
     
 
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
@@ -153,6 +159,8 @@ public class RobotContainer {
 
     driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
 
+    driveXbox.start().onTrue(pathFollower.driveThruTrench());
+
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {
     // exPivot.adjustHeight(-1 * controlXbox.getLeftY());
@@ -179,6 +187,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+
     return autoChooser.get();
     // An example command will be run in autonomous
     //return null;

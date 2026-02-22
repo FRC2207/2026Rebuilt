@@ -1,13 +1,11 @@
-package frc.robot.current.commands;
+package frc.robot.current.subsystems;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -26,7 +24,7 @@ import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.DriveToPose;
 import frc.robot.lib.util.AllianceFlipUtil;
 
-public class AutoAlign extends DriveToPose {
+public class PathFollower {
         private Drive drive;
         public static List<Pose2d> trenchPositions = new ArrayList<>();
         StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
@@ -58,30 +56,11 @@ public class AutoAlign extends DriveToPose {
                 RIGHT
         }
 
-        public AutoAlign(Drive drive, Supplier<Target> target) {
-                super(
-                                drive,
-                                false,
-                                () -> {
-                                        Pose2d nearestTarget = drive.getPose();
+        public PathFollower(Drive drive) {
+                this.drive = drive;
+                Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
-                                        trenchPositions.add(leftTrench);
-                                        trenchPositions.add(rightTrench);
-
-                                        if (target.get() == Target.OUTPOST) {
-                                                nearestTarget = outpost;
-                                        } else if (target.get() == Target.TRENCH) {
-                                                nearestTarget = closestGoal(drive.getPose(), trenchPositions);
-                                        } else if (target.get() == Target.HUB) {
-                                                nearestTarget = hubCenter;
-                                        }
-
-                                        Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
-
-                                        System.out.print("after flip");
-                                        System.out.println(nearestTarget.getRotation());
-                                        return nearestTarget;
-                                });
+                System.out.print("after flip");
 
                 this.drive = drive;
                 constraints = new PathConstraints(
@@ -99,7 +78,7 @@ public class AutoAlign extends DriveToPose {
          * 
          * @param currentPose is where the robot is currently
          * @param positions   is which list of positions you want to assess
-         * @return which pose2d the {@link AutoAlign#AutoAlign} will travel to
+         * @return which pose2d the {@link PathFollower#AutoAlign} will travel to
          */
         public static Pose2d closestGoal(Pose2d currentPose, List<Pose2d> positions) {
                 Pose2d closestGoal = null;
@@ -128,9 +107,12 @@ public class AutoAlign extends DriveToPose {
                 return Math.sqrt(Math.pow(p1.getX() - p2.getX(), 2) + Math.pow(p1.getY() - p2.getY(), 2));
         }
 
+        /** Returns a command to drive through the trench. This currently stops directly under the trench. 
+         * TODO: Expand this so if we are outside, it will drive through to the alliance area, and if we are inside, it will drive through to the outside.
+         */
         public Command driveThruTrench() {
                 Pose2d goalTarget = closestGoal(drive.getPose(), trenchPositions);
-                
+
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
                                 goalTarget,
                                 constraints,
