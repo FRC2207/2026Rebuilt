@@ -10,7 +10,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -45,7 +44,7 @@ public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
   private ExamplePivot exPivot;
-  //private SwerveDrive swerveDrive;
+  // private SwerveDrive swerveDrive;
   private Drive drive;
   private LedOperation leds;
   private Intake intake;
@@ -81,12 +80,10 @@ public class RobotContainer {
         new VisionIOPhotonVision(camera0Name, robotToCamera0),
         new VisionIOPhotonVision(camera1Name, robotToCamera1),
         new VisionIOPhotonVision(camera2Name, robotToCamera2),
-        new VisionIOPhotonVision(camera3Name, robotToCamera3)
-        ); 
+        new VisionIOPhotonVision(camera3Name, robotToCamera3));
 
     outtake = new Outtake(drive);
     pathFollower = new PathFollower(drive);
-    
 
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
@@ -103,7 +100,7 @@ public class RobotContainer {
           drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
       autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
       autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
 
     }
     // Configure the trigger bindings
@@ -132,6 +129,14 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () -> -driveXbox.getRightX()));
 
+    driveXbox.back()
+        .whileTrue(
+            DriveCommands.joystickDrive(
+                drive,
+                () -> -0.25 * driveXbox.getLeftY(),
+                () -> -0.25 * driveXbox.getLeftX(),
+                () -> -0.25 * driveXbox.getRightX()));
+
     // Lock to 0° when A button is held
     driveXbox
         .a()
@@ -141,6 +146,12 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftY(),
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
+
+    driveXbox.leftBumper().whileTrue(
+        DriveCommands.joystickDrivePointTarget(
+            drive,
+            () -> -driveXbox.getLeftY(),
+            FieldConstants.Elements.blueHubPose));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -154,7 +165,7 @@ public class RobotContainer {
                     new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                 drive)
                 .ignoringDisable(true));
-    
+
     driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
     driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
@@ -190,6 +201,6 @@ public class RobotContainer {
 
     return autoChooser.get();
     // An example command will be run in autonomous
-    //return null;
+    // return null;
   }
 }

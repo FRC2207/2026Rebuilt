@@ -14,14 +14,20 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
+import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.util.AllianceFlipUtil;
 import frc.robot.lib.util.LocalADStarAK;
 
@@ -31,7 +37,11 @@ public class PathFollower {
         StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
                         .getStructArrayTopic("PosArr", Pose2d.struct).publish();
 
+        private final SendableChooser<TrenchOptions> m_chooser = new SendableChooser<>();
+
         private static PathConstraints constraints;
+
+        private static TrenchOptions trenchOptions;
 
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
         public static final Pose2d hubCenter = new Pose2d(
@@ -51,16 +61,29 @@ public class PathFollower {
                 HUB
         }
 
-        public static enum Direction {
-                LEFT,
-                RIGHT
+        public static enum TrenchOptions {
+                NEAREST,
+                CLOCKWISE,
+                COUNTERCLOCKWISE,
+                FORCELEFT,
+                FORCERIGHT
         }
 
         public PathFollower(Drive drive) {
                 this.drive = drive;
                 Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
-                // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also in Drive subsystem.
+                trenchPositions.add(leftTrench);
+                trenchPositions.add(rightTrench);
+
+                m_chooser.setDefaultOption("Nearest", trenchOptions = TrenchOptions.NEAREST);
+                m_chooser.addOption("Clockwise", trenchOptions = TrenchOptions.CLOCKWISE);
+                m_chooser.addOption("Counterclockwise", trenchOptions = TrenchOptions.COUNTERCLOCKWISE);
+                m_chooser.addOption("Force Left", trenchOptions = TrenchOptions.FORCELEFT);
+                m_chooser.addOption("Force Right", trenchOptions = TrenchOptions.FORCERIGHT);
+                
+                // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
+                // in Drive subsystem.
                 AutoBuilder.configure(
                                 drive::getPose,
                                 drive::setPose,
@@ -75,7 +98,6 @@ public class PathFollower {
                                 () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
                                 drive);
                 Pathfinding.setPathfinder(new LocalADStarAK());
-
 
                 constraints = new PathConstraints(
                                 DriveConstants.maxSpeedMetersPerSec, 4.0,
@@ -126,21 +148,47 @@ public class PathFollower {
         /**
          * Returns a command to drive through the trench. This currently stops directly
          * under the trench.
-         * TODO: Expand this so if we are outside, it will drive through to the alliance
+         * If we are outside, it will drive through to the alliance
          * area, and if we are inside, it will drive through to the outside.
          */
         public Command driveThruTrench() {
-                Pose2d whichTrench = closestGoal(drive.getPose(), trenchPositions);
+                Pose2d whichTrenchOut;
+                Pose2d whichTrenchIn;
                 Pose2d goalPosition;
 
-                if (drive.getPose().getX() < FieldConstants.neutralLine) {      // If we are inside
+                switch (trenchOptions) {
+                        case CLOCKWISE:
+                                whichTrenchOut = leftTrench;
+                                whichTrenchIn = rightTrench;
+                                break;
+                        case COUNTERCLOCKWISE:
+                                whichTrenchOut = rightTrench;
+                                whichTrenchIn = leftTrench;
+                                break;
+                        case FORCELEFT:
+                                whichTrenchOut = leftTrench;
+                                whichTrenchIn = leftTrench;
+                                break;
+                        case FORCERIGHT:
+                                whichTrenchOut = rightTrench;
+                                whichTrenchIn = rightTrench;
+                        case NEAREST:
+                        default:
+                                whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
+                                whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                break;
+                }
+
+                if (drive.getPose().getX() < FieldConstants.neutralLine) { // If we are inside
                         goalPosition = new Pose2d(
-                                        whichTrench.getTranslation().plus(new Translation2d(Units.inchesToMeters(55), 0)),
-                                        whichTrench.getRotation());
-                } else {                                                        // If we are outside
+                                        whichTrenchOut.getTranslation()
+                                                        .plus(new Translation2d(Units.inchesToMeters(55), 0)),
+                                        whichTrenchOut.getRotation());
+                } else { // If we are outside
                         goalPosition = new Pose2d(
-                                        whichTrench.getTranslation().minus(new Translation2d(Units.inchesToMeters(22), 0)),
-                                        whichTrench.getRotation());
+                                        whichTrenchIn.getTranslation()
+                                                        .minus(new Translation2d(Units.inchesToMeters(22), 0)),
+                                        whichTrenchIn.getRotation());
                 }
 
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
