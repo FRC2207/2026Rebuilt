@@ -31,7 +31,14 @@ public class Hopper {
     public Command run() {
         return Commands.run(
             () -> {
-                motor.setPercent(MathUtil.clamp(Constants.HopperConstants.motorSpeed, 0, 1));
+                motor.setPercent(Constants.HopperConstants.motorSpeed);
+            });
+    }
+
+    public Command stop() {
+        return Commands.run(
+            () -> {
+                motor.setPercent(0);
             });
     }
 }

@@ -20,6 +20,7 @@ import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
@@ -79,9 +80,10 @@ public class RobotContainer {
         new VisionIOPhotonVision(camera3Name, robotToCamera3)
         ); 
 
-    outtake = new Outtake(drive);
-    
+    Hopper hopper = new Hopper();
 
+    outtake = new Outtake(drive, hopper);
+    
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     // Add autonomous routines to the SendableChooser
