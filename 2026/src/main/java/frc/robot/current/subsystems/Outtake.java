@@ -120,7 +120,7 @@ public class Outtake extends SubsystemBase {
         double motorTwoSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
-                run(() -> {
+                runOnce(() -> {
                     hopper.run();
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
@@ -143,7 +143,7 @@ public class Outtake extends SubsystemBase {
 
     /** Stops all the motors */
     public Command stop() {
-        return Commands.run(() -> {
+        return Commands.runOnce(() -> {
             hopper.stop();
             highMotor.setVoltage(0);
             lowMotor.setVoltage(0);

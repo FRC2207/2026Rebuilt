@@ -17,7 +17,7 @@ import frc.robot.lib.motors.motorController.MotorIOSparkMax;
 public class Intake extends SubsystemBase {
   private MotorController intakeMotor;
 
-  private final int rightMotorID = Constants.IntakeConstants.motorID;
+  private final int intakeMotorID = Constants.IntakeConstants.intakeID;
   
   public Intake(String robotType, Drive drive) {
     // TODO: change table and entry keys
@@ -30,7 +30,7 @@ public class Intake extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new MotorController(new MotorIOSparkMax(rightMotorID, rightConfig, 35), "Intake", "1");
+        intakeMotor = new MotorController(new MotorIOSparkMax(intakeMotorID, rightConfig, 35), "Intake", "1");
 
         break;
       case "SIM":
@@ -38,7 +38,7 @@ public class Intake extends SubsystemBase {
 
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSparkMax(rightMotorID, rightConfig, 30), "Intake", "1");
+        intakeMotor = new MotorController(new MotorIOSparkMax(intakeMotorID, rightConfig, 30), "Intake", "1");
 
         break;
     }

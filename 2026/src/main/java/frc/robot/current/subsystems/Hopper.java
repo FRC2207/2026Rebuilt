@@ -13,14 +13,19 @@ public class Hopper {
     private SparkMaxConfig sparkConfig = new SparkMaxConfig();
     private MotorController motor;
 
-    public Hopper(){
+    public Hopper() {
         switch (Constants.robot) {
             case "Real":
-                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig,35), "Hopper", "1");
+                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
+                        "Hopper", "1");
+                break;
             case "SIM":
                 // Just don't use sim :)
+                break;
             default:
-                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig,35), "Hopper", "1");
+                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
+                        "Hopper", "1");
+                break;
         }
     }
 
@@ -28,17 +33,12 @@ public class Hopper {
         motor.updateInputs();
     }
 
-    public Command run() {
-        return Commands.run(
-            () -> {
-                motor.setPercent(Constants.HopperConstants.motorSpeed);
-            });
+    public void run() {
+        motor.setPercent(Constants.HopperConstants.motorSpeed);
     }
 
-    public Command stop() {
-        return Commands.run(
-            () -> {
-                motor.setPercent(0);
-            });
+    public void stop() {
+        motor.setPercent(0);
+
     }
 }
