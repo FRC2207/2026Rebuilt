@@ -19,8 +19,8 @@ public class Intake extends SubsystemBase {
   private MotorController intakeMotor;
   private PositionController pivotMotor;
 
-  private final int intakeMotorID = Constants.IntakeConstants.motorID;
-  private final int pivotMotorID = Constants.IntakeConstants.pivotMotorID;
+  private final int intakeMotorID = Constants.IntakeConstants.intakeID;
+  private final int pivotMotorID = Constants.IntakeConstants.pivotID;
   private final String robotType = Constants.robot;
   
   public Intake(Drive drive) {
