@@ -151,14 +151,14 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
     
-    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
 
-    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
+    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
 
     driveXbox.povUp().whileTrue(intake.gotoStoredPos());
     driveXbox.povDown().whileTrue(intake.gotoCollectionPos());
 
-    driveXbox.rightTrigger().onTrue(intake.intake()).onFalse(intake.stop());
+    driveXbox.rightTrigger().onTrue(intake.intake().alongWith(intake.gotoCollectionPos())).onFalse(intake.stop());
 
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {

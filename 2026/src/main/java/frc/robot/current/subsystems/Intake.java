@@ -22,6 +22,9 @@ public class Intake extends SubsystemBase {
   private final int intakeMotorID = Constants.IntakeConstants.intakeID;
   private final int pivotMotorID = Constants.IntakeConstants.pivotID;
   private final String robotType = Constants.robot;
+
+  public Boolean isIntaking = false;
+  public Boolean isUp = false;
   
   public Intake(Drive drive) {
 
@@ -104,6 +107,7 @@ public class Intake extends SubsystemBase {
   public Command rotateUp() {
     // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
     return Commands.run(() -> {
+      isUp = true;
       pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() + 0.01);
     }, this);
   }
@@ -112,18 +116,21 @@ public class Intake extends SubsystemBase {
   public Command rotateDown() {
     // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
     return Commands.run(() -> {
+      isUp = false;
       pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() - 0.01);
     }, this);
   }
 
   public Command intake() {
     return Commands.runOnce(() -> {
+      isIntaking = true;
       intakeMotor.setPercent(Constants.IntakeConstants.intakeSpeed);
     }, this);
   }
 
   public Command stop() {
     return Commands.run(() -> {
+      isIntaking = false;
       intakeMotor.setVoltage(0);
     }, this);
   }
