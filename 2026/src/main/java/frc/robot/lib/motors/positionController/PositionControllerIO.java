@@ -22,7 +22,21 @@ public interface PositionControllerIO {
 
     public abstract double getVelocity();
 
+    /** Sets the motor position in rotations */
     public abstract void setMotorPosition(double rotations);
 
+    /** Sets the motor position in degrees */
+    public abstract void setMotorPositionDegrees(double degrees);
+
+    /** Sets the motor position in radians */
+    public abstract void setMotorPositionRadians(double radians);
+
+    /** Returns the motor setpoint in rotations */
     public abstract double getMotorSetpoint();
+
+    /** Returns the motor setpoint in degrees */
+    public abstract double getMotorSetpointDegrees();
+
+    /** Returns the motor setpoint in radians */
+    public abstract double getMotorSetpointRadians();
 }
