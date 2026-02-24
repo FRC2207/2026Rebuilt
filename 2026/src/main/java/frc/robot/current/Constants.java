@@ -55,13 +55,11 @@ public final class Constants {
   }
 
   public static class IntakeConstants {
-    //TODO: Get Motor IDs
-    public static final int motorID = 30;
-    public static final int pivotMotorID = 100000;
+    public static final int motorID = 41;
+    public static final int pivotMotorID = 40;
     public static final double intakeSpeed = 0.5;
 
     // PID
-    // TODO: Tune these values
     public static final double kP = 1.3;
     public static final double kI = 0;
     public static final double kD = 0;
@@ -69,9 +67,9 @@ public final class Constants {
     public static final double kV = 0;
     public static final double kA = 0;
 
-    // TODO: Get these values
-    public static final double storedAngle = 90;
-    public static final double collectionAngle = 0;
+    // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
+    public static final double storedRotations = 0.26;
+    public static final double collectionRotations = 0.002;
   }
   public static class OuttakeConstants {
     public static final int highMotorId = 20;

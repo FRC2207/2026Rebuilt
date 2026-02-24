@@ -153,8 +153,8 @@ public class RobotContainer {
 
     driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
 
-    driveXbox.povUp().whileTrue(intake.rotateUp());
-    driveXbox.povDown().whileTrue(intake.rotateDown());
+    driveXbox.povUp().whileTrue(intake.gotoStoredPos());
+    driveXbox.povDown().whileTrue(intake.gotoCollectionPos());
 
     driveXbox.rightTrigger().onTrue(intake.intake()).onFalse(intake.stop());
 

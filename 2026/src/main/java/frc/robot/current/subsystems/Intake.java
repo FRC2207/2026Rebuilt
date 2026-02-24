@@ -90,25 +90,29 @@ public class Intake extends SubsystemBase {
 
   public Command gotoStoredPos() {
     return Commands.runOnce(() -> {
-        pivotMotor.setMotorPosition(Constants.IntakeConstants.storedAngle);
+        pivotMotor.setMotorPosition(Constants.IntakeConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
     return Commands.runOnce(() -> {
-        pivotMotor.setMotorPosition(Constants.IntakeConstants.collectionAngle);
+        pivotMotor.setMotorPosition(Constants.IntakeConstants.collectionRotations);
     }, this);
   }
 
+  // DO NOT USE
   public Command rotateUp() {
+    // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() + 1);
+      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() + 0.01);
     }, this);
   }
 
+  // DO NOT USE
   public Command rotateDown() {
+    // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() - 1);
+      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() - 0.01);
     }, this);
   }
 
