@@ -56,11 +56,33 @@ public class PositionIOSparkMax implements PositionControllerIO{
         return motorEncoder.getVelocity();
     }
 
+    /** Sets the motor position in rotations */
     public void setMotorPosition(double setpoint) {
         pidController.setSetpoint(setpoint, SparkBase.ControlType.kPosition);
     }
 
+    /** Sets the motor position in degrees */
+    public void setMotorPositionDegrees(double setpoint) {
+        setMotorPosition(setpoint / 360);
+    }
+
+    /** Sets the motor position in radians */
+    public void setMotorPositionRadians(double setpoint) {
+        setMotorPosition(setpoint / (2 * Math.PI));
+    }
+
+    /** Returns the motor setpoint in rotations */
     public double getMotorSetpoint() {
         return pidController.getSetpoint();
+    }
+
+    /** Returns the motor setpoint in degrees */
+    public double getMotorSetpointDegrees() {
+        return getMotorSetpoint() * 360;
+    }
+
+    /** Returns the motor setpoint in radians */
+    public double getMotorSetpointRadians() {
+        return getMotorSetpoint() * 2 * Math.PI;
     }
 }

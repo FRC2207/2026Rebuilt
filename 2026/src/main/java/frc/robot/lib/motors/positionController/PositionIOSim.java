@@ -30,6 +30,12 @@ public class PositionIOSim implements PositionControllerIO{
     }
 
     @Override
+    public void setMotorVoltage(double volts) {
+        motorAppliedVolts = MathUtil.clamp(volts, -12, 12);
+        motorSim.setBusVoltage(motorAppliedVolts);
+    }
+
+    @Override
     public double getEncoder() {
         return motorSim.getAbsoluteEncoderSim().getPosition();
     }
@@ -46,14 +52,24 @@ public class PositionIOSim implements PositionControllerIO{
         // pidController.setSetpoint(setpoint, SparkBase.ControlType.kPosition);
     }
 
-    @Override
-    public void setMotorVoltage(double volts) {
-        motorAppliedVolts = MathUtil.clamp(volts, -12, 12);
-        motorSim.setBusVoltage(motorAppliedVolts);
+    public void setMotorPositionDegrees(double degrees) {
+        // setMotorPosition(degrees / 360);
+    }
+
+    public void setMotorPositionRadians(double radians) {
+        // setMotorPosition(radians / (2 * Math.PI));
     }
 
     public double getMotorSetpoint() {
         // TODO: Implement
         return 0;
+    }
+
+    public double getMotorSetpointDegrees() {
+        return getMotorSetpoint() * 360;
+    }  
+
+    public double getMotorSetpointRadians() {
+        return getMotorSetpoint() * 2 * Math.PI;
     }
 }

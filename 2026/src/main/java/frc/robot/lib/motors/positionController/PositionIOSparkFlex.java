@@ -1,7 +1,5 @@
 package frc.robot.lib.motors.positionController;
 
-import static edu.wpi.first.units.Units.Rotation;
-
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
@@ -54,11 +52,33 @@ public class PositionIOSparkFlex implements PositionControllerIO{
         return motorEncoder.getVelocity();
     }
 
-    public void setMotorPosition(double rotations) {
-        pidController.setSetpoint(rotations, SparkBase.ControlType.kPosition);
+    /** Sets the motor position in rotations */
+    public void setMotorPosition(double setpoint) {
+        pidController.setSetpoint(setpoint, SparkBase.ControlType.kPosition);
     }
 
+    /** Sets the motor position in degrees */
+    public void setMotorPositionDegrees(double setpoint) {
+        setMotorPosition(setpoint / 360);
+    }
+
+    /** Sets the motor position in radians */
+    public void setMotorPositionRadians(double setpoint) {
+        setMotorPosition(setpoint / (2 * Math.PI));
+    }
+
+    /** Returns the motor setpoint in rotations */
     public double getMotorSetpoint() {
         return pidController.getSetpoint();
+    }
+
+    /** Returns the motor setpoint in degrees */
+    public double getMotorSetpointDegrees() {
+        return getMotorSetpoint() * 360;
+    }
+
+    /** Returns the motor setpoint in radians */
+    public double getMotorSetpointRadians() {
+        return getMotorSetpoint() * 2 * Math.PI;
     }
 }

@@ -24,6 +24,7 @@ public class Outtake extends SubsystemBase {
     private VelocityController lowMotor;
 
     private Drive swerve;
+    private Hopper hopper;
     private Boolean hopperEmpty = false;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
@@ -31,8 +32,9 @@ public class Outtake extends SubsystemBase {
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
 
-    public Outtake(Drive drive) {
+    public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
+        this.hopper = hopper;
         SparkFlexConfig lowConfig = new SparkFlexConfig();
         SparkFlexConfig highConfig = new SparkFlexConfig();
         lowConfig.inverted(false);
@@ -103,6 +105,7 @@ public class Outtake extends SubsystemBase {
 
         return Commands.sequence(
                 runOnce(() -> {
+                    hopper.run();
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
                 }),
@@ -117,7 +120,8 @@ public class Outtake extends SubsystemBase {
         double motorTwoSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
-                run(() -> {
+                runOnce(() -> {
+                    hopper.run();
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
                 }));
@@ -131,7 +135,7 @@ public class Outtake extends SubsystemBase {
                     double velocity = getVelocityTarget(
                         checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
                         ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose));
-
+                    hopper.run();
                     highMotor.setSpeed(velocity * 1.25);
                     lowMotor.setSpeed(velocity);
                 }));
@@ -139,7 +143,8 @@ public class Outtake extends SubsystemBase {
 
     /** Stops all the motors */
     public Command stop() {
-        return Commands.run(() -> {
+        return Commands.runOnce(() -> {
+            hopper.stop();
             highMotor.setVoltage(0);
             lowMotor.setVoltage(0);
         },

@@ -20,6 +20,7 @@ import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
@@ -78,8 +79,9 @@ public class RobotContainer {
         new VisionIOPhotonVision(camera3Name, robotToCamera3)
         ); 
 
-    outtake = new Outtake(drive);
-    
+    Hopper hopper = new Hopper();
+
+    outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
 
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
@@ -149,14 +151,14 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
     
-    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
 
-    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
+    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
 
     driveXbox.povUp().onTrue(intake.gotoStoredPos());
     driveXbox.povDown().onTrue(intake.gotoCollectionPos());
 
-    driveXbox.rightTrigger().onTrue(intake.intake()).onFalse(intake.stop());
+    driveXbox.rightTrigger().onTrue(intake.intake().alongWith(intake.gotoCollectionPos())).onFalse(intake.stop());
 
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {
