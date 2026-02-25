@@ -18,6 +18,7 @@ import frc.robot.lib.motors.velocityController.VelocityIOSparkMax;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.lib.ObjectVision.ObjectVision;
 
 public class Outtake extends SubsystemBase {
     private VelocityController highMotor;
@@ -31,10 +32,12 @@ public class Outtake extends SubsystemBase {
 
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
+    private ObjectVision objectVision;
 
-    public Outtake(Drive drive, Hopper hopper) {
+    public Outtake(Drive drive, Hopper hopper, ObjectVision objectVision) {
         this.swerve = drive;
         this.hopper = hopper;
+        this.objectVision = objectVision;
         SparkFlexConfig lowConfig = new SparkFlexConfig();
         SparkFlexConfig highConfig = new SparkFlexConfig();
         lowConfig.inverted(false);
@@ -124,6 +127,12 @@ public class Outtake extends SubsystemBase {
                     hopper.run();
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
+                }),
+                Commands.waitUntil(() -> !objectVision.hopperSeesObject()),
+                runOnce(() -> {
+                    hopper.stop();
+                    highMotor.stop();
+                    lowMotor.stop();
                 }));
     }
 

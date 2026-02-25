@@ -91,10 +91,10 @@ public class RobotContainer {
         ); 
 
     Hopper hopper = new Hopper();
-
-    outtake = new Outtake(drive, hopper);
-
     objectDetectionVision = new ObjectVision(new ObjectVisionIODetection(drive));
+
+    outtake = new Outtake(drive, hopper, objectDetectionVision);
+
     
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
