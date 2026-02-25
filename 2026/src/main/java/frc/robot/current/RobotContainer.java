@@ -26,10 +26,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.ExamplePivot;
+import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
@@ -38,7 +38,6 @@ import frc.robot.lib.ObjectVision.ObjectVisionIODetection;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIOPhotonVision;
-
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -94,6 +93,8 @@ public class RobotContainer {
     Hopper hopper = new Hopper();
 
     outtake = new Outtake(drive, hopper);
+
+    objectDetectionVision = new ObjectVision(new ObjectVisionIODetection(drive));
     
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
@@ -162,9 +163,9 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
     
-    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    driveXbox.rightBumper().and(objectDetectionVision::hopperSeesObject).onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
+    driveXbox.leftBumper().and(objectDetectionVision::hopperSeesObject).onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
 
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {
