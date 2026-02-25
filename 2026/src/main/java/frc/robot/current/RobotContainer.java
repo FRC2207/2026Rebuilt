@@ -56,8 +56,7 @@ public class RobotContainer {
   private LedOperation leds;
   private Intake intake;
   private Vision vision;
-  private ObjectVision hopperObjectVision;
-  private ObjectVision fieldObjectVision;
+  private ObjectVision objectDetectionVision;
   private Outtake outtake;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -92,12 +91,8 @@ public class RobotContainer {
         new VisionIOPhotonVision(camera3Name, robotToCamera3)
       );
 
-    hopperObjectVision = new ObjectVision(
-      new ObjectVisionIODetection(drive, "hopper")
-    );
-
-    fieldObjectVision = new ObjectVision(
-      new ObjectVisionIODetection(drive, "field")
+    objectDetectionVision = new ObjectVision(
+      new ObjectVisionIODetection(drive)
     );
     
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());

@@ -15,11 +15,7 @@ public class ObjectVision extends SubsystemBase {
         return io.getPath();
     }
 
-    public Pose2d[] subsystemData(String subsystemName) {
-        return io.subsystemData(subsystemName);
-    }
-
-    public Boolean seesObject() {
-        return io.seesObject();
+    public Boolean hopperSeesObject() {
+        return io.hopperSeesObject();
     }
 }
