@@ -4,6 +4,15 @@
 
 package frc.robot.current;
 
+import static frc.robot.lib.vision.VisionConstants.camera0Name;
+import static frc.robot.lib.vision.VisionConstants.camera1Name;
+import static frc.robot.lib.vision.VisionConstants.camera2Name;
+import static frc.robot.lib.vision.VisionConstants.camera3Name;
+import static frc.robot.lib.vision.VisionConstants.robotToCamera0;
+import static frc.robot.lib.vision.VisionConstants.robotToCamera1;
+import static frc.robot.lib.vision.VisionConstants.robotToCamera2;
+import static frc.robot.lib.vision.VisionConstants.robotToCamera3;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -24,10 +33,11 @@ import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
+import frc.robot.lib.ObjectVision.ObjectVision;
+import frc.robot.lib.ObjectVision.ObjectVisionIODetection;
 import frc.robot.lib.commands.DriveCommands;
-import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.Vision;
-import static frc.robot.lib.vision.VisionConstants.*;
+import frc.robot.lib.vision.VisionIOPhotonVision;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -42,11 +52,12 @@ public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
   private ExamplePivot exPivot;
-  //private SwerveDrive swerveDrive;
+  // private SwerveDrive swerveDrive;
   private Drive drive;
   private LedOperation leds;
   private Intake intake;
   private Vision vision;
+  private ObjectVision objectDetectionVision;
   private Outtake outtake;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -183,6 +194,6 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return autoChooser.get();
     // An example command will be run in autonomous
-    //return null;
+    // return null;
   }
 }

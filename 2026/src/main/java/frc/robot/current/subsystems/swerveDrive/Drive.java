@@ -10,6 +10,7 @@ package frc.robot.current.subsystems.swerveDrive;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.current.subsystems.swerveDrive.DriveConstants.*;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -174,6 +175,10 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Constants.Mode.SIM);
+  }
+
+  public SwerveDriveKinematics getSwerveKinematics() {
+    return kinematics;
   }
 
   /**
