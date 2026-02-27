@@ -1,8 +1,6 @@
 package frc.robot.lib.motors.positionController;
 
 import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
@@ -16,7 +14,6 @@ public class PositionIOSim implements PositionControllerIO{
     private SparkMaxSim motorSim = new SparkMaxSim(sparkMax, maxGearbox);
 
     private double motorAppliedVolts = 0.0;
-    private SparkClosedLoopController pidController;
 
     @Override
     public void updateInputs(PositionControllerIOInputs inputs) {    
