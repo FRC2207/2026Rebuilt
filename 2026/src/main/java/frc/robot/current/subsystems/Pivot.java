@@ -1,5 +1,6 @@
 package frc.robot.current.subsystems;
 
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import org.littletonrobotics.junction.Logger;
 
@@ -27,6 +28,8 @@ public class Pivot extends SubsystemBase {
     pivotConfig.smartCurrentLimit(40);
     pivotConfig.absoluteEncoder.inverted(true);
     pivotConfig.absoluteEncoder.zeroCentered(true);
+
+    pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
 
     pivotConfig.closedLoop
         .p(PivotConstants.kP)

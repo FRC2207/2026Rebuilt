@@ -9,7 +9,6 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.current.Constants;
 import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.lib.motors.positionController.PositionController;
 import frc.robot.lib.motors.positionController.PositionIOSim;
@@ -66,7 +65,6 @@ public class ExamplePivot extends SubsystemBase{
         }
 
         requestedPivotGoal = 45;
-        motor.setEnabled(false);
     }
 
     public void periodic() {

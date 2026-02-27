@@ -3,7 +3,6 @@ package frc.robot.current.subsystems;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -13,8 +12,6 @@ import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.velocityController.VelocityController;
 import frc.robot.lib.motors.velocityController.VelocityIOSparkFlex;
-import frc.robot.lib.motors.velocityController.VelocityIOSparkMax;
-
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -153,6 +150,10 @@ public class Outtake extends SubsystemBase {
 
     public double getVelocityTarget(double distance) {
         return launchMap.get(distance);
+    }
+
+    public Boolean getHopperEmpty() {
+        return hopperEmpty;
     }
 
     /** Checks the distance from the bot to the target */

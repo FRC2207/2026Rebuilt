@@ -13,13 +13,11 @@ import edu.wpi.first.math.MathUtil;
 
 public class PositionIOSparkMax implements PositionControllerIO{
     private final SparkMax motor;
-    private final double pivotOffset;
 
     private final SparkAbsoluteEncoder motorEncoder;
     private SparkClosedLoopController pidController;
 
     public PositionIOSparkMax(int deviceId, SparkMaxConfig motorConfig, double pivotOffset) {
-        this.pivotOffset = pivotOffset;
         motor = new SparkMax(deviceId, MotorType.kBrushless);
 
         motorEncoder = motor.getAbsoluteEncoder();
