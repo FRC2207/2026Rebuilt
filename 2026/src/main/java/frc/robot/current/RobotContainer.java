@@ -55,8 +55,7 @@ public class RobotContainer {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  // private final CommandXboxController controlXbox = new
-  // CommandXboxController(OperatorConstants.kOtherControllerPort);
+  private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
   private final LoggedDashboardChooser<Command> autoChooser;
   private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
@@ -157,15 +156,15 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
 
-    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
+    controlXbox.rightTrigger().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
 
-    driveXbox.povUp().onTrue(pivot.gotoStoredPos());
-    driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
+    controlXbox.povUp().onTrue(pivot.gotoStoredPos());
+    controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-    driveXbox.rightTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-    driveXbox.leftTrigger().onTrue(intake.spit());
+    controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+    controlXbox.leftBumper().onTrue(intake.spit());
 
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {
