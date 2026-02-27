@@ -16,14 +16,15 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
-import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
-import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
+import frc.robot.current.subsystems.swerveDrive.GyroIO;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
+import frc.robot.current.subsystems.swerveDrive.ModuleIO;
+import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
@@ -45,7 +46,6 @@ public class RobotContainer {
   // private ExamplePivot exPivot;
   // private SwerveDrive swerveDrive;
   private Drive drive;
-  private LedOperation leds;
   private Intake intake;
   private Pivot pivot;
   private Vision vision;
@@ -68,13 +68,35 @@ public class RobotContainer {
 
     // leds = new LedOperation();
     // exPivot = new ExamplePivot(Constants.robot);
+    switch (Constants.currentMode) {
+      case REAL:
+  
+        drive = new Drive(
+            new GyroIONavX(),
+            new ModuleIOSpark(0),
+            new ModuleIOSpark(1),
+            new ModuleIOSpark(2), 
+            new ModuleIOSpark(3));
+        break;
+      
+      case SIM:
+        drive = new Drive(
+            new GyroIO() {},
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim());
+      break;
 
-    drive = new Drive(
-        new GyroIONavX(),
-        new ModuleIOSpark(0),
-        new ModuleIOSpark(1),
-        new ModuleIOSpark(2),
-        new ModuleIOSpark(3));
+      default:
+        drive = new Drive(
+            new GyroIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {});
+        break;
+    }  
 
     if (cameraYes == true) {
       vision = new Vision(drive::addVisionMeasurement,
