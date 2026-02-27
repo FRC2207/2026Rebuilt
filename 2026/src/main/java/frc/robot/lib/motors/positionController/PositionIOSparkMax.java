@@ -24,6 +24,7 @@ public class PositionIOSparkMax implements PositionControllerIO{
 
         motorEncoder = motor.getAbsoluteEncoder();
         motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        
 
         pidController = motor.getClosedLoopController();
     }
@@ -44,7 +45,7 @@ public class PositionIOSparkMax implements PositionControllerIO{
 
     public double getEncoder() {
         // testNumber = (testNumber > 100) ? 0 : (testNumber + .01);
-        return (motorEncoder.getPosition() * 360) + pivotOffset;
+        return (motorEncoder.getPosition());
         //return testNumber;
     }
 
@@ -52,7 +53,7 @@ public class PositionIOSparkMax implements PositionControllerIO{
         return motorEncoder.getPosition();
     }
 
-    public double getVelocity(){
+    public double getVelocity() {
         return motorEncoder.getVelocity();
     }
 

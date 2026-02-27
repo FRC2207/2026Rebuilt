@@ -56,25 +56,37 @@ public final class Constants {
 
   public static class IntakeConstants {
     public static final int intakeID = 41;
-    public static final int pivotID = 40;
     public static final double intakeSpeed = 0.5;
 
     // PID
-    public static final double kP = 1.3;
+    public static final double kP = 0.00007;
+    public static final double kI = 0;
+    public static final double kD = 0.0003;
+    public static final double kS = 0;
+    public static final double kV = 0.00195;
+    public static final double kA = 0;
+  }
+
+  public static class PivotConstants {
+    public static final int pivotID = 40;
+
+    // PID
+    public static final double kP = 1.6;
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kS = 0;
     public static final double kV = 0;
     public static final double kA = 0;
+    public static final double kG = .42;
 
-    // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
-    public static final double storedRotations = 0.26;
-    public static final double collectionRotations = 0.002;
+     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
+    public static final double storedRotations = 0.25;
+    public static final double collectionRotations = 0.0;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = 0.25; // Motor Speed as a percentage
+    public static final double motorSpeed = 0.35; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {

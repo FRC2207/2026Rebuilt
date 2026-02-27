@@ -20,6 +20,7 @@ import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
@@ -41,13 +42,16 @@ import static frc.robot.lib.vision.VisionConstants.*;
 public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
-  private ExamplePivot exPivot;
-  //private SwerveDrive swerveDrive;
+  // private ExamplePivot exPivot;
+  // private SwerveDrive swerveDrive;
   private Drive drive;
   private LedOperation leds;
   private Intake intake;
+  private Pivot pivot;
   private Vision vision;
   private Outtake outtake;
+
+  private static Boolean cameraYes = false;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -72,17 +76,19 @@ public class RobotContainer {
         new ModuleIOSpark(2),
         new ModuleIOSpark(3));
 
-    vision = new Vision(drive::addVisionMeasurement,
-        new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        new VisionIOPhotonVision(camera1Name, robotToCamera1),
-        new VisionIOPhotonVision(camera2Name, robotToCamera2),
-        new VisionIOPhotonVision(camera3Name, robotToCamera3)
-        ); 
+    if (cameraYes == true) {
+      vision = new Vision(drive::addVisionMeasurement,
+          new VisionIOPhotonVision(camera0Name, robotToCamera0),
+          new VisionIOPhotonVision(camera1Name, robotToCamera1),
+          new VisionIOPhotonVision(camera2Name, robotToCamera2),
+          new VisionIOPhotonVision(camera3Name, robotToCamera3));
+    }
 
     Hopper hopper = new Hopper();
 
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
+    pivot = new Pivot(drive);
 
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
@@ -99,7 +105,7 @@ public class RobotContainer {
           drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
       autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
       autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
 
     }
     // Configure the trigger bindings
@@ -150,15 +156,16 @@ public class RobotContainer {
                     new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                 drive)
                 .ignoringDisable(true));
-    
-    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
 
-    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop().alongWith(intake.gotoStoredPos()));
+    driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    driveXbox.povUp().onTrue(intake.gotoStoredPos());
-    driveXbox.povDown().onTrue(intake.gotoCollectionPos());
+    driveXbox.leftBumper().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
 
-    driveXbox.rightTrigger().onTrue(intake.intake().alongWith(intake.gotoCollectionPos())).onFalse(intake.stop());
+    driveXbox.povUp().onTrue(pivot.gotoStoredPos());
+    driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
+
+    driveXbox.rightTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+    driveXbox.leftTrigger().onTrue(intake.spit());
 
     // exPivot.setDefaultCommand(
     // Commands.run(() -> {
@@ -188,6 +195,6 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return autoChooser.get();
     // An example command will be run in autonomous
-    //return null;
+    // return null;
   }
 }

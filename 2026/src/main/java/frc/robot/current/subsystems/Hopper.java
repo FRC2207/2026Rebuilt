@@ -2,9 +2,6 @@ package frc.robot.current.subsystems;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSparkMax;
@@ -39,6 +36,5 @@ public class Hopper {
 
     public void stop() {
         motor.setPercent(0);
-
     }
 }

@@ -1,8 +1,6 @@
 package frc.robot.current.subsystems;
 
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -10,121 +8,70 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
-import frc.robot.lib.motors.motorController.MotorController;
-import frc.robot.lib.motors.motorController.MotorIOSparkFlex;
-import frc.robot.lib.motors.positionController.PositionController;
-import frc.robot.lib.motors.positionController.PositionIOSparkMax;
+import frc.robot.lib.motors.velocityController.VelocityController;
+import frc.robot.lib.motors.velocityController.VelocityIOSparkFlex;
 
 public class Intake extends SubsystemBase {
-  private MotorController intakeMotor;
-  private PositionController pivotMotor;
+  private VelocityController intakeMotor;
 
-  private final int intakeMotorID = Constants.IntakeConstants.intakeID;
-  private final int pivotMotorID = Constants.IntakeConstants.pivotID;
+  private final int intakeMotorId = Constants.IntakeConstants.intakeID;
   private final String robotType = Constants.robot;
 
   public Boolean isIntaking = false;
-  public Boolean isUp = false;
   
   public Intake(Drive drive) {
 
     SparkFlexConfig intakeConfig = new SparkFlexConfig();
     intakeConfig.inverted(true);
     intakeConfig.smartCurrentLimit(30);
-
-    SparkMaxConfig pivotConfig = new SparkMaxConfig();
-    pivotConfig.inverted(false);
-    pivotConfig.smartCurrentLimit(30);
-
-    pivotConfig.closedLoop
-            .p(IntakeConstants.kP)
-            .i(IntakeConstants.kI)
-            .d(IntakeConstants.kD)
-        .feedForward // Set Feedforward gains for the velocity controller
-            .kS(IntakeConstants.kS) // Static gain (volts)
-            .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
-            .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
+    intakeConfig.closedLoop
+                .p(IntakeConstants.kP)
+                .i(IntakeConstants.kI)
+                .d(IntakeConstants.kD)
+            .feedForward // Set Feedforward gains for the velocity controller
+                .kS(IntakeConstants.kS) // Static gain (volts)
+                .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
+                .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new MotorController(new MotorIOSparkFlex(intakeMotorID, intakeConfig, 35), "Intake", "1");
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig, 0.0),"Intake");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Outtake", "1");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSparkFlex(intakeMotorID, intakeConfig, 30), "Intake", "1");
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig,0.0), "Intake");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Outtake", "1");
         break;
     }
   }
 
   public void periodic() {
     intakeMotor.updateInputs();
-    pivotMotor.updateInputs();
-  }
-
-  public void initialization(){
-    setPivotPosition(pivotMotor.getAngle());
   }
 
   public void setVoltage(double volts) {
     intakeMotor.setVoltage(volts);
   }
 
-  public void setPivotPosition(double setpoint){
-    pivotMotor.setMotorPosition(setpoint);
-  }
-
   public Command spit() { 
-    double percent = 0.2;
+    double percent = 2000;
 
     return Commands.sequence(
         runOnce(() -> {
-          intakeMotor.setPercent(percent);
+          intakeMotor.setSpeed(percent);
         }),
         Commands.waitSeconds(.5),
         runOnce(() -> {
-          intakeMotor.setPercent(0);
+          intakeMotor.setVoltage(0);
         }));
-  }
-
-  public Command gotoStoredPos() {
-    return Commands.runOnce(() -> {
-        pivotMotor.setMotorPosition(Constants.IntakeConstants.storedRotations);
-    }, this);
-  }
-
-  public Command gotoCollectionPos() {
-    return Commands.runOnce(() -> {
-        pivotMotor.setMotorPosition(Constants.IntakeConstants.collectionRotations);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateUp() {
-    // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.run(() -> {
-      isUp = true;
-      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() + 0.01);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateDown() {
-    // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.run(() -> {
-      isUp = false;
-      pivotMotor.setMotorPosition(pivotMotor.getMotorSetpoint() - 0.01);
-    }, this);
   }
 
   public Command intake() {
     return Commands.runOnce(() -> {
       isIntaking = true;
-      intakeMotor.setPercent(Constants.IntakeConstants.intakeSpeed);
+      intakeMotor.setSpeed(-3500);
     }, this);
   }
 
