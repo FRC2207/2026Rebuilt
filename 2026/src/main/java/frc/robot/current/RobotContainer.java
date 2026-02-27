@@ -7,6 +7,7 @@ package frc.robot.current;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -95,6 +96,12 @@ public class RobotContainer {
     // Add autonomous routines to the SendableChooser
     autoDefault = drive.sysIdDynamic(SysIdRoutine.Direction.kForward);
     autoChooser.addDefaultOption("Default Auto", autoDefault);
+
+    NamedCommands.registerCommand("Launch", outtake.quickLaunch());
+    NamedCommands.registerCommand("IntakeOn", intake.intake());
+    NamedCommands.registerCommand("IntakeOff", intake.stop());
+    NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
+    NamedCommands.registerCommand("PivotUp", pivot.gotoCollectionPos());
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));

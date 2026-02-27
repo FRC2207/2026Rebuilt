@@ -11,40 +11,34 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
+                "type": "path",
+                "data": {
+                  "pathName": "Center Shoot to Outpost"
+                }
+              },
+              {
                 "type": "named",
                 "data": {
                   "name": "PivotDown"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Sweep"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeOn"
                 }
               }
             ]
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 3.0
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Lower Trench to hub"
+            "pathName": "Outpost to hub"
           }
         },
         {
