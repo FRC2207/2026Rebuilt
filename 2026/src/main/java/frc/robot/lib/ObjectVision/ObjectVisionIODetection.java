@@ -3,16 +3,23 @@ package frc.robot.lib.ObjectVision;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
+
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 
 public class ObjectVisionIODetection implements ObjectVisionIO {
@@ -24,10 +31,18 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
     private DoubleArraySubscriber yPointsSubscriberField;
 
     private BooleanSubscriber hopperSubscriber;
-    private final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(2.0, 1.0); // m/s, m/s^2
+    private PathConstraints constraints;
+    private double recalculatePathPeriod = 0.5;
 
     public ObjectVisionIODetection(Drive drive) {
         this.swerve = drive;
+        
+        constraints = new PathConstraints(
+            swerve.getMaxLinearSpeedMetersPerSec(), // Max velocity
+            2.0, // Max acceleration hopefully 2 mps^2 is safe
+            swerve.getMaxAngularSpeedRadPerSec(), // Max rotation velocity
+            Units.degreesToRadians(720) // Max rotation acceleration, this is probaly okay
+        );
 
         xPointsSubscriberField = table.getDoubleArrayTopic("field_positions_X").subscribe(new double[] {});
         yPointsSubscriberField = table.getDoubleArrayTopic("field_positions_Y").subscribe(new double[] {});
@@ -81,7 +96,7 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
         }
     }
 
-    private List<Translation2d> getFieldPositions() {
+    private List<Translation2d> getObjectPostionsRelativeToRobot() {
         double[] fuelPointsX = getFuelPointsX();
         double[] fuelPointsY = getFuelPointsY();
 
@@ -98,36 +113,54 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
      * this should return a robot relative Trajectory idk how to implement that
      */
     @Override
-    public Trajectory getPath() {
+    public Command getPath() {
         if (xPointsSubscriberField.exists() && yPointsSubscriberField.exists()) {
-            List<Translation2d> translationPoints = getFieldPositions();
+            List<Translation2d> relativePoints = getObjectPostionsRelativeToRobot();
 
-            trajectoryConfig.setKinematics(swerve.getSwerveKinematics());
+            List<Pose2d> poses = new ArrayList<>();
+            poses.add(new Pose2d(0, 0, new Rotation2d()));
 
-            Pose2d startPosition = swerve.getPose();
-            Pose2d endPosition;
-            // Im gonna set this up two ways, and uncomment the best one
-            // 1. Endoint is like 4 meters in front of the robot
-            endPosition = swerve.getPose().transformBy(new Transform2d(4, 0, swerve.getRotation()));
-            // 2. Final point which will be the point farthest from the robot (my python
-            // code will handle that)
-            // endPosition = new Pose2d(fuelPointsX[fuelPointsX.length - 1],
-            // fuelPointsY[fuelPointsY.length - 1], new Rotation2d());
+            for (Translation2d pt : relativePoints) {
+                poses.add(new Pose2d(pt, new Rotation2d())); 
+            }
 
-            // TODO: implement object avoidance here but idk how
-            return TrajectoryGenerator.generateTrajectory(
-                    startPosition,
-                    translationPoints,
-                    endPosition,
-                    trajectoryConfig).relativeTo(swerve.getPose());
+            double currentSpeed = swerve.getLinearVelocity();
+
+            // If almost stopped, use like a small kick start at 0.5 mps^2
+            double targetEndSpeed = Math.max(currentSpeed, 0.5); 
+
+            List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
+
+            PathPlannerPath path = new PathPlannerPath(
+                waypoints,
+                constraints,
+                null, // starting rotation, null will set it to current
+                new GoalEndState(targetEndSpeed, swerve.getRotation()) // This means it tries to end at the current speed goo
+            );
+
+            path.preventFlipping = true; // smth to do with alliance color, this should be correct
+            return AutoBuilder.followPath(path);
         } else {
             return null;
         }
     }
 
     @Override
+    public Command getDynamicPath() {
+        return Commands.deferredProxy(() -> {
+            Command followCommand = getPath(); 
+            
+            if (followCommand == null) return Commands.waitSeconds(0.1);
+
+            return followCommand.withTimeout(recalculatePathPeriod); 
+        })
+        .repeatedly()
+        .finallyDo(() -> swerve.runVelocity(new ChassisSpeeds())); // Emergency stop
+    }
+
+    @Override
     public void updateInputs(objectVisionIOInputs inputs) {
-        inputs.fieldPositions = getFieldPositions();
+        inputs.fieldPositions = getObjectPostionsRelativeToRobot();
         inputs.hopperSeesObject = hopperSeesObject();
     }
 }

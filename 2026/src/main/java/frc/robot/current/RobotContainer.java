@@ -153,6 +153,12 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
+    // This will not recalculate when ball moves
+    // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
+    // This will recalculate every 0.5 seconds I think, more complex and less likely to work
+    driveXbox.rightTrigger().whileTrue(
+      objectDetectionVision.getDynamicPath()
+    );
     // Reset gyro to 0° when B button is pressed
     driveXbox
         .b()
