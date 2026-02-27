@@ -25,7 +25,7 @@ public class Pivot extends SubsystemBase {
 
     SparkMaxConfig pivotConfig = new SparkMaxConfig();
     pivotConfig.inverted(false);
-    pivotConfig.smartCurrentLimit(40);
+    pivotConfig.smartCurrentLimit(30);
     pivotConfig.absoluteEncoder.inverted(true);
     pivotConfig.absoluteEncoder.zeroCentered(true);
 
