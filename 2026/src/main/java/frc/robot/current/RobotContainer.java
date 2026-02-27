@@ -88,7 +88,7 @@ public class RobotContainer {
 
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
-    pivot = new Pivot(drive);
+    pivot = new Pivot();
 
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 

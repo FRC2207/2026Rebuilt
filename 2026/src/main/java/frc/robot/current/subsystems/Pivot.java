@@ -20,7 +20,7 @@ public class Pivot extends SubsystemBase {
 
   public Boolean isUp = false;
 
-  public Pivot(Drive drive) {
+  public Pivot() {
 
     SparkMaxConfig pivotConfig = new SparkMaxConfig();
     pivotConfig.inverted(false);
