@@ -7,6 +7,8 @@ package frc.robot.current;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,6 +23,7 @@ import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -53,6 +56,7 @@ public class RobotContainer {
   private Outtake outtake;
 
   private static Boolean cameraYes = false;
+  private PathFollower pathFollower;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -86,7 +90,7 @@ public class RobotContainer {
     }
 
     Hopper hopper = new Hopper();
-
+pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
@@ -141,6 +145,14 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () -> -driveXbox.getRightX()));
 
+    driveXbox.back()
+        .whileTrue(
+            DriveCommands.joystickDrive(
+                drive,
+                () -> -0.25 * driveXbox.getLeftY(),
+                () -> -0.25 * driveXbox.getLeftX(),
+                () -> -0.25 * driveXbox.getRightX()));
+
     // Lock to 0° when A button is held
     driveXbox
         .a()
@@ -150,6 +162,12 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftY(),
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
+
+    driveXbox.leftBumper().whileTrue(
+        DriveCommands.joystickDrivePointTarget(
+            drive,
+            () -> -driveXbox.getLeftY(),
+            FieldConstants.Elements.blueHubPose));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -200,6 +218,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+
     return autoChooser.get();
     // An example command will be run in autonomous
     // return null;
