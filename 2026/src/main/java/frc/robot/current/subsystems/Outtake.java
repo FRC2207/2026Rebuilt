@@ -126,7 +126,7 @@ public class Outtake extends SubsystemBase {
 
     // Runs the launcher at variable RPM in relation to distance from the hub.
     // Motors stop when the hopper is empty
-    public Command variableLaunch() {
+    public Command variableLaunchMap() {
         return Commands.sequence(
                 run(() -> {
                     double velocity = getVelocityTarget(
@@ -136,6 +136,17 @@ public class Outtake extends SubsystemBase {
                     highMotor.setSpeed(velocity * 1.25);
                     lowMotor.setSpeed(velocity);
                 }));
+    }
+
+    public Command variableLaunchEquation(){
+        return Commands.run(() -> {
+            double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
+                        ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose);
+            double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732)/4.9) * 14.04848);
+            hopper.run();
+            highMotor.setSpeed(velocity * 1.25);
+            lowMotor.setSpeed(velocity);
+        },this);
     }
 
     /** Stops all the motors */
