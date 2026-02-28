@@ -80,13 +80,13 @@ public final class Constants {
     public static final double kG = .42;
 
      // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
-    public static final double storedRotations = 0.25;
+    public static final double storedRotations = 0.23;
     public static final double collectionRotations = 0.0;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = 0.35; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.35; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {

@@ -21,11 +21,11 @@ public class Pivot extends SubsystemBase {
 
   public Boolean isUp = false;
 
-  public Pivot(Drive drive) {
+  public Pivot() {
 
     SparkMaxConfig pivotConfig = new SparkMaxConfig();
     pivotConfig.inverted(false);
-    pivotConfig.smartCurrentLimit(40);
+    pivotConfig.smartCurrentLimit(30);
     pivotConfig.absoluteEncoder.inverted(true);
     pivotConfig.absoluteEncoder.zeroCentered(true);
 
