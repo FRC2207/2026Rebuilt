@@ -12,7 +12,7 @@
         "y": 3.662040130952075
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "HubCenter"
     },
     {
       "anchor": {
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

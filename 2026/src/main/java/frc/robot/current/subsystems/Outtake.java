@@ -97,7 +97,7 @@ public class Outtake extends SubsystemBase {
     }
 
     public Command quickLaunch() {
-        double motorOneSpeed = OuttakeConstants.velocityDefault;
+        double motorOneSpeed = OuttakeConstants.velocityDefault * 1.25;
         double motorTwoSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
@@ -106,7 +106,7 @@ public class Outtake extends SubsystemBase {
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
                 }),
-                Commands.waitSeconds(1),
+                Commands.waitSeconds(10),
                 runOnce(() -> {
                     stop();
                 }));

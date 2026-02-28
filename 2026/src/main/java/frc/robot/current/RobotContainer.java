@@ -7,6 +7,9 @@ package frc.robot.current;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -51,19 +55,20 @@ public class RobotContainer {
   private Vision vision;
   private Outtake outtake;
 
-  private static Boolean cameraYes = false;
+    private static Boolean cameraYes = false;
+    private PathFollower pathFollower;
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
+    // Replace with CommandPS4Controller or CommandJoystick if needed
+    private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+    private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final LoggedDashboardChooser<Command> autoChooser;
-  private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
+    private final LoggedDashboardChooser<Command> autoChooser;
+    private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
-  public RobotContainer() {
+    /**
+     * The container for the robot. Contains subsystems, OI devices, and commands.
+     */
+    public RobotContainer() {
 
     // leds = new LedOperation();
     // exPivot = new ExamplePivot(Constants.robot);
@@ -98,116 +103,141 @@ public class RobotContainer {
         break;
     }  
 
-    if (cameraYes == true) {
-      vision = new Vision(drive::addVisionMeasurement,
-          new VisionIOPhotonVision(camera0Name, robotToCamera0),
-          new VisionIOPhotonVision(camera1Name, robotToCamera1),
-          new VisionIOPhotonVision(camera2Name, robotToCamera2),
-          new VisionIOPhotonVision(camera3Name, robotToCamera3));
+        if (cameraYes == true) {
+            vision = new Vision(drive::addVisionMeasurement,
+                    new VisionIOPhotonVision(camera0Name, robotToCamera0),
+                    new VisionIOPhotonVision(camera1Name, robotToCamera1),
+                    new VisionIOPhotonVision(camera2Name, robotToCamera2),
+                    new VisionIOPhotonVision(camera3Name, robotToCamera3));
+        }
+
+        Hopper hopper = new Hopper();
+        pathFollower = new PathFollower(drive);
+        outtake = new Outtake(drive, hopper);
+        intake = new Intake(drive);
+        pivot = new Pivot();
+
+        autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+
+        // Add autonomous routines to the SendableChooser
+        autoDefault = drive.sysIdDynamic(SysIdRoutine.Direction.kForward);
+        autoChooser.addDefaultOption("Default Auto", autoDefault);
+
+        NamedCommands.registerCommand("Launch", outtake.quickLaunch());
+        NamedCommands.registerCommand("IntakeOn", intake.intake());
+        NamedCommands.registerCommand("IntakeOff", intake.stop());
+        NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
+        NamedCommands.registerCommand("PivotUp", pivot.gotoCollectionPos());
+
+        if (Constants.isTuningMode) {
+            autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+            autoChooser.addOption("Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+            autoChooser.addOption("Drive SysId (Quasistatic Forward)",
+                    drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+            autoChooser.addOption("Drive SysId (Quasistatic Reverse)",
+                    drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+            autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
+            autoChooser.addOption(
+                    "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+
+        }
+        // Configure the trigger bindings
+        configureBindings();
     }
 
-    Hopper hopper = new Hopper();
+    /**
+     * Use this method to define your trigger->command mappings. Triggers can be
+     * created via the
+     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with
+     * an arbitrary
+     * predicate, or via the named factories in {@link
+     * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+     * {@link
+     * CommandXboxController
+     * Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+     * PS4} controllers or
+     * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
+     * joysticks}.
+     */
+    private void configureBindings() {
+        drive.setDefaultCommand(
+                DriveCommands.joystickDrive(
+                        drive,
+                        () -> -driveXbox.getLeftY(),
+                        () -> -driveXbox.getLeftX(),
+                        () -> -driveXbox.getRightX()));
 
-    outtake = new Outtake(drive, hopper);
-    intake = new Intake(drive);
-    pivot = new Pivot();
+        driveXbox.back()
+                .whileTrue(
+                        DriveCommands.joystickDrive(
+                                drive,
+                                () -> -0.25 * driveXbox.getLeftY(),
+                                () -> -0.25 * driveXbox.getLeftX(),
+                                () -> -0.25 * driveXbox.getRightX()));
 
-    autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+        // Lock to 0° when A button is held
+        driveXbox
+                .a()
+                .whileTrue(
+                        DriveCommands.joystickDriveAtAngle(
+                                drive,
+                                () -> -driveXbox.getLeftY(),
+                                () -> -driveXbox.getLeftX(),
+                                () -> Rotation2d.kCCW_90deg));
 
-    // Add autonomous routines to the SendableChooser
-    autoDefault = drive.sysIdDynamic(SysIdRoutine.Direction.kForward);
-    autoChooser.addDefaultOption("Default Auto", autoDefault);
+        driveXbox.leftBumper().whileTrue(
+                DriveCommands.joystickDrivePointTarget(
+                        drive,
+                        () -> -driveXbox.getLeftY(),
+                        FieldConstants.Elements.blueHubPose));
 
-    if (Constants.isTuningMode) {
-      autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-      autoChooser.addOption("Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-      autoChooser.addOption("Drive SysId (Quasistatic Forward)",
-          drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-      autoChooser.addOption("Drive SysId (Quasistatic Reverse)",
-          drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-      autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
-      autoChooser.addOption(
-          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+        driveXbox.start().whileTrue(Commands.run(() -> pathFollower.driveThruTrench()))
+                .onFalse(Commands.runOnce(() -> {
+                    drive.stop();
+                }, drive));
 
+        // Switch to X pattern when X button is pressed
+        driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+        // Reset gyro to 0° when B button is pressed
+        driveXbox
+                .b()
+                .onTrue(
+                        Commands.runOnce(
+                                () -> drive.setPose(
+                                        new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+                                drive)
+                                .ignoringDisable(true));
+
+        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+
+        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+
+        controlXbox.povUp().onTrue(pivot.gotoStoredPos());
+        controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
+
+        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.spit());
+
+        // exPivot.setDefaultCommand(
+        // Commands.run(() -> {
+        // exPivot.adjustHeight(-1 * controlXbox.getLeftY());
+        // },
+        // exPivot));
+
+        // Schedule `exampleMethodCommand` when the Xbox controller's B button is
+        // pressed,
+        // cancelling on release.
+        // controlXbox.a().whileTrue(intake.intake()).onFalse(intake.stop());
+        // controlXbox.x().onTrue(outtake.launch());
+
+        // swerveDrive.setDefaultCommand(
+        // new DriveWithController(swerveDrive, 0.5, 0.5, () -> driveXbox.getLeftX(), ()
+        // -> driveXbox.getLeftY(),
+        // () -> driveXbox.getRightX(), () -> driveXbox.getRightY(), () ->
+        // driveXbox.a().getAsBoolean()));
+        // driveXbox.x().onTrue(Commands.runOnce(swerveDrive::stopWithX, swerveDrive));
     }
-    // Configure the trigger bindings
-    configureBindings();
-  }
-
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be
-   * created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with
-   * an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-   * {@link
-   * CommandXboxController
-   * Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or
-   * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
-  private void configureBindings() {
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -driveXbox.getLeftY(),
-            () -> -driveXbox.getLeftX(),
-            () -> -driveXbox.getRightX()));
-
-    // Lock to 0° when A button is held
-    driveXbox
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -driveXbox.getLeftY(),
-                () -> -driveXbox.getLeftX(),
-                () -> Rotation2d.kCCW_90deg));
-
-    // Switch to X pattern when X button is pressed
-    driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // Reset gyro to 0° when B button is pressed
-    driveXbox
-        .b()
-        .onTrue(
-            Commands.runOnce(
-                () -> drive.setPose(
-                    new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-                drive)
-                .ignoringDisable(true));
-
-    controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
-
-    controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
-
-    controlXbox.povUp().onTrue(pivot.gotoStoredPos());
-    controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
-
-    controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-    controlXbox.leftBumper().onTrue(intake.spit());
-
-    // exPivot.setDefaultCommand(
-    // Commands.run(() -> {
-    // exPivot.adjustHeight(-1 * controlXbox.getLeftY());
-    // },
-    // exPivot));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is
-    // pressed,
-    // cancelling on release.
-    // controlXbox.a().whileTrue(intake.intake()).onFalse(intake.stop());
-    // controlXbox.x().onTrue(outtake.launch());
-
-    // swerveDrive.setDefaultCommand(
-    // new DriveWithController(swerveDrive, 0.5, 0.5, () -> driveXbox.getLeftX(), ()
-    // -> driveXbox.getLeftY(),
-    // () -> driveXbox.getRightX(), () -> driveXbox.getRightY(), () ->
-    // driveXbox.a().getAsBoolean()));
-    // driveXbox.x().onTrue(Commands.runOnce(swerveDrive::stopWithX, swerveDrive));
-  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
