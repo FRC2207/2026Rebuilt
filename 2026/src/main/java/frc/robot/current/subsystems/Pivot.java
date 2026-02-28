@@ -68,13 +68,13 @@ public class Pivot extends SubsystemBase {
   }
 
   public Command gotoStoredPos() {
-    return Commands.run(() -> {
+    return Commands.runOnce(() -> {
       pivotMotor.setMotorPosition(Constants.PivotConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
-    return Commands.run(() -> {
+    return Commands.runOnce(() -> {
       pivotMotor.setMotorPosition(Constants.PivotConstants.collectionRotations);
     }, this);
   }
@@ -82,7 +82,7 @@ public class Pivot extends SubsystemBase {
   // DO NOT USE
   public Command rotateUp() {
     // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.run(() -> {
+    return Commands.runOnce(() -> {
       isUp = true;
       pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() + 1);
     }, this);
@@ -91,7 +91,7 @@ public class Pivot extends SubsystemBase {
   // DO NOT USE
   public Command rotateDown() {
     // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.run(() -> {
+    return Commands.runOnce(() -> {
       isUp = false;
       pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() - 1);
     }, this);

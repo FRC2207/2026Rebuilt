@@ -7,6 +7,12 @@
         {
           "type": "named",
           "data": {
+            "name": "PivotDown"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Launch"
           }
         },
@@ -20,12 +26,6 @@
           "type": "parallel",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PivotDown"
-                }
-              },
               {
                 "type": "path",
                 "data": {

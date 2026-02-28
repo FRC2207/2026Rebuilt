@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
   public Command intake() {
     return Commands.runOnce(() -> {
       isIntaking = true;
-      intakeMotor.setSpeed(-3500);
+      intakeMotor.setSpeed(IntakeConstants.intakeSpeed);
     }, this);
   }
 

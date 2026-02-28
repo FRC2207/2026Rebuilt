@@ -5,9 +5,22 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Hub to Tower - No Turn"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Hub to Tower - No Turn"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PivotDown"
+                }
+              }
+            ]
           }
         },
         {

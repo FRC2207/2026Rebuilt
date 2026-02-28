@@ -96,7 +96,7 @@ public class Outtake extends SubsystemBase {
         lowMotor.setVoltage(volts);
     }
 
-    public Command quickLaunch() {
+    public Command timedLaunch(double seconds) {
         double motorOneSpeed = OuttakeConstants.velocityDefault * 1.25;
         double motorTwoSpeed = OuttakeConstants.velocityDefault;
 
@@ -106,7 +106,7 @@ public class Outtake extends SubsystemBase {
                     highMotor.setSpeed(motorOneSpeed);
                     lowMotor.setSpeed(motorTwoSpeed);
                 }),
-                Commands.waitSeconds(10),
+                Commands.waitSeconds(seconds),
                 runOnce(() -> {
                     stop();
                 }));
@@ -143,7 +143,7 @@ public class Outtake extends SubsystemBase {
             double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
                         ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose);
             double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732)/4.9) * 14.04848);
-            System.out.println("Velocity: " + velocity);
+            System.out.println("Velocity: " + velocity); // velocity is incorrect ; reported in 0.x
             System.out.println("Distance: " + distance);
             hopper.run();
             highMotor.setSpeed(velocity * 1.25);
@@ -172,10 +172,6 @@ public class Outtake extends SubsystemBase {
     /** Checks the distance from the bot to the target */
     public double checkDistance(Pose2d target) {
         double value = swerve.getPose().getTranslation().getDistance(target.getTranslation());
-        // double value2 = Math.sqrt(
-                // Math.pow(swerve.targetOffset(target).getX(), 2) + Math.pow(swerve.targetOffset(target).getY(), 2));
-        double value2 = Math.hypot(swerve.targetOffset(target).getX(), swerve.targetOffset(target).getY());
-        System.out.print(value - value2);  //TODO: Remove this test to compare distance functions
         return value;
     }
 }

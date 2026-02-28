@@ -84,20 +84,20 @@ public class PathFollower {
                 
                 // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
                 // in Drive subsystem.
-                AutoBuilder.configure(
-                                drive::getPose,
-                                drive::setPose,
-                                drive::getChassisSpeeds,
-                                drive::runVelocity,
-                                new PPHolonomicDriveController(
-                                                new PIDConstants(DriveConstants.driveKp, DriveConstants.driveKi,
-                                                                DriveConstants.driveKd),
-                                                new PIDConstants(DriveConstants.turnKp, DriveConstants.turnKi,
-                                                                DriveConstants.turnKd)),
-                                DriveConstants.ppConfig,
-                                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-                                drive);
-                Pathfinding.setPathfinder(new LocalADStarAK());
+                // AutoBuilder.configure(
+                //                 drive::getPose,
+                //                 drive::setPose,
+                //                 drive::getChassisSpeeds,
+                //                 drive::runVelocity,
+                //                 new PPHolonomicDriveController(
+                //                                 new PIDConstants(DriveConstants.driveKp, DriveConstants.driveKi,
+                //                                                 DriveConstants.driveKd),
+                //                                 new PIDConstants(DriveConstants.turnKp, DriveConstants.turnKi,
+                //                                                 DriveConstants.turnKd)),
+                //                 DriveConstants.ppConfig,
+                //                 () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                //                 drive);
+                // Pathfinding.setPathfinder(new LocalADStarAK());
 
                 constraints = new PathConstraints(
                                 DriveConstants.maxSpeedMetersPerSec, 4.0,
