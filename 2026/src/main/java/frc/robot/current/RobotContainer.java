@@ -80,7 +80,8 @@ public class RobotContainer {
         break;
       
       case SIM:
-        drive = new Drive(
+        drive = 
+          new Drive(
             new GyroIO() {},
             new ModuleIOSim(),
             new ModuleIOSim(),
@@ -218,5 +219,9 @@ public class RobotContainer {
     return autoChooser.get();
     // An example command will be run in autonomous
     // return null;
+  }
+
+  public Drive getDriveSubsystem() {
+    return drive;
   }
 }
