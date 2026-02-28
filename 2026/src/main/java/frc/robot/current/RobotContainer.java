@@ -92,7 +92,7 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     // Add autonomous routines to the SendableChooser
-    autoDefault = drive.sysIdDynamic(SysIdRoutine.Direction.kForward);
+    autoDefault = Commands.none();
     autoChooser.addDefaultOption("Default Auto", autoDefault);
 
     if (Constants.isTuningMode) {
