@@ -156,7 +156,7 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
 
-    controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    controlXbox.rightBumper().onTrue(outtake.variableLaunchNoVision()).onFalse(outtake.stop());
 
     controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 

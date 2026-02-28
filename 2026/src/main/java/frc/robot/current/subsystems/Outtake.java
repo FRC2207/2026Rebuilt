@@ -3,18 +3,18 @@ package frc.robot.current.subsystems;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
-import frc.robot.current.FieldConstants;
 import frc.robot.current.Constants.OuttakeConstants;
+import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.velocityController.VelocityController;
 import frc.robot.lib.motors.velocityController.VelocityIOSparkFlex;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Outtake extends SubsystemBase {
     private VelocityController highMotor;
@@ -124,18 +124,15 @@ public class Outtake extends SubsystemBase {
                 }));
     }
 
-    // Runs the launcher at variable RPM in relation to distance from the hub.
-    // Motors stop when the hopper is empty
-    public Command variableLaunchMap() {
-        return Commands.sequence(
-                run(() -> {
-                    double velocity = getVelocityTarget(
-                        checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
-                        ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose));
-                    hopper.run();
-                    highMotor.setSpeed(velocity * 1.25);
-                    lowMotor.setSpeed(velocity);
-                }));
+    public Command variableLaunchNoVision(){
+        double distance = 1.93;
+        double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732)/4.9) * 14.04848);
+
+        return Commands.run(() -> {
+            hopper.run();
+            highMotor.setSpeed(velocity * 1.25);
+            lowMotor.setSpeed(velocity);
+        });
     }
 
     public Command variableLaunchEquation(){
