@@ -51,7 +51,7 @@ public class FieldConstants {
       4
     );
 
-    public static Pose2d blueHubPose = new Pose2d(blueHub, new Rotation2d(Math.PI));
+    public static Pose2d blueHubPose = new Pose2d(blueHub, new Rotation2d(0.0));
  
     // Red alliance elements
     public static Translation2d redOutpost = new Translation2d(
