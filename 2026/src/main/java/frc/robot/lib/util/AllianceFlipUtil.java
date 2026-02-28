@@ -37,7 +37,7 @@ public class AllianceFlipUtil {
     }
   }
 
-  /** Flips an x coordinate to the correct side of the field based on the current alliance color. */
+  /** Flips an X or Y coordinate to the correct side of the field based on the current alliance color. */
   public static double apply(double coordinate, CoordinateAxis axis) {
     if (shouldFlip()) {
       if (axis == CoordinateAxis.Y) {
