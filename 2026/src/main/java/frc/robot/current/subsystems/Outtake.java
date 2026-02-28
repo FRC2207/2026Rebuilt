@@ -143,6 +143,8 @@ public class Outtake extends SubsystemBase {
             double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
                         ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose);
             double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732)/4.9) * 14.04848);
+            System.out.println("Velocity: " + velocity);
+            System.out.println("Distance: " + distance);
             hopper.run();
             highMotor.setSpeed(velocity * 1.25);
             lowMotor.setSpeed(velocity);

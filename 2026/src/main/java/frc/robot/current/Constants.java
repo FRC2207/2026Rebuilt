@@ -81,7 +81,7 @@ public final class Constants {
 
      // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
     public static final double storedRotations = 0.23;
-    public static final double collectionRotations = 0.024;
+    public static final double collectionRotations = 0.0;
   }
 
   public static class HopperConstants {

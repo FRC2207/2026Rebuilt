@@ -55,7 +55,7 @@ public class RobotContainer {
     private Vision vision;
     private Outtake outtake;
 
-    private static Boolean cameraYes = false;
+    private static Boolean cameraYes = true;
     private PathFollower pathFollower;
 
     // Replace with CommandPS4Controller or CommandJoystick if needed
