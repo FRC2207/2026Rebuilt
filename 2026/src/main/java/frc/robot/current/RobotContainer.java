@@ -158,7 +158,7 @@ public class RobotContainer {
 
     controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    controlXbox.rightTrigger().onTrue(outtake.variableLaunch()).onFalse(outtake.stop());
+    controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
     controlXbox.povUp().onTrue(pivot.gotoStoredPos());
     controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
