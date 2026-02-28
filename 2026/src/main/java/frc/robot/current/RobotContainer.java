@@ -82,9 +82,9 @@ public class RobotContainer {
 
         if (cameraYes == true) {
             vision = new Vision(drive::addVisionMeasurement,
-                    new VisionIOPhotonVision(camera0Name, robotToCamera0),
+//                    new VisionIOPhotonVision(camera0Name, robotToCamera0),
                     new VisionIOPhotonVision(camera1Name, robotToCamera1),
-                    new VisionIOPhotonVision(camera2Name, robotToCamera2),
+//                    new VisionIOPhotonVision(camera2Name, robotToCamera2),
                     new VisionIOPhotonVision(camera3Name, robotToCamera3));
         }
 
@@ -97,7 +97,7 @@ public class RobotContainer {
         autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
         // Add autonomous routines to the SendableChooser
-        autoDefault = drive.sysIdDynamic(SysIdRoutine.Direction.kForward);
+        autoDefault = Commands.none();
         autoChooser.addDefaultOption("Default Auto", autoDefault);
 
         NamedCommands.registerCommand("Launch", outtake.quickLaunch());

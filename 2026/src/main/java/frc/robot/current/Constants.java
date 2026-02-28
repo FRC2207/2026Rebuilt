@@ -18,7 +18,7 @@ public final class Constants {
   public static final String robot = "Real";
   public static final String fieldType = "welded";
 
-  public static final boolean isTuningMode = true;
+  public static final boolean isTuningMode = false;
 
   /**
    * This is how the SysID knows which motor on the module to test.See the example command to run a sysId test,
