@@ -9,7 +9,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -32,6 +31,8 @@ import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.Vision;
 import static frc.robot.lib.vision.VisionConstants.*;
 
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -52,14 +53,14 @@ public class RobotContainer {
   private Vision vision;
   private Outtake outtake;
 
-  private static Boolean cameraYes = true;
+  private static Boolean cameraYes;
   private PathFollower pathFollower;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final SendableChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser;
   private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
   /**
@@ -77,6 +78,7 @@ public class RobotContainer {
             new ModuleIOSpark(1),
             new ModuleIOSpark(2), 
             new ModuleIOSpark(3));
+        cameraYes = true;
         break;
       
       case SIM:
@@ -87,6 +89,7 @@ public class RobotContainer {
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim());
+      cameraYes = false;      
       break;
 
       default:
@@ -96,6 +99,7 @@ public class RobotContainer {
             new ModuleIO() {},
             new ModuleIO() {},
             new ModuleIO() {});
+        cameraYes = false;
         break;
     }  
 
@@ -124,14 +128,10 @@ public class RobotContainer {
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
+    NamedCommands.registerCommand("Climb", Commands.none()); // climber not defined yet. So registering to none
 
-    // Now create the auto chooser. This will automatically include any paths created in PathPlanner.
-    autoChooser = AutoBuilder.buildAutoChooser();
-    //SmartDashboard.putData("Auto Chooser", autoChooser);
-
-    // Add autonomous routines to the SendableChooser
-    //autoDefault = Commands.none();
-    //autoChooser.addDefaultOption("Default Auto", autoDefault);
+    // Build auto chooser after registering named commands
+    autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
@@ -249,14 +249,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-  //return AutoBuilder.buildAuto("Straight Back");
-
-    // if (autoChooser.get() != null) {
-    //   System.out.print("Auto Path " + autoChooser.get().getName());
-     return autoChooser.getSelected();
-    // } else {
-    //   return Commands.print("No autonomous command configured");
-    // }
+     return autoChooser.get();
   }
 
   public Drive getDriveSubsystem() {
