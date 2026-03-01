@@ -13,6 +13,8 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -62,7 +64,7 @@ public class RobotContainer {
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final LoggedDashboardChooser<Command> autoChooser;
+  private final SendableChooser<Command> autoChooser;
   private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
   /**
@@ -94,7 +96,9 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+    autoChooser = AutoBuilder.buildAutoChooser();
+
+    SmartDashboard.putData("Auto Chooser", autoChooser);
 
     // Add autonomous routines to the SendableChooser
     //autoDefault = Commands.none();
@@ -222,11 +226,11 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return AutoBuilder.buildAuto("Straight Back");
+    //return AutoBuilder.buildAuto("Straight Back");
 
     // if (autoChooser.get() != null) {
     //   System.out.print("Auto Path " + autoChooser.get().getName());
-    //   return autoChooser.get();
+     return autoChooser.getSelected();
     // } else {
     //   return Commands.print("No autonomous command configured");
     // }

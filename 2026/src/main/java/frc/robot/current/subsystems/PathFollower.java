@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -38,6 +39,7 @@ public class PathFollower {
                         .getStructArrayTopic("PosArr", Pose2d.struct).publish();
 
         private final SendableChooser<TrenchOptions> m_chooser = new SendableChooser<>();
+
 
         private static PathConstraints constraints;
 
@@ -81,6 +83,8 @@ public class PathFollower {
                 m_chooser.addOption("Counterclockwise", trenchOptions = TrenchOptions.COUNTERCLOCKWISE);
                 m_chooser.addOption("Force Left", trenchOptions = TrenchOptions.FORCELEFT);
                 m_chooser.addOption("Force Right", trenchOptions = TrenchOptions.FORCERIGHT);
+                
+                SmartDashboard.putData(m_chooser);
                 
                 // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
                 // in Drive subsystem.
@@ -191,6 +195,8 @@ public class PathFollower {
                                         whichTrenchIn.getRotation());
                 }
 
+                Commands.print("Goal position:" + goalPosition);
+                
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
                                 goalPosition,
                                 constraints,

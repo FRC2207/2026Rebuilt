@@ -56,7 +56,7 @@ public final class Constants {
 
   public static class IntakeConstants {
     public static final int intakeID = 41;
-    public static final double intakeSpeed = -4500;
+    public static final double intakeSpeed = -6000;
 
     // PID
     public static final double kP = 0.00007;
