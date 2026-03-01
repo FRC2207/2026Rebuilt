@@ -123,7 +123,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
-    NamedCommands.registerCommand("PivotUp", pivot.gotoCollectionPos());
+    NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     // Now create the auto chooser. This will automatically include any paths created in PathPlanner.
     autoChooser = AutoBuilder.buildAutoChooser();
