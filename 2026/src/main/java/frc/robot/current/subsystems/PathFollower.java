@@ -63,7 +63,7 @@ public class PathFollower {
 
         public PathFollower(Drive drive) {
                 this.drive = drive;
-                Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
+                //Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
                 trenchPositions.add(leftTrench);
                 trenchPositions.add(rightTrench);
