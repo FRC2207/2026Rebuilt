@@ -18,7 +18,7 @@ public final class Constants {
   public static final String robot = "Real";
   public static final String fieldType = "welded";
 
-  public static final boolean isTuningMode = true;
+  public static final boolean isTuningMode = false;
 
   /**
    * This is how the SysID knows which motor on the module to test.See the example command to run a sysId test,
@@ -51,12 +51,12 @@ public final class Constants {
   }
 
   public static class SwerveConstants {
-    public static final double speedLimit = 0.5;
+    public static final double speedLimit = 0.75;
   }
 
   public static class IntakeConstants {
     public static final int intakeID = 41;
-    public static final double intakeSpeed = 0.5;
+    public static final double intakeSpeed = -6000;
 
     // PID
     public static final double kP = 0.00007;
@@ -81,12 +81,12 @@ public final class Constants {
 
      // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
     public static final double storedRotations = 0.23;
-    public static final double collectionRotations = 0.024;
+    public static final double collectionRotations = 0.0;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = -0.35; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.65; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {
@@ -94,7 +94,7 @@ public final class Constants {
     public static final int lowMotorId = 31;
 
     // The velocity for quick launch and continous launch
-    public static final double velocityDefault = 2567;    // 67!
+    public static final double velocityDefault = 3267;    // 67!
 
     public static final double kP = 0.00006;
     public static final double kI = 0.0;

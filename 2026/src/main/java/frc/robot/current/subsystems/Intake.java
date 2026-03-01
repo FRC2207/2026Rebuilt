@@ -35,14 +35,14 @@ public class Intake extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Outtake", "1");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake", "1");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Outtake", "1");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake", "1");
         break;
     }
   }
@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
   public Command intake() {
     return Commands.runOnce(() -> {
       isIntaking = true;
-      intakeMotor.setSpeed(-3500);
+      intakeMotor.setSpeed(IntakeConstants.intakeSpeed);
     }, this);
   }
 

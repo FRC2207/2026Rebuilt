@@ -85,6 +85,7 @@ public class Robot extends LoggedRobot {
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
+      System.out.print("Auto Initiated");
     }
 
     if (Constants.currentMode == Constants.Mode.SIM) {

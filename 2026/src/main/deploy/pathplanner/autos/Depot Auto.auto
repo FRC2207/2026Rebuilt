@@ -7,6 +7,12 @@
         {
           "type": "named",
           "data": {
+            "name": "PivotDown"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Launch"
           }
         },
@@ -18,12 +24,6 @@
                 "type": "path",
                 "data": {
                   "pathName": "Side start to Depot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PivotDown"
                 }
               },
               {

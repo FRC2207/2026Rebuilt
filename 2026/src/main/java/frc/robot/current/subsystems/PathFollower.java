@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -33,6 +34,7 @@ public class PathFollower {
                         .getStructArrayTopic("PosArr", Pose2d.struct).publish();
 
         private final SendableChooser<TrenchOptions> m_chooser = new SendableChooser<>();
+
 
         private static PathConstraints constraints;
 
@@ -77,22 +79,24 @@ public class PathFollower {
                 m_chooser.addOption("Force Left", trenchOptions = TrenchOptions.FORCELEFT);
                 m_chooser.addOption("Force Right", trenchOptions = TrenchOptions.FORCERIGHT);
                 
+                SmartDashboard.putData(m_chooser);
+                
                 // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
                 // in Drive subsystem.
-                AutoBuilder.configure(
-                                drive::getPose,
-                                drive::setPose,
-                                drive::getChassisSpeeds,
-                                drive::runVelocity,
-                                new PPHolonomicDriveController(
-                                                new PIDConstants(DriveConstants.driveKp, DriveConstants.driveKi,
-                                                                DriveConstants.driveKd),
-                                                new PIDConstants(DriveConstants.turnKp, DriveConstants.turnKi,
-                                                                DriveConstants.turnKd)),
-                                DriveConstants.ppConfig,
-                                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-                                drive);
-                Pathfinding.setPathfinder(new LocalADStarAK());
+                // AutoBuilder.configure(
+                //                 drive::getPose,
+                //                 drive::setPose,
+                //                 drive::getChassisSpeeds,
+                //                 drive::runVelocity,
+                //                 new PPHolonomicDriveController(
+                //                                 new PIDConstants(DriveConstants.driveKp, DriveConstants.driveKi,
+                //                                                 DriveConstants.driveKd),
+                //                                 new PIDConstants(DriveConstants.turnKp, DriveConstants.turnKi,
+                //                                                 DriveConstants.turnKd)),
+                //                 DriveConstants.ppConfig,
+                //                 () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                //                 drive);
+                // Pathfinding.setPathfinder(new LocalADStarAK());
 
                 constraints = new PathConstraints(
                                 DriveConstants.maxSpeedMetersPerSec, 4.0,
@@ -186,6 +190,8 @@ public class PathFollower {
                                         whichTrenchIn.getRotation());
                 }
 
+                Commands.print("Goal position:" + goalPosition);
+                
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
                                 goalPosition,
                                 constraints,
