@@ -4,15 +4,12 @@
 
 package frc.robot.current;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -70,8 +67,7 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    // leds = new LedOperation();
-    // exPivot = new ExamplePivot(Constants.robot);
+    // Instantiate Drive subsystem with appropriate ModuleIO and GyroIO implementations based on the current mode
     switch (Constants.currentMode) {
       case REAL:
   
@@ -103,6 +99,7 @@ public class RobotContainer {
         break;
     }  
 
+    // Instantiate Vision subsystem if cameras are enabled
     if (cameraYes == true) {
       vision = new Vision(drive::addVisionMeasurement,
           // new VisionIOPhotonVision(camera0Name, robotToCamera0),
@@ -111,25 +108,30 @@ public class RobotContainer {
           new VisionIOPhotonVision(camera3Name, robotToCamera3));
     }
 
+    // Instantiate the other subsystems
     Hopper hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    autoChooser = AutoBuilder.buildAutoChooser();
-
-    SmartDashboard.putData("Auto Chooser", autoChooser);
-
-    // Add autonomous routines to the SendableChooser
-    //autoDefault = Commands.none();
-    //autoChooser.addDefaultOption("Default Auto", autoDefault);
+    // Create the auto chooser that will pubhlish the available autonomous paths and commands dashboard.
+    // Register these named commands for use in PathPlanner paths. These can be called from the PathPlanner GUI and will show up in the auto builder chooser on the dashboard.
+    // They must be before the auto chooser is built so that they are included in the chooser.
 
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoCollectionPos());
+
+    // Now create the auto chooser. This will automatically include any paths created in PathPlanner.
+    autoChooser = AutoBuilder.buildAutoChooser();
+    //SmartDashboard.putData("Auto Chooser", autoChooser);
+
+    // Add autonomous routines to the SendableChooser
+    //autoDefault = Commands.none();
+    //autoChooser.addDefaultOption("Default Auto", autoDefault);
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));

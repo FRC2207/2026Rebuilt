@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
-import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.positionController.PositionController;
 import frc.robot.lib.motors.positionController.PositionIOSparkMax;
 
