@@ -85,13 +85,6 @@ public class Robot extends LoggedRobot {
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
-      System.out.print("Auto Initiated");
-    }
-
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      // Set the initial pose in simulation to a location relative to 0,0 which is by default on the 
-      // blue alliance end. AllianceFlipUtil will flip the pose to the red side if needed, so this works for both alliances.
-      drive.setPose(AllianceFlipUtil.apply(FieldConstants.SimBlueStartingPose));
     }
   }
 
