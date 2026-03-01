@@ -96,6 +96,12 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
+    NamedCommands.registerCommand("IntakeOn", intake.intake());
+    NamedCommands.registerCommand("IntakeOff", intake.stop());
+    NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
+    NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
+
     autoChooser = AutoBuilder.buildAutoChooser();
 
     SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -103,12 +109,6 @@ public class RobotContainer {
     // Add autonomous routines to the SendableChooser
     //autoDefault = Commands.none();
     //autoChooser.addDefaultOption("Default Auto", autoDefault);
-
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
-    NamedCommands.registerCommand("IntakeOn", intake.intake());
-    NamedCommands.registerCommand("IntakeOff", intake.stop());
-    NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
-    NamedCommands.registerCommand("PivotUp", pivot.gotoCollectionPos());
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
