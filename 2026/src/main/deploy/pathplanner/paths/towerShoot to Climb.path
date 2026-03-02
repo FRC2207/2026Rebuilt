@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.418002853067047,
-        "y": 4.093223965763196
+        "x": 1.7,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.1541708417194827,
-        "y": 4.096904995103187
+        "x": 1.6997588130580203,
+        "y": 3.750000116342309
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Tower Shoot"
     },
     {
       "anchor": {
-        "x": 1.6195292439372322,
-        "y": 4.093223965763196
+        "x": 1.4,
+        "y": 3.8
       },
       "prevControl": {
-        "x": 1.3695320077430866,
-        "y": 4.09204842533917
+        "x": 1.6897787540605225,
+        "y": 3.970773715768162
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

@@ -96,19 +96,23 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     autoChooser = AutoBuilder.buildAutoChooser();
+    autoChooser.addOption("Launch Only",
+        Commands.sequence(
+            pivot.gotoCollectionPos(),
+            outtake.timedLaunch(8)));
 
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
     // Add autonomous routines to the SendableChooser
-    //autoDefault = Commands.none();
-    //autoChooser.addDefaultOption("Default Auto", autoDefault);
+    // autoDefault = Commands.none();
+    // autoChooser.addDefaultOption("Default Auto", autoDefault);
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
@@ -177,6 +181,8 @@ public class RobotContainer {
           drive.stop();
         }, drive));
 
+    driveXbox.start().whileTrue(Commands.run(() -> AutoBuilder.buildAuto("Go To Outpost")));
+
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
@@ -226,13 +232,13 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    //return AutoBuilder.buildAuto("Straight Back");
+    // return AutoBuilder.buildAuto("Straight Back");
 
     // if (autoChooser.get() != null) {
-    //   System.out.print("Auto Path " + autoChooser.get().getName());
-     return autoChooser.getSelected();
+    // System.out.print("Auto Path " + autoChooser.get().getName());
+    return autoChooser.getSelected();
     // } else {
-    //   return Commands.print("No autonomous command configured");
+    // return Commands.print("No autonomous command configured");
     // }
   }
 }

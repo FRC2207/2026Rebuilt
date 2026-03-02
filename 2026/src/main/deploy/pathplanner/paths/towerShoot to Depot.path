@@ -3,45 +3,34 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.476,
-        "y": 6.5
+        "x": 1.7,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.1213847083370263,
-        "y": 5.763649320549931
+        "x": 1.7743344634433962,
+        "y": 4.865515069394049
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Tower Shoot"
     },
     {
       "anchor": {
-        "x": 2.875,
-        "y": 4.875
+        "x": 0.476,
+        "y": 5.0
       },
       "prevControl": {
-        "x": 0.2741994390467397,
-        "y": 5.546974347642614
+        "x": 1.1845767189767777,
+        "y": 4.986253685141509
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Side start"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
-  "pointTowardsZones": [
-    {
-      "fieldPosition": {
-        "x": 4.62,
-        "y": 4.0
-      },
-      "rotationOffset": 0.0,
-      "minWaypointRelativePos": 0.397048899501661,
-      "maxWaypointRelativePos": 0.75,
-      "name": "Point Towards Zone"
-    }
-  ],
+  "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
@@ -53,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,

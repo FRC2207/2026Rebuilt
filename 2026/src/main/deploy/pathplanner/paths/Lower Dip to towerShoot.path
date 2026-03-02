@@ -3,29 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.875,
-        "y": 4.875
+        "x": 7.75,
+        "y": 3.625
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.8107724056603773,
-        "y": 5.35934285422714
+        "x": 6.604881581074143,
+        "y": 3.144069458182889
       },
       "isLocked": false,
-      "linkedName": "Side start"
+      "linkedName": "Lower Dip End"
     },
     {
       "anchor": {
-        "x": 0.476,
-        "y": 4.85
+        "x": 4.625,
+        "y": 2.5
       },
       "prevControl": {
-        "x": 1.647425219974601,
-        "y": 4.642393130896226
+        "x": 5.818250576094556,
+        "y": 2.6354962298109497
+      },
+      "nextControl": {
+        "x": 4.340862664327729,
+        "y": 2.4677355800169587
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.7,
+        "y": 4.0
+      },
+      "prevControl": {
+        "x": 2.8470941127556006,
+        "y": 3.3645311024632445
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Tower Shoot"
     }
   ],
   "rotationTargets": [],
@@ -48,7 +64,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

@@ -4,28 +4,28 @@
     {
       "anchor": {
         "x": 0.476,
-        "y": 6.0
+        "y": 6.5
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.2305542937700462,
-        "y": 5.372307678994359
+        "x": 1.3404364908381712,
+        "y": 5.405959213987663
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.4,
-        "y": 3.8
+        "x": 1.4061536760703919,
+        "y": 3.7351589146407838
       },
       "prevControl": {
-        "x": 1.2438283588255672,
-        "y": 4.757304267349731
+        "x": 1.4590153868831637,
+        "y": 4.962651034107402
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "TowerCenter"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
