@@ -123,7 +123,7 @@ public class RobotContainer {
     // Register these named commands for use in PathPlanner paths. These can be called from the PathPlanner GUI and will show up in the auto builder chooser on the dashboard.
     // They must be before the auto chooser is built so that they are included in the chooser.
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(1.5));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
