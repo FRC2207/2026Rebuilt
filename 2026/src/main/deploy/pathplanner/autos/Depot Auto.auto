@@ -23,7 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Side start to Depot"
+                  "pathName": "towerShoot to Depot"
                 }
               },
               {
@@ -48,7 +48,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Depot to Hub"
+                  "pathName": "Depot to towerShoot"
                 }
               },
               {

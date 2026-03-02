@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
-        "y": 0.7981972287735846
+        "x": 3.75,
+        "y": 0.575
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0305409878280933,
-        "y": 1.7706861571387447
+        "x": 2.773653657004228,
+        "y": 1.9973141184166199
       },
       "isLocked": false,
       "linkedName": "Low Trench Down"
@@ -20,8 +20,8 @@
         "y": 4.0
       },
       "prevControl": {
-        "x": 2.339947337500112,
-        "y": 3.370782600679314
+        "x": 2.7989023308812646,
+        "y": 2.6386691537844635
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

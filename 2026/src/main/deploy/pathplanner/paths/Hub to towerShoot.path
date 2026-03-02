@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.439951807228915,
+        "x": 3.575,
         "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.4380033724316323,
+        "x": 2.5730515652027175,
         "y": 3.9882948659352513
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "HubCenter"
     },
     {
       "anchor": {
@@ -20,7 +20,7 @@
         "y": 4.0
       },
       "prevControl": {
-        "x": 1.4501072403999797,
+        "x": 1.4501072403999795,
         "y": 3.992678203807367
       },
       "nextControl": null,

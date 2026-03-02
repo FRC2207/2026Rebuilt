@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Launch"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -38,7 +32,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Outpost to hub"
+            "pathName": "Outpost to towerShoot"
           }
         },
         {
