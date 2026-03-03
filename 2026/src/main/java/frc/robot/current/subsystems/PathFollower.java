@@ -5,22 +5,14 @@ import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -28,9 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
-import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.util.AllianceFlipUtil;
-import frc.robot.lib.util.LocalADStarAK;
 
 public class PathFollower {
         private Drive drive;
@@ -73,7 +63,7 @@ public class PathFollower {
 
         public PathFollower(Drive drive) {
                 this.drive = drive;
-                Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
+                //Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
                 trenchPositions.add(leftTrench);
                 trenchPositions.add(rightTrench);
@@ -149,9 +139,17 @@ public class PathFollower {
                 return Math.sqrt(Math.pow(p1.getX() - p2.getX(), 2) + Math.pow(p1.getY() - p2.getY(), 2));
         }
 
+        /** Returns a command to drive to the outpost  */
+        public Command driveToOutpost() {
+                Command pathfindingCommand = AutoBuilder.pathfindToPose(
+                                FieldConstants.Elements.blueOutpostPose,
+                                constraints,
+                                0.0);
+
+                return pathfindingCommand;
+        }
         /**
-         * Returns a command to drive through the trench. This currently stops directly
-         * under the trench.
+         * Returns a command to drive through the trench. 
          * If we are outside, it will drive through to the alliance
          * area, and if we are inside, it will drive through to the outside.
          */
