@@ -6,8 +6,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.current.Constants;
-import frc.robot.current.Constants.PivotConstants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSparkMax;
 
@@ -15,8 +13,8 @@ public class ExampleFlyWheel extends SubsystemBase{
     private MotorController rightMotor;
     private MotorController leftMotor;
 
-    private final int rightMotorID = Constants.PivotConstants.algaeFlyRightID;
-    private final int leftMotorID = Constants.PivotConstants.algaeFlyLeftID;
+    private final int rightMotorID = 68;
+    private final int leftMotorID = 69;
 
     private boolean currentTriggered = false;
     private double currentTriggerTime = Double.MAX_VALUE;
@@ -102,7 +100,7 @@ public class ExampleFlyWheel extends SubsystemBase{
     return Commands.run(() -> {
       if (hasAlgae) {
         rightMotor.setPercent(-.25);
-        if (rightMotor.getCurrent() <= PivotConstants.algaeConstantThreshold) {
+        if (rightMotor.getCurrent() <= 30) {
           hasAlgae = false;
         }
       }

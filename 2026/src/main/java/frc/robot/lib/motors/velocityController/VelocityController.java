@@ -17,15 +17,35 @@ public class VelocityController extends SubsystemBase{
 
     public void updateInputs() {
         io.updateInputs(inputs);
-        Logger.processInputs(subsystem + "Fly" + number, inputs);
+        Logger.processInputs(subsystem + number, inputs);
     }
 
+    /** Sets the speed of the motor to a designated voltage from -12 to 12 */
     public void setVoltage(double volts) {
         io.setMotorVoltage(volts);
     }
 
-    public double getVelocity() {
+    /** Sets the speed of the motor to a designated percent from -1 to 1 */
+    public void setPercent(double percent) {
+        io.setPercent(percent);
+    }
+
+    /** Sets the speed of the motor to a designated RPM */
+    public void setSpeed(double speed) {
+        io.setSpeed(speed);
+    }
+
+    /** Resets the feed forward setpoint to 0 to stop motor movement. */
+    public void stop() {
+        io.setSpeed(0);
+    }
+
+    public double getVelocityRadians() {
         return inputs.motorVelocityRadsPerSec;
+    }
+
+    public double getVelocityRPM() {
+        return inputs.motorVelocityRotationPerMinute;
     }
 
     public double[] getCurrent() {

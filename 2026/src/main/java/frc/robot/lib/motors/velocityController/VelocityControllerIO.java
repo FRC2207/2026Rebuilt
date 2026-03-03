@@ -10,6 +10,10 @@ public interface VelocityControllerIO {
         public double[] motorCurrentAmps = new double[] {};
 
         public double motorVelocityRadsPerSec = 0.0;
+
+        public double motorVelocityRotationPerMinute = 0.0;
+
+        public double motorDesiredSetpoint;
     }
 
     /** Updates the set of loggable inputs. */
@@ -18,6 +22,9 @@ public interface VelocityControllerIO {
     /** Run the motor at the specified voltage. */
     public default void setMotorVoltage(double volts) {}
 
-    /** Set the motor to a specified velocity */
-    public default void setVelocity(double velocity) {}
+    /** Set the motor to a specified percent */
+    public default void setPercent(double percent) {}
+
+    /** Set the motor to a specified speed in RPM's */
+    public default void setSpeed(double speed) {}
 }

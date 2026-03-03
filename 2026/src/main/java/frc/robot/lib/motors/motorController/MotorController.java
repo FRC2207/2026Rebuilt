@@ -21,10 +21,12 @@ public class MotorController extends SubsystemBase{
         Logger.processInputs(subsystem + "Fly" + number, inputs);
     }
 
+    /** Sets the motor voltage from -12 to 12 */
     public void setVoltage(double volts) {
             io.setMotorVoltage(volts);
     }
 
+    /** Sets the motor percentage from -1 to 1 */
     public void setPercent(double percent) {
         io.setMotor(percent);
     }

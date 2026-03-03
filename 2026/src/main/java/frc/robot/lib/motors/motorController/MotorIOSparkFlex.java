@@ -5,7 +5,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.MathUtil;
 
@@ -17,7 +17,7 @@ public class MotorIOSparkFlex implements MotorControllerIO{
     private Boolean thresholdMet = false;
     private double currentThreshold;
 
-    public MotorIOSparkFlex(int deviceId, SparkMaxConfig motorConfig, double currentThreshold) {
+    public MotorIOSparkFlex(int deviceId, SparkFlexConfig motorConfig, double currentThreshold) {
         this.currentThreshold = currentThreshold;
 
         motor = new SparkFlex(deviceId, MotorType.kBrushless);
