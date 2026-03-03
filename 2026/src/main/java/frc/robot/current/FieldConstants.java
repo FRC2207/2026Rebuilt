@@ -8,7 +8,6 @@
 package frc.robot.current;
 
 import static edu.wpi.first.apriltag.AprilTagFields.k2026RebuiltWelded;
-
 import java.io.IOException;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -94,4 +93,10 @@ public class FieldConstants {
       throw new RuntimeException(e);
     }
   }
+
+  public static Pose2d SimBlueStartingPose = 
+      new Pose2d(
+        new Translation2d(2.75, 4.5),            // ~1.9 meters in front of the hub and just off center
+        new Rotation2d(Units.degreesToRadians(-20))  // rotated to face the hub
+    );
 }
