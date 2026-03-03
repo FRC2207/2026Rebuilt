@@ -4,15 +4,15 @@
     {
       "anchor": {
         "x": 3.75,
-        "y": 7.425
+        "y": 7.5
       },
       "prevControl": null,
       "nextControl": {
         "x": 5.369072671328703,
-        "y": 7.558604785287023
+        "y": 7.633604785287023
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Top Trench"
     },
     {
       "anchor": {
@@ -36,8 +36,8 @@
         "y": 6.725753639785921
       },
       "prevControl": {
-        "x": 7.390746523791702,
-        "y": 6.966146508733791
+        "x": 7.390746523791701,
+        "y": 6.966146508733794
       },
       "nextControl": {
         "x": 7.6789803240740735,
@@ -151,7 +151,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 1.5,
     "rotation": 180.0
   },
   "reversed": false,

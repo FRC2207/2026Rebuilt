@@ -5,25 +5,19 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "PivotDown"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Launch"
-          }
-        },
-        {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "towerShoot to Depot"
+                  "pathName": "Start to Depot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PivotDown"
                 }
               },
               {
@@ -49,12 +43,6 @@
                 "type": "path",
                 "data": {
                   "pathName": "Depot to towerShoot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeOff"
                 }
               }
             ]

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.5,
-        "y": 5.0
+        "x": 1.7,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.49957435051304255,
-        "y": 5.973400933229593
+        "x": 1.8708735532407412,
+        "y": 2.6040342881944447
       },
       "isLocked": false,
-      "linkedName": "Depot Start"
+      "linkedName": "Tower Shoot"
     },
     {
       "anchor": {
-        "x": 0.5,
-        "y": 7.0
+        "x": 0.3,
+        "y": 0.675
       },
       "prevControl": {
-        "x": 0.49860175164986115,
-        "y": 6.240963557532202
+        "x": 1.1889832899305557,
+        "y": 1.7346947337962968
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Top Depot"
+      "linkedName": "Outpost"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 0.476,
+        "x": 0.5,
         "y": 5.0
       },
       "prevControl": {
-        "x": 1.1845767189767777,
+        "x": 1.2085767189767778,
         "y": 4.986253685141509
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Depot Start"
     }
   ],
   "rotationTargets": [],

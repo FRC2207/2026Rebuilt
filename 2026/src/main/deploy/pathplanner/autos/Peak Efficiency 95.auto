@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Start to Depot"
+                  "pathName": "Low Trench to Outpost"
                 }
               },
               {
@@ -24,21 +24,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "IntakeOn"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Thru Depot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Depot to towerShoot"
+            "waitTime": 2.0
           }
         },
         {
@@ -48,7 +36,26 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "IntakeOff"
+                  "name": "IntakeOn"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Outpost thru depot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Depot to top trench wshoot"
                 }
               },
               {
@@ -61,15 +68,28 @@
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "PivotUp"
+            "pathName": "Sweep"
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "towerShoot to Climb"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Launch"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Low trench to tower wshoot"
+                }
+              }
+            ]
           }
         }
       ]

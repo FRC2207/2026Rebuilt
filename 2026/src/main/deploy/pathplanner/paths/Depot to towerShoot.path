@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.476,
-        "y": 6.5
+        "x": 0.5,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3742206776124817,
-        "y": 5.724312182510885
+        "x": 1.3982206776124817,
+        "y": 6.224312182510885
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Top Depot"
     },
     {
       "anchor": {
