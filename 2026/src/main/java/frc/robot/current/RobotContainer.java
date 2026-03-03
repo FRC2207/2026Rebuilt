@@ -4,8 +4,6 @@
 
 package frc.robot.current;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -18,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
@@ -30,6 +29,7 @@ import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIO;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
+
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.Vision;
@@ -111,6 +111,7 @@ public class RobotContainer {
           new VisionIOPhotonVision(camera3Name, robotToCamera3));
     }
 
+
     Hopper hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
@@ -124,6 +125,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     autoChooser = AutoBuilder.buildAutoChooser();
+    autoChooser.setDefaultOption("Default Auto", autoDefault);
     autoChooser.addOption("Launch Only",
         Commands.sequence(
             pivot.gotoCollectionPos(),

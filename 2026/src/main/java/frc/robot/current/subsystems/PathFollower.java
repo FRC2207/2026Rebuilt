@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
-import frc.robot.lib.util.AllianceFlipUtil;
 
 public class PathFollower {
         private Drive drive;
