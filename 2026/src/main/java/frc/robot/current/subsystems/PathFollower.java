@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -75,6 +76,8 @@ public class PathFollower {
                 
                 SmartDashboard.putData(m_chooser);
                 
+                //PPHolonomicDriveController.overrideXFeedback();
+
                 // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
                 // in Drive subsystem.
                 // AutoBuilder.configure(

@@ -204,7 +204,7 @@ public class RobotContainer {
           drive.stop();
         }, drive));
 
-    driveXbox.start().whileTrue(Commands.run(() -> AutoBuilder.buildAuto("Go To Outpost")));
+    driveXbox.back().whileTrue(Commands.run(() -> pathFollower.driveToOutpost()));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -228,25 +228,6 @@ public class RobotContainer {
 
     controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
     controlXbox.leftBumper().onTrue(intake.spit());
-
-    // exPivot.setDefaultCommand(
-    // Commands.run(() -> {
-    // exPivot.adjustHeight(-1 * controlXbox.getLeftY());
-    // },
-    // exPivot));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is
-    // pressed,
-    // cancelling on release.
-    // controlXbox.a().whileTrue(intake.intake()).onFalse(intake.stop());
-    // controlXbox.x().onTrue(outtake.launch());
-
-    // swerveDrive.setDefaultCommand(
-    // new DriveWithController(swerveDrive, 0.5, 0.5, () -> driveXbox.getLeftX(), ()
-    // -> driveXbox.getLeftY(),
-    // () -> driveXbox.getRightX(), () -> driveXbox.getRightY(), () ->
-    // driveXbox.a().getAsBoolean()));
-    // driveXbox.x().onTrue(Commands.runOnce(swerveDrive::stopWithX, swerveDrive));
   }
 
   /**
