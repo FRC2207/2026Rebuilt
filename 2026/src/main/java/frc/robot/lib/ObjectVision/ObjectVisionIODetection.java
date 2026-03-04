@@ -11,6 +11,7 @@ import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -114,35 +115,37 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
      */
     @Override
     public Command getPath() {
-        if (xPointsSubscriberField.exists() && yPointsSubscriberField.exists()) {
-            List<Translation2d> relativePoints = getObjectPostionsRelativeToRobot();
+        List<Translation2d> relativePoints = getObjectPostionsRelativeToRobot();
+        if (relativePoints == null || relativePoints.isEmpty()) return null;
 
-            List<Pose2d> poses = new ArrayList<>();
-            poses.add(new Pose2d(0, 0, new Rotation2d()));
+        Pose2d robotPose = swerve.getPose();
+        List<Pose2d> poses = new ArrayList<>();
+        
+        poses.add(robotPose);
 
-            for (Translation2d pt : relativePoints) {
-                poses.add(new Pose2d(pt, new Rotation2d())); 
-            }
-
-            double currentSpeed = swerve.getLinearVelocity();
-
-            // If almost stopped, use like a small kick start at 0.5 mps^2
-            double targetEndSpeed = Math.max(currentSpeed, 0.5); 
-
-            List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
-
-            PathPlannerPath path = new PathPlannerPath(
-                waypoints,
-                constraints,
-                null, // starting rotation, null will set it to current
-                new GoalEndState(targetEndSpeed, swerve.getRotation()) // This means it tries to end at the current speed goo
-            );
-
-            path.preventFlipping = true; // smth to do with alliance color, this should be correct
-            return AutoBuilder.followPath(path);
-        } else {
-            return null;
+        // Convert to field relative points (which is what PathPlannerPath works with)
+        for (Translation2d relToken : relativePoints) {
+            Pose2d fieldPose = robotPose.transformBy(new Transform2d(relToken, new Rotation2d()));
+            poses.add(fieldPose);
         }
+
+        // Create waypoints which will help the path generation
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
+
+        PathPlannerPath path = new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0.0, robotPose.getRotation()) // Stop at the end, maybe not ideal can fix later
+        );
+
+        path.preventFlipping = true;
+
+        // Plotting for AdvantageScope debugging
+        // inst.getTable("Vision").getStructArrayTopic("PlannedPathHailMary", Pose2d.struct)
+            // .publish(path.getPathPoses().toArray(new Pose2d[0]));
+
+        return AutoBuilder.followPath(path);
     }
 
     @Override
