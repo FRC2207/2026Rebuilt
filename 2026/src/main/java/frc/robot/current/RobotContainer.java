@@ -9,6 +9,8 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -30,10 +32,7 @@ import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.Vision;
 
-import static edu.wpi.first.units.Units.derive;
 import static frc.robot.lib.vision.VisionConstants.*;
-
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -64,12 +63,11 @@ public class RobotContainer {
     TWOXBOX, ONEXBOX
   }
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final LoggedDashboardChooser<Command> autoChooser;
-  private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
+  private final SendableChooser<Command> autoChooser;
+  //private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
