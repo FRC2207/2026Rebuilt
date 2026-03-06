@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.current.FieldConstants;
 
 
 /**
@@ -21,29 +22,38 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
  * alliance wall.
  */
 public class AllianceFlipUtil {
-  private static final double fieldLength = 672;
+  public static enum CoordinateAxis {  
+    X, Y
+  }
+
   /** Flips a translation to the correct side of the field based on the current alliance color. */
   public static Translation2d apply(Translation2d translation) {
     if (shouldFlip()) {
-      return new Translation2d(fieldLength - translation.getX(), translation.getY());
+      return new Translation2d(
+        FieldConstants.fieldLength - translation.getX(), 
+        FieldConstants.fieldWidth - translation.getY());
     } else {
       return translation;
     }
   }
 
-  /** Flips an x coordinate to the correct side of the field based on the current alliance color. */
-  public static double apply(double xCoordinate) {
+  /** Flips an X or Y coordinate to the correct side of the field based on the current alliance color. */
+  public static double apply(double coordinate, CoordinateAxis axis) {
     if (shouldFlip()) {
-      return fieldLength - xCoordinate;
+      if (axis == CoordinateAxis.Y) {
+        return FieldConstants.fieldWidth - coordinate;
+      } else {  
+        return FieldConstants.fieldLength - coordinate;
+      }
     } else {
-      return xCoordinate;
+      return coordinate;
     }
   }
 
   /** Flips a rotation based on the current alliance color. */
   public static Rotation2d apply(Rotation2d rotation) {
     if (shouldFlip()) {
-      return new Rotation2d(-rotation.getCos(), rotation.getSin());
+      return rotation.plus(new Rotation2d(Math.PI));
     } else {
       return rotation;
     }
@@ -53,9 +63,9 @@ public class AllianceFlipUtil {
   public static Pose2d apply(Pose2d pose) {
     if (shouldFlip()) {
       return new Pose2d(
-          fieldLength - pose.getX(),
-          pose.getY(),
-          new Rotation2d(-pose.getRotation().getCos(), pose.getRotation().getSin()));
+          FieldConstants.fieldLength - pose.getX(),
+          FieldConstants.fieldWidth - pose.getY(),
+          pose.getRotation().plus(new Rotation2d(Math.PI)));
     } else {
       return pose;
     }
@@ -71,11 +81,9 @@ public class AllianceFlipUtil {
           state.velocityMetersPerSecond,
           state.accelerationMetersPerSecondSq,
           new Pose2d(
-              fieldLength - state.poseMeters.getX(),
-              state.poseMeters.getY(),
-              new Rotation2d(
-                  -state.poseMeters.getRotation().getCos(),
-                  state.poseMeters.getRotation().getSin())),
+              FieldConstants.fieldLength - state.poseMeters.getX(),
+              FieldConstants.fieldWidth - state.poseMeters.getY(),
+              state.poseMeters.getRotation().plus(new Rotation2d(Math.PI))),
           -state.curvatureRadPerMeter);
     } else {
       return state;

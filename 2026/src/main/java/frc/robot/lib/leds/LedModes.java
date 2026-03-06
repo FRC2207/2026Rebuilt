@@ -1,12 +1,8 @@
 package frc.robot.lib.leds;
 
-import java.util.List;
-
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.lib.leds.LedColor;
-import frc.robot.lib.leds.LedSectionConfig;
 
 public class LedModes {
     public AddressableLED m_Led;
@@ -21,7 +17,6 @@ public class LedModes {
     private int m_rainbowFirstPixelHue;
     private int m_waveValue;
     private int m_range;
-    private int carnivalIncrease;
     private int zipIncrease;
     private int start;
     private int end;

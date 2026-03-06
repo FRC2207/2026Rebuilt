@@ -4,32 +4,27 @@
 
 package frc.robot.current;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
-import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
-import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
 import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
+import frc.robot.current.subsystems.swerveDrive.GyroIO;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
+import frc.robot.current.subsystems.swerveDrive.ModuleIO;
+import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
@@ -37,6 +32,8 @@ import frc.robot.lib.vision.Vision;
 
 import static edu.wpi.first.units.Units.derive;
 import static frc.robot.lib.vision.VisionConstants.*;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -53,13 +50,12 @@ public class RobotContainer {
   // private ExamplePivot exPivot;
   // private SwerveDrive swerveDrive;
   private Drive drive;
-  private LedOperation leds;
   private Intake intake;
   private Pivot pivot;
   private Vision vision;
   private Outtake outtake;
 
-  private static Boolean cameraYes = true;
+  private static Boolean cameraYes;
   private PathFollower pathFollower;
 
   private static ControlType controlType = ControlType.ONEXBOX;
@@ -72,7 +68,7 @@ public class RobotContainer {
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final SendableChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser;
   private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
   /**
@@ -80,16 +76,42 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    // leds = new LedOperation();
-    // exPivot = new ExamplePivot(Constants.robot);
+    // Instantiate Drive subsystem with appropriate ModuleIO and GyroIO implementations based on the current mode
+    switch (Constants.currentMode) {
+      case REAL:
+  
+        drive = new Drive(
+            new GyroIONavX(),
+            new ModuleIOSpark(0),
+            new ModuleIOSpark(1),
+            new ModuleIOSpark(2), 
+            new ModuleIOSpark(3));
+        cameraYes = true;
+        break;
+      
+      case SIM:
+        drive = 
+          new Drive(
+            new GyroIO() {},
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim());
+      cameraYes = false;      
+      break;
 
-    drive = new Drive(
-        new GyroIONavX(),
-        new ModuleIOSpark(0),
-        new ModuleIOSpark(1),
-        new ModuleIOSpark(2),
-        new ModuleIOSpark(3));
+      default:
+        drive = new Drive(
+            new GyroIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {});
+        cameraYes = false;
+        break;
+    }  
 
+    // Instantiate Vision subsystem if cameras are enabled
     if (cameraYes == true) {
       vision = new Vision(drive::addVisionMeasurement,
           // new VisionIOPhotonVision(camera0Name, robotToCamera0),
@@ -98,13 +120,14 @@ public class RobotContainer {
           new VisionIOPhotonVision(camera3Name, robotToCamera3));
     }
 
+    // Instantiate the other subsystems
     Hopper hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(1.5));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());

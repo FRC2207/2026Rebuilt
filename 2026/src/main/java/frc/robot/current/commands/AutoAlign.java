@@ -4,21 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -31,8 +24,6 @@ public class AutoAlign extends DriveToPose {
         public static List<Pose2d> trenchPositions = new ArrayList<>();
         StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
                         .getStructArrayTopic("PosArr", Pose2d.struct).publish();
-        private static Boolean ReefProtection = false;
-
         private static PathConstraints constraints;
 
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
