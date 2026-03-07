@@ -4,11 +4,7 @@
 
 package frc.robot.current;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,19 +17,21 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
-import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Intake;
-import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
 import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
+import frc.robot.current.subsystems.swerveDrive.GyroIO;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
+import frc.robot.current.subsystems.swerveDrive.ModuleIO;
+import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.Vision;
+
 import static frc.robot.lib.vision.VisionConstants.*;
 
 /**
@@ -51,37 +49,67 @@ public class RobotContainer {
   // private ExamplePivot exPivot;
   // private SwerveDrive swerveDrive;
   private Drive drive;
-  private LedOperation leds;
   private Intake intake;
   private Pivot pivot;
   private Vision vision;
   private Outtake outtake;
 
-  private static Boolean cameraYes = true;
+  private static Boolean cameraYes;
   private PathFollower pathFollower;
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
+  private static ControlType controlType = ControlType.ONEXBOX;
+
+  private enum ControlType {
+    TWOXBOX, ONEXBOX
+  }
+
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
   private final SendableChooser<Command> autoChooser;
-  private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
+  //private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
 
-    // leds = new LedOperation();
-    // exPivot = new ExamplePivot(Constants.robot);
+    // Instantiate Drive subsystem with appropriate ModuleIO and GyroIO implementations based on the current mode
+    switch (Constants.currentMode) {
+      case REAL:
+  
+        drive = new Drive(
+            new GyroIONavX(),
+            new ModuleIOSpark(0),
+            new ModuleIOSpark(1),
+            new ModuleIOSpark(2), 
+            new ModuleIOSpark(3));
+        cameraYes = true;
+        break;
+      
+      case SIM:
+        drive = 
+          new Drive(
+            new GyroIO() {},
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim(),
+            new ModuleIOSim());
+      cameraYes = false;      
+      break;
 
-    drive = new Drive(
-        new GyroIONavX(),
-        new ModuleIOSpark(0),
-        new ModuleIOSpark(1),
-        new ModuleIOSpark(2),
-        new ModuleIOSpark(3));
+      default:
+        drive = new Drive(
+            new GyroIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {},
+            new ModuleIO() {});
+        cameraYes = false;
+        break;
+    }  
 
+    // Instantiate Vision subsystem if cameras are enabled
     if (cameraYes == true) {
       vision = new Vision(drive::addVisionMeasurement,
           // new VisionIOPhotonVision(camera0Name, robotToCamera0),
@@ -90,13 +118,14 @@ public class RobotContainer {
           new VisionIOPhotonVision(camera3Name, robotToCamera3));
     }
 
+    // Instantiate the other subsystems
     Hopper hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(10));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(1.5));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
@@ -107,8 +136,8 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
     // Add autonomous routines to the SendableChooser
-    //autoDefault = Commands.none();
-    //autoChooser.addDefaultOption("Default Auto", autoDefault);
+    // autoDefault = Commands.none();
+    // autoChooser.addDefaultOption("Default Auto", autoDefault);
 
     if (Constants.isTuningMode) {
       autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
@@ -156,15 +185,15 @@ public class RobotContainer {
                 () -> -0.45 * driveXbox.getLeftX(),
                 () -> -0.5 * driveXbox.getRightX()));
 
-    // Lock to 0° when A button is held
+    // Reset gyro to 0° when B button is pressed
     driveXbox
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -driveXbox.getLeftY(),
-                () -> -driveXbox.getLeftX(),
-                () -> Rotation2d.kCCW_90deg));
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(
+                    new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+                drive)
+                .ignoringDisable(true));
 
     driveXbox.leftBumper().whileTrue(
         DriveCommands.joystickDrivePointTarget(
@@ -190,34 +219,17 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
 
-     controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
-    controlXbox.povUp().onTrue(pivot.gotoStoredPos());
-    controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
+        controlXbox.povUp().onTrue(pivot.gotoStoredPos());
+        controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-    controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-    controlXbox.leftBumper().onTrue(intake.spit());
+        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.spit());
+    }
 
-    // exPivot.setDefaultCommand(
-    // Commands.run(() -> {
-    // exPivot.adjustHeight(-1 * controlXbox.getLeftY());
-    // },
-    // exPivot));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is
-    // pressed,
-    // cancelling on release.
-    // controlXbox.a().whileTrue(intake.intake()).onFalse(intake.stop());
-    // controlXbox.x().onTrue(outtake.launch());
-
-    // swerveDrive.setDefaultCommand(
-    // new DriveWithController(swerveDrive, 0.5, 0.5, () -> driveXbox.getLeftX(), ()
-    // -> driveXbox.getLeftY(),
-    // () -> driveXbox.getRightX(), () -> driveXbox.getRightY(), () ->
-    // driveXbox.a().getAsBoolean()));
-    // driveXbox.x().onTrue(Commands.runOnce(swerveDrive::stopWithX, swerveDrive));
   }
 
   /**
@@ -226,13 +238,13 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    //return AutoBuilder.buildAuto("Straight Back");
+    // return AutoBuilder.buildAuto("Straight Back");
 
     // if (autoChooser.get() != null) {
-    //   System.out.print("Auto Path " + autoChooser.get().getName());
-     return autoChooser.getSelected();
+    // System.out.print("Auto Path " + autoChooser.get().getName());
+    return autoChooser.getSelected();
     // } else {
-    //   return Commands.print("No autonomous command configured");
+    // return Commands.print("No autonomous command configured");
     // }
   }
 }

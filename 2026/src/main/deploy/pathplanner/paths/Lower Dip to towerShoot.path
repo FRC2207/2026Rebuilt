@@ -1,0 +1,70 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.75,
+        "y": 3.625
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.604881581074143,
+        "y": 3.144069458182889
+      },
+      "isLocked": false,
+      "linkedName": "Lower Dip End"
+    },
+    {
+      "anchor": {
+        "x": 4.625,
+        "y": 2.5
+      },
+      "prevControl": {
+        "x": 5.818250576094556,
+        "y": 2.6354962298109497
+      },
+      "nextControl": {
+        "x": 4.340862664327729,
+        "y": 2.4677355800169587
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.7,
+        "y": 4.0
+      },
+      "prevControl": {
+        "x": 2.8470941127556006,
+        "y": 3.3645311024632445
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Tower Shoot"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "useDefaultConstraints": true
+}
