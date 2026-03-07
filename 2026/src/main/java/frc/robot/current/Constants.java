@@ -94,7 +94,7 @@ public final class Constants {
     public static final int lowMotorId = 31;
 
     // The velocity for quick launch and continous launch
-    public static final double velocityDefault = 3267;    // 67!
+    public static final double velocityDefault = 3267 - 1000;    // 67!
 
     public static final double kP = 0.00006;
     public static final double kI = 0.0;
