@@ -58,8 +58,8 @@ public class Outtake extends SubsystemBase {
         
         switch (Constants.robot) {
             case "Real":
-                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake", "1");
-                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig), "Outtake", "2");
+                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake/highMotor");
+                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig), "Outtake/lowMotor");
 
                 break;
             case "SIM":
@@ -67,8 +67,8 @@ public class Outtake extends SubsystemBase {
 
                 break;
             default:
-                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake", "1");
-                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig), "Outtake", "2");
+                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake/highMotor");
+                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig),"Outtake/lowMotor");
                 break;
         }
 

@@ -35,14 +35,14 @@ public class Intake extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake", "1");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake", "1");
+        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake");
         break;
     }
   }

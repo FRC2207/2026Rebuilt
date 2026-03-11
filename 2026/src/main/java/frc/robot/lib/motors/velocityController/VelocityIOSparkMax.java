@@ -29,10 +29,11 @@ public class VelocityIOSparkMax implements VelocityControllerIO{
     @Override
     public void updateInputs(VelocityControllerIOInputs inputs) {
         inputs.motorAppliedVolts = motor.getAppliedOutput();
-        inputs.motorCurrentAmps = new double[] {motor.getOutputCurrent()};
-        inputs.motorVelocityRadsPerSec = getVelocityRadians();
+        inputs.motorCurrentAmps = motor.getOutputCurrent();
+        inputs.motorTemp = motor.getMotorTemperature();
+
+        inputs.motorVelocityRadsPerSec = getVelocityRadPerSec();
         inputs.motorVelocityRotationPerMinute = getVelocityRPM();
-        inputs.motorDesiredSetpoint = pidController.getSetpoint();
     }
 
     @Override
@@ -42,23 +43,26 @@ public class VelocityIOSparkMax implements VelocityControllerIO{
     }
 
     /** Requires a decimal percentage */
-    public void setPercent(double percent) {
+    public void setMotorPercent(double percent) {
         percent = MathUtil.clamp(percent, -1, 1);
         motor.set(percent);
     }
 
+    public double getCurrent(){
+        return motor.getOutputCurrent();
+    }
+
     /** Set speed to a specified RPM */
-    public void setSpeed(double speed) {
+    public void setSpeedRPM(double speed) {
         pidController.setSetpoint(speed, ControlType.kVelocity);
     }
 
-    private double getVelocityRadians() {
+    public double getVelocityRadPerSec() {
         // motorEncoder.getVelocity() returns RPM, convert to radians per second
         return motorEncoder.getVelocity() * ((2 * Math.PI) / 60);
     }
 
-    private double getVelocityRPM() {
-
+    public double getVelocityRPM() {
         return motorEncoder.getVelocity();
     }
 

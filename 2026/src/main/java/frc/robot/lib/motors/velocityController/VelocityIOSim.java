@@ -19,30 +19,46 @@ public class VelocityIOSim implements VelocityControllerIO {
     @Override
     public void updateInputs(VelocityControllerIOInputs inputs) {    
         inputs.motorAppliedVolts = motorAppliedVolts;
-        inputs.motorCurrentAmps = new double[] {motorSim.getMotorCurrent()};
-        inputs.motorVelocityRadsPerSec = getVelocity();
+        inputs.motorCurrentAmps = motorSim.getMotorCurrent();
+        inputs.motorVelocityRadsPerSec = getVelocityRadPerSec();
+        inputs.motorVelocityRotationPerMinute = getVelocityRPM();
     }
 
     public void simulationPeriodic() {
-        motorSim.iterate(getVelocity(), getVBus(), 0.02);
+        motorSim.iterate(getVelocityRadPerSec(), getVBus(), 0.02);
     }
 
     public void periodic() {
-        motorSim.iterate(getVelocity(), getVBus(), 0.02);
+        motorSim.iterate(getVelocityRadPerSec(), getVBus(), 0.02);
     }
 
-    private double getVelocity() {
+    public double getVelocityRadPerSec() {
         // motorSim.getVelocity returns RPM, convert to radians per second
         return motorSim.getVelocity() * ((2 * Math.PI) / 60);
     }
 
-    public double getVBus() {
+    public double getVelocityRPM(){
+        return motorSim.getVelocity();
+    }
+
+    private double getVBus() {
         return motorSim.getBusVoltage();
     }
 
-    @Override
     public void setMotorVoltage(double volts) {
         motorAppliedVolts = MathUtil.clamp(volts, -12, 12);
         motorSim.setBusVoltage(motorAppliedVolts);
+    }
+
+    public void setMotorPercent(double percent){
+        motorSim.setAppliedOutput(percent);
+    }
+
+    public void setSpeedRPM(double speed){
+        motorSim.setVelocity(speed);
+    }
+
+    public double getCurrent(){
+        return motorSim.getMotorCurrent();
     }
 }
