@@ -4,7 +4,6 @@ import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 
 public class PositionIOSim implements PositionControllerIO{
@@ -18,7 +17,7 @@ public class PositionIOSim implements PositionControllerIO{
     @Override
     public void updateInputs(PositionControllerIOInputs inputs) {    
         inputs.motorAppliedVolts = motorAppliedVolts;
-        inputs.motorCurrentAmps = new double[] {motorSim.getMotorCurrent()};
+        inputs.motorCurrentAmps = motorSim.getMotorCurrent();
         inputs.motorEncoder = getEncoder();
     }
 
@@ -26,13 +25,14 @@ public class PositionIOSim implements PositionControllerIO{
         motorSim.iterate(getVelocity(), getVBus(), 0.02);
     }
 
-    @Override
-    public void setMotorVoltage(double volts) {
-        motorAppliedVolts = MathUtil.clamp(volts, -12, 12);
-        motorSim.setBusVoltage(motorAppliedVolts);
+    public double getCurrent() {
+        return motorSim.getMotorCurrent();
     }
 
-    @Override
+    public double getVelocityRPM() {
+        return motorSim.getVelocity();
+    }
+
     public double getEncoder() {
         return motorSim.getAbsoluteEncoderSim().getPosition();
     }

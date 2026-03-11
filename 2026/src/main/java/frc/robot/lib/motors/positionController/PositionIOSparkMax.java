@@ -9,8 +9,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.MathUtil;
-
 public class PositionIOSparkMax implements PositionControllerIO{
     private final SparkMax motor;
 
@@ -30,21 +28,21 @@ public class PositionIOSparkMax implements PositionControllerIO{
     @Override
     public void updateInputs(PositionControllerIOInputs inputs) {
         inputs.motorAppliedVolts = motor.getAppliedOutput();
-        inputs.motorCurrentAmps = new double[] {motor.getOutputCurrent()};
+        inputs.motorCurrentAmps = getCurrent();
         inputs.motorEncoder = getEncoder();
         inputs.motorTemp = motor.getMotorTemperature();
     }
 
-    @Override
-    public void setMotorVoltage(double volts) {
-        volts = MathUtil.clamp(volts, -12, 12);
-        motor.setVoltage(volts);
+    public double getCurrent() {
+        return motor.getOutputCurrent();
     }
 
+    public double getVelocityRPM() {
+        return motorEncoder.getVelocity();
+    }
+    
     public double getEncoder() {
-        // testNumber = (testNumber > 100) ? 0 : (testNumber + .01);
         return (motorEncoder.getPosition());
-        //return testNumber;
     }
 
     public double getPosition() {

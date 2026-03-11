@@ -4,31 +4,34 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class PositionController extends SubsystemBase{
+public class PositionController extends SubsystemBase {
     private PositionControllerIO io;
     private final PositionControllerIOInputsAutoLogged inputs = new PositionControllerIOInputsAutoLogged();
-    private String subsystem;
+    private String loggingKey;
 
-    public PositionController(PositionControllerIO io, String subsystem) {
+    /**
+     * 
+     * @param io         the io object for the positionController
+     * @param loggingKey the path where inputs will be logged
+     * 
+     */
+    public PositionController(PositionControllerIO io, String loggingKey) {
         this.io = io;
-        this.subsystem = subsystem;
+        this.loggingKey = loggingKey;
     }
 
     public void updateInputs() {
         io.updateInputs(inputs);
-        Logger.processInputs(subsystem + "Pivot", inputs);
+        Logger.processInputs(loggingKey, inputs);
     }
 
-    public void setVoltage(double volts) {
-        io.setMotorVoltage(volts);
-    }
 
     public double getAngle() {
         return io.getEncoder();
     }
 
-    public double getVelocity() {
-        return io.getVelocity();
+    public double getVelocityRPM() {
+        return io.getVelocityRPM();
     }
 
     /** Sets the motor position in rotations */
