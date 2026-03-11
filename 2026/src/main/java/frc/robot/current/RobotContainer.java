@@ -67,47 +67,54 @@ public class RobotContainer {
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
   private final SendableChooser<Command> autoChooser;
-  //private Command autoDefault = Commands.print("Default auto selected. No autonomous command configured.");
+  // private Command autoDefault = Commands.print("Default auto selected. No
+  // autonomous command configured.");
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
 
-    // Instantiate Drive subsystem with appropriate ModuleIO and GyroIO implementations based on the current mode
+    // Instantiate Drive subsystem with appropriate ModuleIO and GyroIO
+    // implementations based on the current mode
     switch (Constants.currentMode) {
       case REAL:
-  
+
         drive = new Drive(
             new GyroIONavX(),
             new ModuleIOSpark(0),
             new ModuleIOSpark(1),
-            new ModuleIOSpark(2), 
+            new ModuleIOSpark(2),
             new ModuleIOSpark(3));
         cameraYes = true;
         break;
-      
+
       case SIM:
-        drive = 
-          new Drive(
-            new GyroIO() {},
+        drive = new Drive(
+            new GyroIO() {
+            },
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim());
-      cameraYes = false;      
-      break;
+        cameraYes = false;
+        break;
 
       default:
         drive = new Drive(
-            new GyroIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {});
+            new GyroIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            });
         cameraYes = false;
         break;
-    }  
+    }
 
     // Instantiate Vision subsystem if cameras are enabled
     if (cameraYes == true) {
@@ -221,15 +228,13 @@ public class RobotContainer {
 
     controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+    controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
-        controlXbox.povUp().onTrue(pivot.gotoStoredPos());
-        controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
+    controlXbox.povUp().onTrue(pivot.gotoStoredPos());
+    controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        controlXbox.leftBumper().onTrue(intake.spit());
-    }
-
+    controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+    controlXbox.leftBumper().onTrue(intake.spit());
   }
 
   /**
