@@ -29,25 +29,25 @@ public class MotorIOSparkFlex implements MotorControllerIO{
     @Override
     public void updateInputs(MotorControllerIOInputs inputs) {
         inputs.motorAppliedVolts = motor.getAppliedOutput();
-        inputs.motorCurrentAmps = new double[] {motor.getOutputCurrent()};
-        inputs.motorEncoder = getEncoder();
+        inputs.motorCurrentAmps = motor.getOutputCurrent();
+        inputs.motorEncoderRotations = getEncoderRotations();
         inputs.motorTemp = motor.getMotorTemperature();
+
+        inputs.motorVelocityRadsPerSec = getVelocityRadPerSec();
+        inputs.motorVelocityRotationPerMinute = getVelocityRPM();
     }
 
-    @Override
     public void setMotorVoltage(double volts) {
-        volts 
-        
-        = MathUtil.clamp(volts, -12, 12);
+        volts = MathUtil.clamp(volts, -12, 12);
         motor.setVoltage(volts);
     }
 
-    public void setMotor(double percent) {
+    public void setMotorPercent(double percent) {
         percent = MathUtil.clamp(percent, -1, 1);
         motor.set(percent);
     }
 
-    public double getEncoder() {
+    public double getEncoderRotations() {
         return motorEncoder.getPosition();
     }
 
@@ -64,4 +64,14 @@ public class MotorIOSparkFlex implements MotorControllerIO{
     public double getCurrent() {
         return motor.getOutputCurrent();
     }
+
+
+    public double getVelocityRadPerSec() {
+        return motorEncoder.getVelocity() * ((2 * Math.PI) / 60);
+    }
+
+    public double getVelocityRPM() {
+        return motorEncoder.getVelocity();
+    }
+
 }

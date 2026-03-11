@@ -14,14 +14,14 @@ public class Hopper {
         switch (Constants.robot) {
             case "Real":
                 motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
-                        "Hopper", "1");
+                        "Hopper");
                 break;
             case "SIM":
                 // Just don't use sim :)
                 break;
             default:
                 motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
-                        "Hopper", "1");
+                        "Hopper");
                 break;
         }
     }
