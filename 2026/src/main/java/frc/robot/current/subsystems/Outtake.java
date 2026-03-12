@@ -11,6 +11,7 @@ import frc.robot.current.FieldConstants;
 import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -56,9 +57,9 @@ public class Outtake extends SubsystemBase {
 
         switch (Constants.robot) {
             case "Real":
-                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex),
+                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex),
                         "Outtake/highMotor");
-                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex),
+                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex),
                         "Outtake/lowMotor");
 
                 break;
@@ -67,9 +68,9 @@ public class Outtake extends SubsystemBase {
 
                 break;
             default:
-                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex),
+                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex),
                         "Outtake/highMotor");
-                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex),
+                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex),
                         "Outtake/lowMotor");
                 break;
         }

@@ -1,20 +1,13 @@
 package frc.robot.lib.motors.motorController;
 
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkSim;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.config.SparkBaseConfig;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 
 public class MotorIOSim implements MotorControllerIO{
@@ -73,6 +66,10 @@ public class MotorIOSim implements MotorControllerIO{
     }
 
     public void setMotorPercent(double percent) {
+        // TODO: Implement
+    }
+
+    public void setMotorVoltage (double voltage) {
         // TODO: Implement
     }
 

@@ -20,7 +20,10 @@ public interface MotorControllerIO {
     /** Updates the set of loggable inputs. */
     public default void updateInputs(MotorControllerIOInputs inputs) {}
 
+    /** Sets the motor percentage from -1 to 1 */
     public abstract void setMotorPercent(double percent);
+
+    public abstract void setMotorVoltage(double voltage);
 
     public abstract double getAppliedVolts();
 
