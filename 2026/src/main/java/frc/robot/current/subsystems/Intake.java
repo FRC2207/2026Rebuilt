@@ -10,6 +10,7 @@ import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Intake extends SubsystemBase {
@@ -36,14 +37,14 @@ public class Intake extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex), "Intake");
+        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex), "Intake");
+        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
         break;
     }
   }

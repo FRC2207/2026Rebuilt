@@ -11,6 +11,7 @@ import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Pivot extends SubsystemBase {
@@ -42,14 +43,14 @@ public class Pivot extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax), "Pivot");
+        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1), "Pivot");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax), "Pivot");
+        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1), "Pivot");
         break;
     }
   }
