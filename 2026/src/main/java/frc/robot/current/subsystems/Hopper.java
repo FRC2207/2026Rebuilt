@@ -4,7 +4,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
-import frc.robot.lib.motors.motorController.MotorIOSparkMax;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Hopper {
     private SparkMaxConfig sparkConfig = new SparkMaxConfig();
@@ -13,14 +14,14 @@ public class Hopper {
     public Hopper() {
         switch (Constants.robot) {
             case "Real":
-                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
+                motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax),
                         "Hopper");
                 break;
             case "SIM":
                 // Just don't use sim :)
                 break;
             default:
-                motor = new MotorController(new MotorIOSparkMax(Constants.HopperConstants.motorID, sparkConfig, 35),
+                motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax),
                         "Hopper");
                 break;
         }
@@ -31,10 +32,10 @@ public class Hopper {
     }
 
     public void run() {
-        motor.setPercent(Constants.HopperConstants.motorSpeed);
+        motor.setMotorPercent(Constants.HopperConstants.motorSpeed);
     }
 
     public void stop() {
-        motor.setPercent(0);
+        motor.setMotorPercent(0);
     }
 }

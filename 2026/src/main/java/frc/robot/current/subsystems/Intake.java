@@ -8,11 +8,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
-import frc.robot.lib.motors.velocityController.VelocityController;
-import frc.robot.lib.motors.velocityController.VelocityIOSparkFlex;
+import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Intake extends SubsystemBase {
-  private VelocityController intakeMotor;
+  private MotorController intakeMotor;
 
   private final int intakeMotorId = Constants.IntakeConstants.intakeID;
   private final String robotType = Constants.robot;
@@ -35,14 +36,14 @@ public class Intake extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake");
+        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex), "Intake");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        intakeMotor = new VelocityController(new VelocityIOSparkFlex(intakeMotorId, intakeConfig), "Intake");
+        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex), "Intake");
         break;
     }
   }
@@ -51,34 +52,30 @@ public class Intake extends SubsystemBase {
     intakeMotor.updateInputs();
   }
 
-  public void setVoltage(double volts) {
-    intakeMotor.setVoltage(volts);
-  }
-
   public Command spit() { 
     double percent = 2000;
 
     return Commands.sequence(
         runOnce(() -> {
-          intakeMotor.setSpeed(percent);
+          intakeMotor.setSpeedRPM(percent);
         }),
         Commands.waitSeconds(.5),
         runOnce(() -> {
-          intakeMotor.setVoltage(0);
+          intakeMotor.setSpeedRPM(percent);
         }));
   }
 
   public Command intake() {
     return Commands.runOnce(() -> {
       isIntaking = true;
-      intakeMotor.setSpeed(IntakeConstants.intakeSpeed);
+      intakeMotor.setSpeedRPM(IntakeConstants.intakeSpeed);
     }, this);
   }
 
   public Command stop() {
     return Commands.run(() -> {
       isIntaking = false;
-      intakeMotor.setVoltage(0);
+      intakeMotor.setSpeedRPM(0);;
     }, this);
   }
 }

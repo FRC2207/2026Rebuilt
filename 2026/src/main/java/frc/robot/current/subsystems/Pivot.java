@@ -9,11 +9,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
-import frc.robot.lib.motors.positionController.PositionController;
-import frc.robot.lib.motors.positionController.PositionIOSparkMax;
+import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Pivot extends SubsystemBase {
-  private PositionController pivotMotor;
+  private MotorController pivotMotor;
 
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
   private final String robotType = Constants.robot;
@@ -41,24 +42,24 @@ public class Pivot extends SubsystemBase {
 
     switch (robotType) {
       case "Real":
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig, 0.0), "Pivot");
+        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax), "Pivot");
         break;
       case "SIM":
         // Just don't use sim.
 
         break;
       default:
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig, 0.0), "Pivot");
+        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax), "Pivot");
         break;
     }
   }
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("pivotSetpoint", pivotMotor.getMotorSetpoint());
+    Logger.recordOutput("pivotSetpoint", pivotMotor.getSetpointRotations());
     Logger.recordOutput("IsUp", isUp);
 
-    if (pivotMotor.getAngle() >= .2) {
+    if (pivotMotor.getPositionRotations() >= .2) {
       isUp = true;
     } else {
       isUp = false;
@@ -66,40 +67,22 @@ public class Pivot extends SubsystemBase {
   }
 
   public void initialization() {
-    setPivotPosition(pivotMotor.getAngle());
+    setPivotPosition(pivotMotor.getPositionRotations());
   }
 
   public void setPivotPosition(double setpoint) {
-    pivotMotor.setMotorPosition(setpoint);
+    pivotMotor.setPositionRotations(setpoint);
   }
 
   public Command gotoStoredPos() {
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(Constants.PivotConstants.storedRotations);
+      pivotMotor.setPositionRotations(Constants.PivotConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(Constants.PivotConstants.collectionRotations);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateUp() {
-    // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.runOnce(() -> {
-      isUp = true;
-      pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() + 1);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateDown() {
-    // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.runOnce(() -> {
-      isUp = false;
-      pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() - 1);
+      pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
     }, this);
   }
 }
