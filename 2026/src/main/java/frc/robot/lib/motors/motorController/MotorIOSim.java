@@ -138,7 +138,7 @@ public class MotorIOSim implements MotorControllerIO{
         // return closedLoopController.getSetpoint() * (2 * Math.PI);
     }
 
-    public double getSetpointRotations(){
+    public double getSetpoint(){
         // TODO: Implement
         return 0.0;
         //return closedLoopController.getSetpoint();
