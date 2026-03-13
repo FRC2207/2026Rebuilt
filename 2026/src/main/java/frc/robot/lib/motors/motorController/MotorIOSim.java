@@ -28,6 +28,28 @@ public class MotorIOSim implements MotorControllerIO {
         Simple, Postion, Velocity
     }
 
+    /**
+     * 
+     * @param motorModel The model of the motor, supported models<ul> 
+     * <ls> {@link MotorModelSim#Vortex}
+     * <ls> {@link MotorModelSim#NeoV1}
+     * <ls> {@link MotorModelSim#NeoV2}
+     * <ls> {@link MotorModelSim#Neo550}
+     * </ul>
+     * @param controlType The type of control the motor is using <ul>
+     * <ls> {@link ControlType#Simple}
+     * <ls> {@link ControlType#Postion}
+     * <ls> {@link ControlType#Velocity}
+     * </ul>
+     * @param kP The P value of PID
+     * @param kI The I value of PID
+     * @param kD The D value of PID
+     * @param kS The S value of PIDFF
+     * @param kV The V value of PIDFF
+     * @param kMomentOfInertia The moment of intertia J of the DCmotor, used in {@link LinearSystemId#createDCMotorSystem(DCMotor, double, double)}
+     * @param gearReduction The reduction between motor and drum, as a ratio of output to input {@link LinearSystemId#createDCMotorSystem(DCMotor, double, double)}
+     * 
+     */
     public MotorIOSim(MotorModelSim motorModel, ControlType controlType, double kP, double kI, double kD, double kS,
             double kV, double kMomentOfInertia, double gearReduction) {
         this.controlType = controlType;

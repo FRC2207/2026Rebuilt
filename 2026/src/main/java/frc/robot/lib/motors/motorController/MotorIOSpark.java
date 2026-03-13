@@ -40,6 +40,24 @@ public class MotorIOSpark implements MotorControllerIO {
         BUILTIN_RELATIVE,
     }
 
+    /**
+     * 
+     * @param deviceId The CAN id of the MotorControler
+     * @param motorConfig The {@linkplain SparkBaseConfig} for the motor
+     * @param sparkType The type of spark motor controler <ul>
+     * <ls> {@link SparkType#SparkMax}
+     * <ls> {@link SparkType#SparkFlex}
+     * </ul>
+     * @param motorModel The model of the motor, supported models<ul> 
+     * <ls> {@link MotorModel#Vortex}
+     * <ls> {@link MotorModel#NeoV1}
+     * <ls> {@link MotorModel#NeoV2}
+     * <ls> {@link MotorModel#Neo550}
+     * </ul>
+     * @param encoderType The type of encoder <ul>
+     * <ls> {@link EncoderType#EXTERNAL_ABSOLUTE}
+     * <ls> {@link EncoderType#BUILTIN_RELATIVE}
+     */
     public MotorIOSpark(int deviceId, SparkBaseConfig motorConfig, SparkType sparkType, MotorModel motorModel, EncoderType encoderType) {
         this.motorModel = motorModel;
 
