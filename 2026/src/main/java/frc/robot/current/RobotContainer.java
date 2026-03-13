@@ -30,6 +30,7 @@ import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
+import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
 
 import static frc.robot.lib.vision.VisionConstants.*;
@@ -53,8 +54,8 @@ public class RobotContainer {
   private Pivot pivot;
   private Vision vision;
   private Outtake outtake;
+  private Hopper hopper;
 
-  private static Boolean cameraYes;
   private PathFollower pathFollower;
 
   private static ControlType controlType = ControlType.ONEXBOX;
@@ -86,7 +87,14 @@ public class RobotContainer {
             new ModuleIOSpark(1),
             new ModuleIOSpark(2),
             new ModuleIOSpark(3));
-        cameraYes = true;
+
+        vision = new Vision(drive::addVisionMeasurement,
+          // new VisionIOPhotonVision(camera0Name, robotToCamera0),
+          new VisionIOPhotonVision(camera1Name, robotToCamera1),
+          // new VisionIOPhotonVision(camera2Name, robotToCamera2),
+          new VisionIOPhotonVision(camera3Name, robotToCamera3)
+          );
+
         break;
 
       case SIM:
@@ -97,7 +105,14 @@ public class RobotContainer {
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim());
-        cameraYes = false;
+
+        vision = new Vision(drive::addVisionMeasurement,
+          // new VisionIOPhotonVision(camera0Name, robotToCamera0, () -> drive.getPose()),
+          new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, () -> drive.getPose()),
+          // new VisionIOPhotonVision(camera2Name, robotToCamera2, () -> drive.getPose()),
+          new VisionIOPhotonVisionSim(camera3Name, robotToCamera3, () -> drive.getPose())
+          );
+          
         break;
 
       default:
@@ -112,21 +127,11 @@ public class RobotContainer {
             },
             new ModuleIO() {
             });
-        cameraYes = false;
         break;
     }
 
-    // Instantiate Vision subsystem if cameras are enabled
-    if (cameraYes == true) {
-      vision = new Vision(drive::addVisionMeasurement,
-          // new VisionIOPhotonVision(camera0Name, robotToCamera0),
-          new VisionIOPhotonVision(camera1Name, robotToCamera1),
-          // new VisionIOPhotonVision(camera2Name, robotToCamera2),
-          new VisionIOPhotonVision(camera3Name, robotToCamera3));
-    }
-
     // Instantiate the other subsystems
-    Hopper hopper = new Hopper();
+    hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
