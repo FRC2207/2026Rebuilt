@@ -1,5 +1,7 @@
 package frc.robot.current.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -107,6 +109,10 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         highMotor.updateInputs();
         lowMotor.updateInputs();
+
+        // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpointRotations());
+        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpointRotations());
     }
 
     public Command timedLaunch(double seconds) {

@@ -1,5 +1,7 @@
 package frc.robot.current.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -55,6 +57,9 @@ public class Intake extends SubsystemBase {
 
   public void periodic() {
     intakeMotor.updateInputs();
+
+    // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+    Logger.recordOutput("Intake/SetpointRPM", intakeMotor.getSetpointRotations());
   }
 
   public Command spit() {

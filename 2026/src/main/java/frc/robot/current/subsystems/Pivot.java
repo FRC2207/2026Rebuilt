@@ -61,8 +61,8 @@ public class Pivot extends SubsystemBase {
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("pivotSetpoint", pivotMotor.getSetpointRotations());
-    Logger.recordOutput("IsUp", isUp);
+    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpointRotations());
+    Logger.recordOutput("Pivot/IsUp", isUp);
 
     if (pivotMotor.getPositionRotations() >= .2) {
       isUp = true;
