@@ -2,6 +2,7 @@ package frc.robot.current.subsystems;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSim;
@@ -12,7 +13,7 @@ import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
-public class Hopper {
+public class Hopper extends SubsystemBase {
     private SparkMaxConfig sparkConfig = new SparkMaxConfig();
     private MotorController motor;
 
