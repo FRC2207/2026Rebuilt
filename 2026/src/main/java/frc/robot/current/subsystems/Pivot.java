@@ -14,6 +14,7 @@ import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
@@ -21,6 +22,7 @@ public class Pivot extends SubsystemBase {
   private MotorController pivotMotor;
 
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
+  private EncoderType encoderType = EncoderType.EXTERNAL_ABSOLUTE;
 
   public Boolean isUp = false;
 
@@ -46,7 +48,7 @@ public class Pivot extends SubsystemBase {
     switch (Constants.currentMode) {
       case REAL:
         pivotMotor = new MotorController(
-            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1), "Pivot");
+            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
       case SIM:
         pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Postion, PivotConstants.kSim_P,
@@ -54,14 +56,14 @@ public class Pivot extends SubsystemBase {
         break;
       default:
         pivotMotor = new MotorController(
-            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1), "Pivot");
+            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
     }
   }
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpointRotations());
+    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpoint());
     Logger.recordOutput("Pivot/IsUp", isUp);
 
     if (pivotMotor.getPositionRotations() >= .2) {

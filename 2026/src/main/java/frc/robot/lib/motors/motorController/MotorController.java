@@ -149,12 +149,16 @@ public class MotorController extends SubsystemBase {
         return io.getSetpointRadians();
     }
 
-    /**
-     * 
-     * @return The rotation setpoint of the motor, in <strong> rotations
+    /** Get setpoint returns the default units for whichever control type we are using <p>
+     * For velocity control <ul>
+     * <li>@return The velocity setpoint of the motor, in <strong> rotations per minute </strong> (RPM)
+     * </ul>
+     * For rotation control <ul>
+     * <li>@return The position setpoint of the motor, in <strong> rotations
+     * </ul>
      */
-    public double getSetpointRotations(){
-        return io.getSetpointRotations();
+    public double getSetpoint(){
+        return io.getSetpoint();
     }
 
     /** Clamped depending on the motor used <ul>

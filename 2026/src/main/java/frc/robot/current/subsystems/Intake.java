@@ -13,6 +13,7 @@ import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
@@ -41,7 +42,7 @@ public class Intake extends SubsystemBase {
     switch (Constants.currentMode) {
       case REAL:
         intakeMotor = new MotorController(
-            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
         break;
       case SIM:
         intakeMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
@@ -49,8 +50,7 @@ public class Intake extends SubsystemBase {
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
-        intakeMotor = new MotorController(
-            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
+        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
         break;
     }
   }
@@ -59,7 +59,7 @@ public class Intake extends SubsystemBase {
     intakeMotor.updateInputs();
 
     // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-    Logger.recordOutput("Intake/SetpointRPM", intakeMotor.getSetpointRotations());
+    Logger.recordOutput("Intake/SetpointRPM", intakeMotor.getSetpoint());
   }
 
   public Command spit() {

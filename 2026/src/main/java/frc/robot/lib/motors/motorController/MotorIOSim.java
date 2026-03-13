@@ -151,7 +151,7 @@ public class MotorIOSim implements MotorControllerIO {
         return pidController.getSetpoint() * (2 * Math.PI);
     }
 
-    public double getSetpointRotations() {
+    public double getSetpoint() {
         return pidController.getSetpoint();
     }
 
