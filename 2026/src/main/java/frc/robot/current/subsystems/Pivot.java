@@ -10,7 +10,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
@@ -20,7 +23,6 @@ public class Pivot extends SubsystemBase {
 
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
   private EncoderType encoderType = EncoderType.EXTERNAL_ABSOLUTE;
-  private final String robotType = Constants.robot;
 
   public Boolean isUp = false;
 
@@ -43,24 +45,26 @@ public class Pivot extends SubsystemBase {
         .kA(PivotConstants.kA)
         .kG(PivotConstants.kG); // Acceleration gain (volts per RPM/s)
 
-    switch (robotType) {
-      case "Real":
-        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
+    switch (Constants.currentMode) {
+      case REAL:
+        pivotMotor = new MotorController(
+            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
-      case "SIM":
-        // Just don't use sim.
-
+      case SIM:
+        pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Postion, PivotConstants.kSim_P,
+            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 1), "Pivot");
         break;
       default:
-        pivotMotor = new MotorController(new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
+        pivotMotor = new MotorController(
+            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
     }
   }
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("pivotSetpoint", pivotMotor.getSetpoint());
-    Logger.recordOutput("IsUp", isUp);
+    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpoint());
+    Logger.recordOutput("Pivot/IsUp", isUp);
 
     if (pivotMotor.getPositionRotations() >= .2) {
       isUp = true;

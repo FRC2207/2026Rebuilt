@@ -4,7 +4,10 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
@@ -14,13 +17,15 @@ public class Hopper {
     private MotorController motor;
 
     public Hopper() {
-        switch (Constants.robot) {
-            case "Real":
+        switch (Constants.currentMode) {
+            case REAL:
                 motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),
                         "Hopper");
                 break;
-            case "SIM":
-                // Just don't use sim :)
+            case SIM:
+                motor = new MotorController(
+                        new MotorIOSim(MotorModelSim.Neo550, ControlType.Simple, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0),
+                        "Hopper");
                 break;
             default:
                 motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),

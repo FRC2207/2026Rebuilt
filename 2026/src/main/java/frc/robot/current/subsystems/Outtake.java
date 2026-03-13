@@ -1,5 +1,7 @@
 package frc.robot.current.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,9 +14,12 @@ import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -57,22 +62,34 @@ public class Outtake extends SubsystemBase {
                 .kV(OuttakeConstants.kV) // Velocity gain (volts per RPM)
                 .kA(OuttakeConstants.kA); // Acceleration gain (volts per RPM/s)
 
-        switch (Constants.robot) {
-            case "Real":
-                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+        switch (Constants.currentMode) {
+            case REAL:
+                highMotor = new MotorController(
+                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/highMotor");
-                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                lowMotor = new MotorController(
+                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/lowMotor");
 
                 break;
-            case "SIM":
-                // Just don't use sim.
+            case SIM:
+                highMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+                        OuttakeConstants.kSim_P, OuttakeConstants.kSim_I, OuttakeConstants.kSim_D,
+                        OuttakeConstants.kSim_S, OuttakeConstants.kSim_V, OuttakeConstants.kSim_TopMOI,
+                        OuttakeConstants.kSim_TopGearReduction), "Outtake/highMotor");
+
+                lowMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+                        OuttakeConstants.kSim_P, OuttakeConstants.kSim_I, OuttakeConstants.kSim_D,
+                        OuttakeConstants.kSim_S, OuttakeConstants.kSim_V, OuttakeConstants.kSim_BottomMOI,
+                        OuttakeConstants.kSim_BottomGearReduction), "Outtake/lowMotor");
 
                 break;
             default:
-                highMotor = new MotorController(new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                highMotor = new MotorController(
+                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/highMotor");
-                lowMotor = new MotorController(new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                lowMotor = new MotorController(
+                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/lowMotor");
                 break;
         }
@@ -94,6 +111,10 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         highMotor.updateInputs();
         lowMotor.updateInputs();
+
+        // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint());
+        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint());
     }
 
     public Command timedLaunch(double seconds) {

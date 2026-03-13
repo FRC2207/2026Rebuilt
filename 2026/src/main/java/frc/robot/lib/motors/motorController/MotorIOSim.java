@@ -1,56 +1,85 @@
 package frc.robot.lib.motors.motorController;
 
-import com.revrobotics.sim.SparkAbsoluteEncoderSim;
-import com.revrobotics.sim.SparkFlexSim;
-import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkSim;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.config.SparkBaseConfig;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.robot.current.Constants;
 
-public class MotorIOSim implements MotorControllerIO{
-    private final SparkSim sparkSim;
-    private final DCMotor motorGearbox;
+public class MotorIOSim implements MotorControllerIO {
+    private final DCMotorSim motorSim;
+    private final DCMotor dcMotor;
 
-    private final SparkAbsoluteEncoderSim motorEncoder;
-    // private SparkClosedLoopController closedLoopController;
+    private double appliedVolts = 0.0;
+    private final double m_kS;
+    private final double m_kV;
+    private double ffVolts = 0.0;
 
-    public enum SparkType {
-        SparkFlex, SparkMax
+    private ControlType controlType;
+
+    private PIDController pidController;
+
+    public enum MotorModelSim {
+        Vortex, NeoV1, NeoV2, Neo550
     }
 
-    public MotorIOSim(int deviceId, SparkBaseConfig motorConfig, SparkType sparkType) {
-        switch (sparkType) {
-            case SparkFlex:
-                motorGearbox = DCMotor.getNeoVortex(1);
-                sparkSim = new SparkFlexSim(new SparkFlex(deviceId, MotorType.kBrushless), motorGearbox);
+    public enum ControlType {
+        Simple, Postion, Velocity
+    }
+
+    public MotorIOSim(MotorModelSim motorModel, ControlType controlType, double kP, double kI, double kD, double kS,
+            double kV, double kMomentOfInertia, double gearReduction) {
+        this.controlType = controlType;
+
+        switch (motorModel) {
+            case Vortex:
+                dcMotor = DCMotor.getNeoVortex(1);
                 break;
-            case SparkMax:
-                motorGearbox = DCMotor.getNEO(1);
-                sparkSim = new SparkMaxSim(new SparkMax(deviceId, MotorType.kBrushless), motorGearbox);
+            case NeoV1:
+                dcMotor = DCMotor.getNEO(1);
+                break;
+            case NeoV2:
+                dcMotor = DCMotor.getNEO(1);
                 break;
             default:
-                motorGearbox = DCMotor.getNEO(1);
-                sparkSim = new SparkMaxSim(new SparkMax(deviceId, MotorType.kBrushless), motorGearbox);
+                dcMotor = DCMotor.getNEO(1);
                 break;
         }
+        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(dcMotor, kMomentOfInertia, gearReduction),
+                dcMotor);
 
-        motorEncoder = sparkSim.getAbsoluteEncoderSim();
-        
-        // TODO: Implement
-        // sparkSim.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        
-        // TODO: Implement
-        // closedLoopController = sparkSim.getClosedLoopController();
+        // The base setpoint unit for this implementaions is Rotations
+        pidController = new PIDController(kP, kI, kD, Constants.loopPeriodSecs);
+        m_kS = kS;
+        m_kV = kV;
+
     }
 
     @Override
     public void updateInputs(MotorControllerIOInputs inputs) {
+        switch (controlType) {
+            case Simple:
+                pidController.reset();
+                break;
+            case Postion:
+                appliedVolts = pidController.calculate(getPositionRotations());
+                break;
+            case Velocity:
+                appliedVolts = ffVolts + pidController.calculate(getVelocityRPM());
+                break;
+            default:
+                pidController.reset();
+                break;
+        }
+
+        motorSim.setInputVoltage(MathUtil.clamp(appliedVolts, -12.0, 12.0));
+
+        motorSim.update(Constants.loopPeriodSecs);
+
         inputs.motorAppliedVolts = getAppliedVolts();
         inputs.motorCurrentAmps = getCurrent();
-        inputs.motorTemp = getMotorTemp();
+        inputs.motorTemp = 0.0;
 
         inputs.velocityRadsPerSec = getVelocityRadPerSec();
         inputs.velocityRotationPerMinute = getVelocityRPM();
@@ -61,28 +90,20 @@ public class MotorIOSim implements MotorControllerIO{
 
     }
 
-    public void simulationPeriodic(){
-        sparkSim.iterate(getVelocityRPM(), getVBus(), 0.02);
-    }
-
     public void setMotorPercent(double percent) {
-        // TODO: Implement
+        appliedVolts = MathUtil.clamp(percent * 12, -12, 12);
     }
 
-    public void setMotorVoltage (double voltage) {
-        // TODO: Implement
+    public void setMotorVoltage(double voltage) {
+        appliedVolts = MathUtil.clamp(voltage, -12, 12);
     }
 
     public double getAppliedVolts() {
-        return sparkSim.getAppliedOutput();
-    }
-
-    public double getVBus() {
-        return sparkSim.getBusVoltage();
+        return appliedVolts;
     }
 
     public double getCurrent() {
-        return sparkSim.getMotorCurrent();
+        return Math.abs(motorSim.getCurrentDrawAmps());
     }
 
     public double getMotorTemp() {
@@ -90,63 +111,53 @@ public class MotorIOSim implements MotorControllerIO{
     }
 
     public double getVelocityRadPerSec() {
-        return motorEncoder.getVelocity() * ((2 * Math.PI) / 60);
+        return motorSim.getAngularVelocityRadPerSec();
     }
 
     public double getVelocityRPM() {
-        return motorEncoder.getVelocity();
+        return motorSim.getAngularVelocityRPM();
     }
 
     public double getPostiionDegrees() {
-        return motorEncoder.getPosition() * 360;
+        return motorSim.getAngularPositionRotations() * 360;
     }
 
     public double getPositionRadians() {
-        return motorEncoder.getPosition() * (2 * Math.PI);
+        return motorSim.getAngularPositionRad();
 
     }
 
     public double getPositionRotations() {
-        return motorEncoder.getPosition();
+        return motorSim.getAngularPositionRotations();
     }
 
-
     public void setPositionDegrees(double degrees) {
-        // TODO: Implement
-        // closedLoopController.setSetpoint(degrees / 360, SparkBase.ControlType.kPosition);
+        pidController.setSetpoint(degrees / 360);
     }
 
     public void setPositionRadians(double radians) {
-        // TODO: Implement
-        // closedLoopController.setSetpoint(radians / (2 * Math.PI), SparkBase.ControlType.kPosition);
+        pidController.setSetpoint(radians / (2 * Math.PI));
     }
 
-    public void setPositionRotations(double rotations){
-        // TODO: Implement
-        // closedLoopController.setSetpoint(rotations, SparkBase.ControlType.kPosition);
+    public void setPositionRotations(double rotations) {
+        pidController.setSetpoint(rotations);
     }
 
-    public double getSetpointDegrees(){
-        // TODO: Implement
-        return 0.0;
-        // return closedLoopController.getSetpoint() * 360;
+    public double getSetpointDegrees() {
+        return pidController.getSetpoint() * 360;
     }
 
-    public double getSetpointRadians(){
-        // TODO: Implement
-        return 0.0;
-        // return closedLoopController.getSetpoint() * (2 * Math.PI);
+    public double getSetpointRadians() {
+        return pidController.getSetpoint() * (2 * Math.PI);
     }
 
-    public double getSetpoint(){
-        // TODO: Implement
-        return 0.0;
-        //return closedLoopController.getSetpoint();
+    public double getSetpoint() {
+        return pidController.getSetpoint();
     }
 
-    public void setSpeedRPM(double speed){
-        // TODO: Implement
-        //closedLoopController.setSetpoint(speed, SparkBase.ControlType.kVelocity);
+    public void setSpeedRPM(double speed) {
+        ffVolts = m_kS * Math.signum(speed) + m_kV * speed;
+        pidController.setSetpoint(speed);
     }
 
 }
