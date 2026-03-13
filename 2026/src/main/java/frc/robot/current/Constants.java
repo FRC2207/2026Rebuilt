@@ -20,6 +20,10 @@ public final class Constants {
 
   public static final boolean isTuningMode = false;
 
+  // The period for the main robot loop. Used for simulation. 
+  // 20ms is the default for FRC robots, and matches the default period of the CommandScheduler.
+  public static final double loopPeriodSecs = 0.02; // 20ms
+
   /**
    * This is how the SysID knows which motor on the module to test.See the example command to run a sysId test,
    * and see how the String is used to determine the SysID test
