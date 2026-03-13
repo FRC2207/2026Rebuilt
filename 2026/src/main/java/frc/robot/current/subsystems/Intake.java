@@ -9,7 +9,10 @@ import frc.robot.current.Constants;
 import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
@@ -17,34 +20,35 @@ public class Intake extends SubsystemBase {
   private MotorController intakeMotor;
 
   private final int intakeMotorId = Constants.IntakeConstants.intakeID;
-  private final String robotType = Constants.robot;
 
   public Boolean isIntaking = false;
-  
+
   public Intake(Drive drive) {
 
     SparkFlexConfig intakeConfig = new SparkFlexConfig();
     intakeConfig.inverted(true);
     intakeConfig.smartCurrentLimit(30);
     intakeConfig.closedLoop
-                .p(IntakeConstants.kP)
-                .i(IntakeConstants.kI)
-                .d(IntakeConstants.kD)
-            .feedForward // Set Feedforward gains for the velocity controller
-                .kS(IntakeConstants.kS) // Static gain (volts)
-                .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
-                .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
+        .p(IntakeConstants.kP)
+        .i(IntakeConstants.kI)
+        .d(IntakeConstants.kD).feedForward // Set Feedforward gains for the velocity controller
+        .kS(IntakeConstants.kS) // Static gain (volts)
+        .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
+        .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
 
-    switch (robotType) {
-      case "Real":
-        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
+    switch (Constants.currentMode) {
+      case REAL:
+        intakeMotor = new MotorController(
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
         break;
-      case "SIM":
-        // Just don't use sim.
-
+      case SIM:
+        intakeMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_G,
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
+        intakeMotor = new MotorController(
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex), "Intake");
         break;
     }
   }
@@ -53,7 +57,7 @@ public class Intake extends SubsystemBase {
     intakeMotor.updateInputs();
   }
 
-  public Command spit() { 
+  public Command spit() {
     double percent = 2000;
 
     return Commands.sequence(
@@ -76,7 +80,8 @@ public class Intake extends SubsystemBase {
   public Command stop() {
     return Commands.run(() -> {
       isIntaking = false;
-      intakeMotor.setSpeedRPM(0);;
+      intakeMotor.setSpeedRPM(0);
+      ;
     }, this);
   }
 }

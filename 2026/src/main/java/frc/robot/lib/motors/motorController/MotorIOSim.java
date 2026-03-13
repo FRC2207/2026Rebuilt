@@ -7,12 +7,10 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.current.Constants;
 
-public class MotorIOSim implements MotorControllerIO{
+public class MotorIOSim implements MotorControllerIO {
     private final DCMotorSim motorSim;
     private final DCMotor dcMotor;
 
-    private static final double kMomentOfInertia = 0.3;
-    private static final double gearReduction = 1.0;
     private double appliedVolts = 0.0;
     private final double m_kS;
     private final double m_kV;
@@ -22,16 +20,18 @@ public class MotorIOSim implements MotorControllerIO{
 
     private PIDController pidController;
 
-    public enum MotorModel {
+    public enum MotorModelSim {
         Vortex, NeoV1, NeoV2, Neo550
     }
 
-    private enum ControlType {
+    public enum ControlType {
         Simple, Postion, Velocity
     }
 
-    public MotorIOSim(int deviceId, MotorModel motorModel, ControlType controlType, double kP, double kI, double kD, double kS, double kV) {
+    public MotorIOSim(MotorModelSim motorModel, ControlType controlType, double kP, double kI, double kD, double kS,
+            double kV, double kMomentOfInertia, double gearReduction) {
         this.controlType = controlType;
+
         switch (motorModel) {
             case Vortex:
                 dcMotor = DCMotor.getNeoVortex(1);
@@ -46,10 +46,11 @@ public class MotorIOSim implements MotorControllerIO{
                 dcMotor = DCMotor.getNEO(1);
                 break;
         }
-        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(dcMotor, kMomentOfInertia, gearReduction), dcMotor);
+        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(dcMotor, kMomentOfInertia, gearReduction),
+                dcMotor);
 
         // The base setpoint unit for this implementaions is Rotations
-        pidController = new PIDController(kP, kI ,kD, Constants.loopPeriodSecs);
+        pidController = new PIDController(kP, kI, kD, Constants.loopPeriodSecs);
         m_kS = kS;
         m_kV = kV;
 
@@ -71,9 +72,9 @@ public class MotorIOSim implements MotorControllerIO{
                 pidController.reset();
                 break;
         }
-        
+
         motorSim.setInputVoltage(MathUtil.clamp(appliedVolts, -12.0, 12.0));
-        
+
         motorSim.update(Constants.loopPeriodSecs);
 
         inputs.motorAppliedVolts = getAppliedVolts();
@@ -93,7 +94,7 @@ public class MotorIOSim implements MotorControllerIO{
         appliedVolts = MathUtil.clamp(percent * 12, -12, 12);
     }
 
-    public void setMotorVoltage (double voltage) {
+    public void setMotorVoltage(double voltage) {
         appliedVolts = MathUtil.clamp(voltage, -12, 12);
     }
 
@@ -130,7 +131,6 @@ public class MotorIOSim implements MotorControllerIO{
         return motorSim.getAngularPositionRotations();
     }
 
-
     public void setPositionDegrees(double degrees) {
         pidController.setSetpoint(degrees / 360);
     }
@@ -139,23 +139,23 @@ public class MotorIOSim implements MotorControllerIO{
         pidController.setSetpoint(radians / (2 * Math.PI));
     }
 
-    public void setPositionRotations(double rotations){
+    public void setPositionRotations(double rotations) {
         pidController.setSetpoint(rotations);
     }
 
-    public double getSetpointDegrees(){
+    public double getSetpointDegrees() {
         return pidController.getSetpoint() * 360;
     }
 
-    public double getSetpointRadians(){
+    public double getSetpointRadians() {
         return pidController.getSetpoint() * (2 * Math.PI);
     }
 
-    public double getSetpointRotations(){
+    public double getSetpointRotations() {
         return pidController.getSetpoint();
     }
 
-    public void setSpeedRPM(double speed){
+    public void setSpeedRPM(double speed) {
         ffVolts = m_kS * Math.signum(speed) + m_kV * speed;
         pidController.setSetpoint(speed);
     }
