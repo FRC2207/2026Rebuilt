@@ -45,7 +45,7 @@ public class Intake extends SubsystemBase {
         break;
       case SIM:
         intakeMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
-            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_G,
+            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:

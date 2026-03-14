@@ -11,7 +11,8 @@ public class MotorIOSim implements MotorControllerIO {
     private final DCMotorSim motorSim;
     private final DCMotor dcMotor;
 
-    private double appliedVolts = 0.0;
+    private double internalAppliedVolts = 0.0;
+    private double clampedAppliedVolts = 0.0;
     private final double m_kS;
     private final double m_kV;
     private double ffVolts = 0.0;
@@ -25,7 +26,7 @@ public class MotorIOSim implements MotorControllerIO {
     }
 
     public enum ControlType {
-        Simple, Postion, Velocity
+        Simple, Position, Velocity
     }
 
     public MotorIOSim(MotorModelSim motorModel, ControlType controlType, double kP, double kI, double kD, double kS,
@@ -62,19 +63,19 @@ public class MotorIOSim implements MotorControllerIO {
             case Simple:
                 pidController.reset();
                 break;
-            case Postion:
-                appliedVolts = pidController.calculate(getPositionRotations());
+            case Position:
+                internalAppliedVolts = pidController.calculate(getPositionRotations());
                 break;
             case Velocity:
-                appliedVolts = ffVolts + pidController.calculate(getVelocityRPM());
+                internalAppliedVolts = ffVolts + pidController.calculate(getVelocityRPM());
                 break;
             default:
                 pidController.reset();
                 break;
         }
+        clampedAppliedVolts = MathUtil.clamp(internalAppliedVolts,-12.0, 12.0);
 
-        motorSim.setInputVoltage(MathUtil.clamp(appliedVolts, -12.0, 12.0));
-
+        motorSim.setInputVoltage(clampedAppliedVolts);
         motorSim.update(Constants.loopPeriodSecs);
 
         inputs.motorAppliedVolts = getAppliedVolts();
@@ -91,15 +92,15 @@ public class MotorIOSim implements MotorControllerIO {
     }
 
     public void setMotorPercent(double percent) {
-        appliedVolts = MathUtil.clamp(percent * 12, -12, 12);
+        internalAppliedVolts = percent * 12;
     }
 
     public void setMotorVoltage(double voltage) {
-        appliedVolts = MathUtil.clamp(voltage, -12, 12);
+        internalAppliedVolts = voltage;
     }
 
     public double getAppliedVolts() {
-        return appliedVolts;
+        return clampedAppliedVolts;
     }
 
     public double getCurrent() {
