@@ -54,8 +54,8 @@ public class Pivot extends SubsystemBase {
             new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
       case SIM:
-        pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Postion, PivotConstants.kSim_P,
-            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 3), "Pivot");
+        pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Position, PivotConstants.kSim_P,
+            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 1), "Pivot");
         break;
       default:
         // Blank IO for REPLAY
