@@ -9,8 +9,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -30,9 +28,12 @@ import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.vision.VisionIOPhotonVision;
+import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
 
 import static frc.robot.lib.vision.VisionConstants.*;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -53,8 +54,8 @@ public class RobotContainer {
   private Pivot pivot;
   private Vision vision;
   private Outtake outtake;
+  private Hopper hopper;
 
-  private static Boolean cameraYes;
   private PathFollower pathFollower;
 
   private static ControlType controlType = ControlType.ONEXBOX;
@@ -66,7 +67,7 @@ public class RobotContainer {
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
-  private final SendableChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser;
   // private Command autoDefault = Commands.print("Default auto selected. No
   // autonomous command configured.");
 
@@ -86,7 +87,14 @@ public class RobotContainer {
             new ModuleIOSpark(1),
             new ModuleIOSpark(2),
             new ModuleIOSpark(3));
-        cameraYes = true;
+
+        vision = new Vision(drive::addVisionMeasurement,
+          // new VisionIOPhotonVision(camera0Name, robotToCamera0),
+          new VisionIOPhotonVision(camera1Name, robotToCamera1),
+          // new VisionIOPhotonVision(camera2Name, robotToCamera2),
+          new VisionIOPhotonVision(camera3Name, robotToCamera3)
+          );
+
         break;
 
       case SIM:
@@ -97,7 +105,14 @@ public class RobotContainer {
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim());
-        cameraYes = false;
+
+        vision = new Vision(drive::addVisionMeasurement,
+          // new VisionIOPhotonVision(camera0Name, robotToCamera0, () -> drive.getPose()),
+          new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, () -> drive.getPose()),
+          // new VisionIOPhotonVision(camera2Name, robotToCamera2, () -> drive.getPose()),
+          new VisionIOPhotonVisionSim(camera3Name, robotToCamera3, () -> drive.getPose())
+          );
+          
         break;
 
       default:
@@ -112,21 +127,11 @@ public class RobotContainer {
             },
             new ModuleIO() {
             });
-        cameraYes = false;
         break;
     }
 
-    // Instantiate Vision subsystem if cameras are enabled
-    if (cameraYes == true) {
-      vision = new Vision(drive::addVisionMeasurement,
-          // new VisionIOPhotonVision(camera0Name, robotToCamera0),
-          new VisionIOPhotonVision(camera1Name, robotToCamera1),
-          // new VisionIOPhotonVision(camera2Name, robotToCamera2),
-          new VisionIOPhotonVision(camera3Name, robotToCamera3));
-    }
-
     // Instantiate the other subsystems
-    Hopper hopper = new Hopper();
+    hopper = new Hopper();
     pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
@@ -138,9 +143,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
-    autoChooser = AutoBuilder.buildAutoChooser();
-
-    SmartDashboard.putData("Auto Chooser", autoChooser);
+    autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     // Add autonomous routines to the SendableChooser
     // autoDefault = Commands.none();
@@ -243,13 +246,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // return AutoBuilder.buildAuto("Straight Back");
-
-    // if (autoChooser.get() != null) {
-    // System.out.print("Auto Path " + autoChooser.get().getName());
-    return autoChooser.getSelected();
-    // } else {
-    // return Commands.print("No autonomous command configured");
-    // }
+    return autoChooser.get();
   }
 }

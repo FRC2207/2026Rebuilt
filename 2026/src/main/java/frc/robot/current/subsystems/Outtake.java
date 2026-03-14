@@ -13,6 +13,7 @@ import frc.robot.current.FieldConstants;
 import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
@@ -35,6 +36,7 @@ public class Outtake extends SubsystemBase {
 
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
+    private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
@@ -63,10 +65,10 @@ public class Outtake extends SubsystemBase {
         switch (Constants.currentMode) {
             case REAL:
                 highMotor = new MotorController(
-                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex),
+                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/highMotor");
                 lowMotor = new MotorController(
-                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex),
+                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/lowMotor");
 
                 break;
@@ -84,10 +86,10 @@ public class Outtake extends SubsystemBase {
                 break;
             default:
                 highMotor = new MotorController(
-                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex),
+                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/highMotor");
                 lowMotor = new MotorController(
-                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex),
+                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
                         "Outtake/lowMotor");
                 break;
         }
@@ -111,8 +113,8 @@ public class Outtake extends SubsystemBase {
         lowMotor.updateInputs();
 
         // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpointRotations());
-        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpointRotations());
+        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint());
+        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint());
     }
 
     public Command timedLaunch(double seconds) {

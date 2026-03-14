@@ -45,7 +45,7 @@ public interface MotorControllerIO {
 
     public abstract double getSetpointDegrees();
     public abstract double getSetpointRadians();
-    public abstract double getSetpointRotations();
+    public abstract double getSetpoint();
 
     public abstract void setSpeedRPM(double speed);
 }

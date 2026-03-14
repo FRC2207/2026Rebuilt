@@ -2,25 +2,25 @@ package frc.robot.current.subsystems;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
-public class Hopper {
+public class Hopper extends SubsystemBase {
     private SparkMaxConfig sparkConfig = new SparkMaxConfig();
     private MotorController motor;
 
     public Hopper() {
         switch (Constants.currentMode) {
             case REAL:
-                motor = new MotorController(
-                        new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax,
-                                MotorModel.NeoV1),
+                motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),
                         "Hopper");
                 break;
             case SIM:
@@ -29,9 +29,7 @@ public class Hopper {
                         "Hopper");
                 break;
             default:
-                motor = new MotorController(
-                        new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax,
-                                MotorModel.NeoV1),
+                motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),
                         "Hopper");
                 break;
         }

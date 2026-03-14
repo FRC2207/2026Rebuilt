@@ -1,6 +1,9 @@
 package frc.robot.lib.motors.motorController;
 
+import java.util.function.Supplier;
+
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -16,8 +19,10 @@ public class MotorIOSpark implements MotorControllerIO {
     private final SparkBase motor;
     private MotorModel motorModel;
 
-    private final SparkAbsoluteEncoder motorEncoder;
     private SparkClosedLoopController closedLoopController;
+
+    private final Supplier<Double> positionSupplier;
+    private final Supplier<Double> velocitySupplier;
 
     public enum SparkType {
         SparkFlex, SparkMax
@@ -27,7 +32,33 @@ public class MotorIOSpark implements MotorControllerIO {
         Vortex, NeoV1, NeoV2, Neo550
     }
 
-    public MotorIOSpark(int deviceId, SparkBaseConfig motorConfig, SparkType sparkType, MotorModel motorModel) {
+    /**
+     * External encoders often require a board, which is either in Absolute or Alternate mode. Built-in Encoder is always relative
+     */
+    public enum EncoderType {
+        EXTERNAL_ABSOLUTE,
+        BUILTIN_RELATIVE,
+    }
+
+    /**
+     * 
+     * @param deviceId The CAN id of the MotorControler
+     * @param motorConfig The {@linkplain SparkBaseConfig} for the motor
+     * @param sparkType The type of spark motor controler <ul>
+     * <ls> {@link SparkType#SparkMax}
+     * <ls> {@link SparkType#SparkFlex}
+     * </ul>
+     * @param motorModel The model of the motor, supported models<ul> 
+     * <ls> {@link MotorModel#Vortex}
+     * <ls> {@link MotorModel#NeoV1}
+     * <ls> {@link MotorModel#NeoV2}
+     * <ls> {@link MotorModel#Neo550}
+     * </ul>
+     * @param encoderType The type of encoder <ul>
+     * <ls> {@link EncoderType#EXTERNAL_ABSOLUTE}
+     * <ls> {@link EncoderType#BUILTIN_RELATIVE}
+     */
+    public MotorIOSpark(int deviceId, SparkBaseConfig motorConfig, SparkType sparkType, MotorModel motorModel, EncoderType encoderType) {
         this.motorModel = motorModel;
 
         switch (sparkType) {
@@ -42,7 +73,20 @@ public class MotorIOSpark implements MotorControllerIO {
                 break;
         }
 
-        motorEncoder = motor.getAbsoluteEncoder();
+        switch (encoderType) {
+            case EXTERNAL_ABSOLUTE: 
+                SparkAbsoluteEncoder absoluteEncoder = motor.getAbsoluteEncoder();
+                this.positionSupplier = absoluteEncoder::getPosition;
+                this.velocitySupplier = absoluteEncoder::getVelocity;
+                break;
+            case BUILTIN_RELATIVE: 
+            default:
+                RelativeEncoder relativeEncoder = motor.getEncoder();
+                this.positionSupplier = relativeEncoder::getPosition;
+                this.velocitySupplier = relativeEncoder::getVelocity;
+                break;
+        }
+
         motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         closedLoopController = motor.getClosedLoopController();
@@ -61,6 +105,16 @@ public class MotorIOSpark implements MotorControllerIO {
         inputs.positionRadians = getPositionRadians();
         inputs.positionRotations = getPositionRotations();
 
+    }
+
+    /** Returns the position supplier from whichever encoder we are using */
+    private double getPosition() {
+        return positionSupplier.get();
+    }
+
+    /** Returns the velocity supplier from whichever encoder we are using */
+    private double getVelocity() {
+        return velocitySupplier.get();
     }
 
     /** Sets the motor percentage from -1 to 1 */
@@ -87,23 +141,23 @@ public class MotorIOSpark implements MotorControllerIO {
     }
 
     public double getVelocityRadPerSec() {
-        return motorEncoder.getVelocity() * ((2 * Math.PI) / 60);
+        return getVelocity() * ((2 * Math.PI) / 60);
     }
 
     public double getVelocityRPM() {
-        return motorEncoder.getVelocity();
+        return getVelocity();
     }
 
     public double getPostiionDegrees() {
-        return motorEncoder.getPosition() * 360;
+        return getPosition() * 360;
     }
 
     public double getPositionRadians() {
-        return motorEncoder.getPosition() * (2 * Math.PI);
+        return getPosition() * (2 * Math.PI);
     }
 
     public double getPositionRotations() {
-        return motorEncoder.getPosition();
+        return getPosition();
     }
 
     public void setPositionDegrees(double degrees) {
@@ -129,7 +183,7 @@ public class MotorIOSpark implements MotorControllerIO {
         return closedLoopController.getSetpoint() * (2 * Math.PI);
     }
 
-    public double getSetpointRotations() {
+    public double getSetpoint() {
         return closedLoopController.getSetpoint();
     }
 
