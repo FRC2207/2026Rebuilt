@@ -4,6 +4,8 @@ import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -52,7 +54,7 @@ public class Pivot extends SubsystemBase {
         break;
       case SIM:
         pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Postion, PivotConstants.kSim_P,
-            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 1), "Pivot");
+            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 3), "Pivot");
         break;
       default:
         pivotMotor = new MotorController(
@@ -71,6 +73,8 @@ public class Pivot extends SubsystemBase {
     } else {
       isUp = false;
     }
+
+    Logger.recordOutput("Sim/PivotComponentPose", new Pose3d[] {new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0))});
   }
 
   public void initialization() {
