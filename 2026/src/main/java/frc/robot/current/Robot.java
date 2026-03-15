@@ -41,7 +41,7 @@ public class Robot extends LoggedRobot {
       // Logger.addDataReceiver(new WPILOGWriter());
 
       String logPath = LogFileUtil.findReplayLog();
-      setUseTiming(false);
+      setUseTiming(true);
       Logger.setReplaySource(new WPILOGReader(logPath));
       Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
 
