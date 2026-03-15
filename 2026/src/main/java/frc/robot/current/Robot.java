@@ -41,8 +41,10 @@ public class Robot extends LoggedRobot {
       // Logger.addDataReceiver(new WPILOGWriter());
 
       String logPath = LogFileUtil.findReplayLog();
+      setUseTiming(false);
       Logger.setReplaySource(new WPILOGReader(logPath));
       Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+
     }
     if (isReal()) {
       PortForwarder.add(5800, "10.22.7.69", 5800);
