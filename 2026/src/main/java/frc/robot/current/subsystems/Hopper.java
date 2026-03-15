@@ -5,6 +5,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
@@ -29,7 +30,8 @@ public class Hopper extends SubsystemBase {
                         "Hopper");
                 break;
             default:
-                motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),
+            // Blank IO for REPLAY
+                motor = new MotorController(new MotorControllerIO() {},
                         "Hopper");
                 break;
         }

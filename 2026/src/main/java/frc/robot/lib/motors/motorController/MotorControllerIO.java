@@ -21,31 +21,31 @@ public interface MotorControllerIO {
     public default void updateInputs(MotorControllerIOInputs inputs) {}
 
     /** Sets the motor percentage from -1 to 1 */
-    public abstract void setMotorPercent(double percent);
+    public default void setMotorPercent(double percent) {};
 
-    public abstract void setMotorVoltage(double voltage);
+    public default void setMotorVoltage(double voltage) {};
 
-    public abstract double getAppliedVolts();
+    public default double getAppliedVolts() {return 0.0;};
 
-    public abstract double getCurrent();
+    public default double getCurrent() {return 0.0;};
 
-    public abstract double getMotorTemp();
+    public default double getMotorTemp() {return 0.0;};
 
-    public abstract double getVelocityRadPerSec();
-    public abstract double getVelocityRPM();
+    public default double getVelocityRadPerSec() {return 0.0;};
+    public default double getVelocityRPM() {return 0.0;};
 
-    public abstract double getPostiionDegrees();
-    public abstract double getPositionRadians();
-    public abstract double getPositionRotations();
+    public default double getPostiionDegrees() {return 0.0;};
+    public default double getPositionRadians() {return 0.0;};
+    public default double getPositionRotations() {return 0.0;};
 
-    public abstract void setPositionDegrees(double degrees);
-    public abstract void setPositionRadians(double radians);
-    public abstract void setPositionRotations(double rotations);
+    public default void setPositionDegrees(double degrees) {};
+    public default void setPositionRadians(double radians) {};
+    public default void setPositionRotations(double rotations) {};
 
 
-    public abstract double getSetpointDegrees();
-    public abstract double getSetpointRadians();
-    public abstract double getSetpoint();
+    public default double getSetpointDegrees() {return 0.0;};
+    public default double getSetpointRadians() {return 0.0;};
+    public default double getSetpoint() {return 0.0;};
 
-    public abstract void setSpeedRPM(double speed);
+    public default void setSpeedRPM(double speed) {};
 }

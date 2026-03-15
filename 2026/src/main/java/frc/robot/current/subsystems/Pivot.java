@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
@@ -57,8 +58,9 @@ public class Pivot extends SubsystemBase {
             PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 3), "Pivot");
         break;
       default:
+        // Blank IO for REPLAY
         pivotMotor = new MotorController(
-            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
+            new MotorControllerIO() {}, "Pivot");
         break;
     }
   }

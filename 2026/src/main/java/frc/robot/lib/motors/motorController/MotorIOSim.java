@@ -112,71 +112,87 @@ public class MotorIOSim implements MotorControllerIO {
 
     }
 
+    @Override
     public void setMotorPercent(double percent) {
         appliedVolts = MathUtil.clamp(percent * 12, -12, 12);
     }
 
+    @Override
     public void setMotorVoltage(double voltage) {
         appliedVolts = MathUtil.clamp(voltage, -12, 12);
     }
 
+    @Override
     public double getAppliedVolts() {
         return appliedVolts;
     }
 
+    @Override
     public double getCurrent() {
         return Math.abs(motorSim.getCurrentDrawAmps());
     }
 
+    @Override
     public double getMotorTemp() {
         return 0.0;
     }
 
+    @Override
     public double getVelocityRadPerSec() {
         return motorSim.getAngularVelocityRadPerSec();
     }
 
+    @Override
     public double getVelocityRPM() {
         return motorSim.getAngularVelocityRPM();
     }
 
+    @Override
     public double getPostiionDegrees() {
         return motorSim.getAngularPositionRotations() * 360;
     }
 
+    @Override
     public double getPositionRadians() {
         return motorSim.getAngularPositionRad();
-
     }
 
+    @Override
     public double getPositionRotations() {
         return motorSim.getAngularPositionRotations();
     }
 
+    @Override
     public void setPositionDegrees(double degrees) {
         pidController.setSetpoint(degrees / 360);
     }
 
+    @Override
     public void setPositionRadians(double radians) {
         pidController.setSetpoint(radians / (2 * Math.PI));
     }
 
+    @Override
     public void setPositionRotations(double rotations) {
         pidController.setSetpoint(rotations);
     }
 
+    @Override
     public double getSetpointDegrees() {
         return pidController.getSetpoint() * 360;
     }
 
+    @Override
     public double getSetpointRadians() {
         return pidController.getSetpoint() * (2 * Math.PI);
     }
 
+    @Override
     public double getSetpoint() {
         return pidController.getSetpoint();
     }
 
+    @Override
     public void setSpeedRPM(double speed) {
         ffVolts = m_kS * Math.signum(speed) + m_kV * speed;
         pidController.setSetpoint(speed);

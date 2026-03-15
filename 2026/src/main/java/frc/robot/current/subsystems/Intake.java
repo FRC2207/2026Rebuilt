@@ -11,6 +11,7 @@ import frc.robot.current.Constants;
 import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
@@ -50,7 +51,8 @@ public class Intake extends SubsystemBase {
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
+        // Blank IO for REPLAY
+        intakeMotor = new MotorController(new MotorControllerIO() {}, "Intake");
         break;
     }
   }

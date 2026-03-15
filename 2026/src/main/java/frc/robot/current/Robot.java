@@ -4,9 +4,11 @@
 
 package frc.robot.current;
 
+import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.net.PortForwarder;
@@ -36,6 +38,11 @@ public class Robot extends LoggedRobot {
       Logger.addDataReceiver(new WPILOGWriter());
     } else {
       Logger.addDataReceiver(new NT4Publisher());
+      // Logger.addDataReceiver(new WPILOGWriter());
+
+      String logPath = LogFileUtil.findReplayLog();
+      Logger.setReplaySource(new WPILOGReader(logPath));
+      Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
     }
     if (isReal()) {
       PortForwarder.add(5800, "10.22.7.69", 5800);

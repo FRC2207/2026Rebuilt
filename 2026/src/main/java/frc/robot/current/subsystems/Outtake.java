@@ -13,6 +13,7 @@ import frc.robot.current.FieldConstants;
 import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSim;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
@@ -85,11 +86,12 @@ public class Outtake extends SubsystemBase {
 
                 break;
             default:
+                // Blank IO for REPLAY
                 highMotor = new MotorController(
-                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                        new MotorControllerIO() {},
                         "Outtake/highMotor");
                 lowMotor = new MotorController(
-                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                        new MotorControllerIO() {},
                         "Outtake/lowMotor");
                 break;
         }
