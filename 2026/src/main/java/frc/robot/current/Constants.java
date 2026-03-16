@@ -78,11 +78,11 @@ public final class Constants {
     public static final double kV = 0.00195;
     public static final double kA = 0;
 
-    public static final double kSim_P = 0.00009;
-    public static final double kSim_I = 0;
-    public static final double kSim_D = 0.0;
-    public static final double kSim_G = 0.0;
-    public static final double kSim_V = 0.002;
+    public static final double kSim_P = 0.006;
+    public static final double kSim_I = 0.0;
+    public static final double kSim_D = 0.0001;
+    public static final double kSim_S = 0.0;
+    public static final double kSim_V = 0.00175;
   }
 
   public static class PivotConstants {
@@ -97,9 +97,9 @@ public final class Constants {
     public static final double kA = 0;
     public static final double kG = .42;
 
-    public static final double kSim_P = 4.0;
+    public static final double kSim_P = 12.6;
     public static final double kSim_I = 0;
-    public static final double kSim_D = 4.5;
+    public static final double kSim_D = 18.9;
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
     public static final double storedRotations = 0.23;
@@ -132,11 +132,11 @@ public final class Constants {
     public static final double kV = 0.00181;
     public static final double kA = 0.0;
 
-    public static final double kSim_P = 0.00009;
+    public static final double kSim_P = 0.006;
     public static final double kSim_I = 0.0;
     public static final double kSim_D = 0.0001;
     public static final double kSim_S = 0.0;
-    public static final double kSim_V = 0.002;
+    public static final double kSim_V = 0.00175;
   }
 
 }
