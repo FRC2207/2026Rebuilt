@@ -96,6 +96,18 @@
           "data": {
             "name": "Launch"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Outpost to towerShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Launch"
+          }
         }
       ]
     }

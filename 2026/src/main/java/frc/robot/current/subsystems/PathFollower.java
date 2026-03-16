@@ -3,6 +3,9 @@ package frc.robot.current.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -17,23 +20,23 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 
-public class PathFollower {
+public class PathFollower extends SubsystemBase {
         private Drive drive;
         public static List<Pose2d> trenchPositions = new ArrayList<>();
-        StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
-                        .getStructArrayTopic("PosArr", Pose2d.struct).publish();
 
-        private final SendableChooser<TrenchOptions> m_chooser = new SendableChooser<>();
+        private final LoggedDashboardChooser<TrenchOptions> m_chooser = new LoggedDashboardChooser<>(
+                        "PathFollower/Chooser");
 
+        private Pose2d goalPosition;
+        private TrenchOptions selected;
 
         private static PathConstraints constraints;
-
-        private static TrenchOptions trenchOptions;
 
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
         public static final Pose2d hubCenter = new Pose2d(
@@ -64,19 +67,16 @@ public class PathFollower {
         public PathFollower(Drive drive) {
                 this.drive = drive;
                 //Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
+                // Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
 
                 trenchPositions.add(leftTrench);
                 trenchPositions.add(rightTrench);
 
-                m_chooser.setDefaultOption("Nearest", trenchOptions = TrenchOptions.NEAREST);
-                m_chooser.addOption("Clockwise", trenchOptions = TrenchOptions.CLOCKWISE);
-                m_chooser.addOption("Counterclockwise", trenchOptions = TrenchOptions.COUNTERCLOCKWISE);
-                m_chooser.addOption("Force Left", trenchOptions = TrenchOptions.FORCELEFT);
-                m_chooser.addOption("Force Right", trenchOptions = TrenchOptions.FORCERIGHT);
-                
-                SmartDashboard.putData(m_chooser);
-                
-                //PPHolonomicDriveController.overrideXFeedback();
+                m_chooser.addDefaultOption("Nearest", TrenchOptions.NEAREST);
+                m_chooser.addOption("Clockwise", TrenchOptions.CLOCKWISE);
+                m_chooser.addOption("Counterclockwise", TrenchOptions.COUNTERCLOCKWISE);
+                m_chooser.addOption("Force Left", TrenchOptions.FORCELEFT);
+                m_chooser.addOption("Force Right", TrenchOptions.FORCERIGHT);
 
                 // Configure AutoBuilder for PathPlanner. This might not be necessary here. Also
                 // in Drive subsystem.
@@ -99,11 +99,12 @@ public class PathFollower {
                                 DriveConstants.maxSpeedMetersPerSec, 4.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
 
-                PathfindingCommand.warmupCommand().schedule(); // Helps remove delay when running the first path.
+                CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
         public void periodic() {
-
+                Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
+                Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
         }
 
         /**
@@ -160,7 +161,9 @@ public class PathFollower {
                 Pose2d whichTrenchIn;
                 Pose2d goalPosition;
 
-                switch (trenchOptions) {
+                selected = m_chooser.get();
+
+                switch (selected) {
                         case CLOCKWISE:
                                 whichTrenchOut = leftTrench;
                                 whichTrenchIn = rightTrench;
@@ -176,7 +179,11 @@ public class PathFollower {
                         case FORCERIGHT:
                                 whichTrenchOut = rightTrench;
                                 whichTrenchIn = rightTrench;
+                                break;
                         case NEAREST:
+                                whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
+                                whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                break;
                         default:
                                 whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
                                 whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
@@ -194,8 +201,8 @@ public class PathFollower {
                                                         .minus(new Translation2d(Units.inchesToMeters(22), 0)),
                                         whichTrenchIn.getRotation());
                 }
-
-                Commands.print("Goal position:" + goalPosition);
+                
+                this.goalPosition = goalPosition;
                 
                 Command pathfindingCommand = AutoBuilder.pathfindToPose(
                                 goalPosition,

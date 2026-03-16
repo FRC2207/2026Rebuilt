@@ -1,5 +1,7 @@
 package frc.robot.current.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,15 +12,22 @@ import frc.robot.current.Constants;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.Constants.OuttakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
-import frc.robot.lib.motors.velocityController.VelocityController;
-import frc.robot.lib.motors.velocityController.VelocityIOSparkFlex;
+import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Outtake extends SubsystemBase {
-    private VelocityController highMotor;
-    private VelocityController lowMotor;
+    private MotorController highMotor;
+    private MotorController lowMotor;
 
     private Drive swerve;
     private Hopper hopper;
@@ -28,6 +37,7 @@ public class Outtake extends SubsystemBase {
 
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
+    private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
@@ -41,34 +51,48 @@ public class Outtake extends SubsystemBase {
         lowConfig.closedLoop
                 .p(OuttakeConstants.kP)
                 .i(OuttakeConstants.kI)
-                .d(OuttakeConstants.kD)
-            .feedForward // Set Feedforward gains for the velocity controller
+                .d(OuttakeConstants.kD).feedForward // Set Feedforward gains for the velocity controller
                 .kS(OuttakeConstants.kS) // Static gain (volts)
                 .kV(OuttakeConstants.kV) // Velocity gain (volts per RPM)
                 .kA(OuttakeConstants.kA); // Acceleration gain (volts per RPM/s)
         highConfig.closedLoop
                 .p(OuttakeConstants.kP)
                 .i(OuttakeConstants.kI)
-                .d(OuttakeConstants.kD)
-            .feedForward // Set Feedforward gains for the velocity controller
+                .d(OuttakeConstants.kD).feedForward // Set Feedforward gains for the velocity controller
                 .kS(OuttakeConstants.kS) // Static gain (volts)
                 .kV(OuttakeConstants.kV) // Velocity gain (volts per RPM)
                 .kA(OuttakeConstants.kA); // Acceleration gain (volts per RPM/s)
 
-        
-        switch (Constants.robot) {
-            case "Real":
-                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake", "1");
-                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig), "Outtake", "2");
+        switch (Constants.currentMode) {
+            case REAL:
+                highMotor = new MotorController(
+                        new MotorIOSpark(highMotorId, highConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                        "Outtake/highMotor");
+                lowMotor = new MotorController(
+                        new MotorIOSpark(lowMotorId, lowConfig, SparkType.SparkFlex, MotorModel.Vortex, encoderType),
+                        "Outtake/lowMotor");
 
                 break;
-            case "SIM":
-                // Just don't use sim.
+            case SIM:
+                highMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+                        OuttakeConstants.kSim_P, OuttakeConstants.kSim_I, OuttakeConstants.kSim_D,
+                        OuttakeConstants.kSim_S, OuttakeConstants.kSim_V, OuttakeConstants.kSim_TopMOI,
+                        OuttakeConstants.kSim_TopGearReduction), "Outtake/highMotor");
+
+                lowMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+                        OuttakeConstants.kSim_P, OuttakeConstants.kSim_I, OuttakeConstants.kSim_D,
+                        OuttakeConstants.kSim_S, OuttakeConstants.kSim_V, OuttakeConstants.kSim_BottomMOI,
+                        OuttakeConstants.kSim_BottomGearReduction), "Outtake/lowMotor");
 
                 break;
             default:
-                highMotor = new VelocityController(new VelocityIOSparkFlex(highMotorId, highConfig), "Outtake", "1");
-                lowMotor = new VelocityController(new VelocityIOSparkFlex(lowMotorId, lowConfig), "Outtake", "2");
+                // Blank IO for REPLAY
+                highMotor = new MotorController(
+                        new MotorControllerIO() {},
+                        "Outtake/highMotor");
+                lowMotor = new MotorController(
+                        new MotorControllerIO() {},
+                        "Outtake/lowMotor");
                 break;
         }
 
@@ -89,11 +113,10 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         highMotor.updateInputs();
         lowMotor.updateInputs();
-    }
 
-    public void setVoltage(double volts) {
-        highMotor.setVoltage(volts);
-        lowMotor.setVoltage(volts);
+        // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint());
+        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint());
     }
 
     public Command timedLaunch(double seconds) {
@@ -103,8 +126,8 @@ public class Outtake extends SubsystemBase {
         return Commands.sequence(
                 runOnce(() -> {
                     hopper.run();
-                    highMotor.setSpeed(motorOneSpeed);
-                    lowMotor.setSpeed(motorTwoSpeed);
+                    highMotor.setSpeedRPM(motorOneSpeed);
+                    lowMotor.setSpeedRPM(motorTwoSpeed);
                 }),
                 Commands.waitSeconds(seconds),
                 runOnce(() -> {
@@ -112,15 +135,15 @@ public class Outtake extends SubsystemBase {
                 }));
     }
 
-    public Command continuousLaunch(){
+    public Command continuousLaunch() {
         double motorOneSpeed = OuttakeConstants.velocityDefault * 1.25;
         double motorTwoSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
                 runOnce(() -> {
                     hopper.run();
-                    highMotor.setSpeed(motorOneSpeed);
-                    lowMotor.setSpeed(motorTwoSpeed);
+                    highMotor.setSpeedRPM(motorOneSpeed);
+                    lowMotor.setSpeedRPM(motorTwoSpeed);
                 }));
     }
 
@@ -130,33 +153,35 @@ public class Outtake extends SubsystemBase {
         return Commands.sequence(
                 run(() -> {
                     double velocity = getVelocityTarget(
-                        checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
-                        ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose));
+                            checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                                    ? FieldConstants.Elements.redHubPose
+                                    : FieldConstants.Elements.blueHubPose));
                     hopper.run();
-                    highMotor.setSpeed(velocity * 1.25);
-                    lowMotor.setSpeed(velocity);
+                    highMotor.setSpeedRPM(velocity * 1.25);
+                    lowMotor.setSpeedRPM(velocity);
                 }));
     }
 
-    public Command variableLaunchEquation(){
+    public Command variableLaunchEquation() {
         return Commands.run(() -> {
-            double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red) 
-                        ? FieldConstants.Elements.redHubPose : FieldConstants.Elements.blueHubPose);
-            double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732)/4.9) * 14.04848);
+            double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                    ? FieldConstants.Elements.redHubPose
+                    : FieldConstants.Elements.blueHubPose);
+            double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732) / 4.9) * 14.04848);
             System.out.println("Velocity: " + velocity); // velocity is incorrect ; reported in 0.x
             System.out.println("Distance: " + distance);
             hopper.run();
-            highMotor.setSpeed(velocity * 1.25);
-            lowMotor.setSpeed(velocity);
-        },this);
+            highMotor.setSpeedRPM(velocity * 1.25);
+            lowMotor.setSpeedRPM(velocity);
+        }, this);
     }
 
     /** Stops all the motors */
     public Command stop() {
         return Commands.runOnce(() -> {
             hopper.stop();
-            highMotor.setVoltage(0);
-            lowMotor.setVoltage(0);
+            highMotor.setSpeedRPM(0);
+            lowMotor.setSpeedRPM(0);
         },
                 this);
     }
