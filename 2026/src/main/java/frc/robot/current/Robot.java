@@ -11,11 +11,14 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.util.AllianceFlipUtil;
+import frc.robot.lib.util.LocalADStarAK;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -64,6 +67,8 @@ public class Robot extends LoggedRobot {
       PortForwarder.add(1185, "10.22.7.69", 1185);
       PortForwarder.add(1186, "10.22.7.69", 1186);
     }
+
+    Pathfinding.setPathfinder(new LocalADStarAK());
 
     Logger.start();
     m_robotContainer = new RobotContainer();
