@@ -10,12 +10,10 @@ package frc.robot.current.subsystems.swerveDrive;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.robot.current.Constants.SwerveConstants;
 
 public class DriveConstants {
   public static final double maxSpeedMetersPerSec = 6.858;
