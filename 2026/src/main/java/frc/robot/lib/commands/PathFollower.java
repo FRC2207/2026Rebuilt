@@ -38,6 +38,8 @@ public class PathFollower extends Command {
     // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
     public static final Pose2d hubCenter = new Pose2d(
             FieldConstants.Elements.blueHub, Rotation2d.fromDegrees(0));
+    public static final Pose2d hubShoot = new Pose2d(
+            FieldConstants.Elements.blueHubShoot, Rotation2d.fromDegrees(0));
     public static final Pose2d depotCenter = new Pose2d(
             FieldConstants.Elements.blueDepot, Rotation2d.fromDegrees(90));
     public static final Pose2d outpost = new Pose2d(
@@ -50,7 +52,7 @@ public class PathFollower extends Command {
     public static enum Target {
         TRENCH,
         OUTPOST,
-        HUB
+        HUBSHOOT
     }
 
     public static enum TrenchOptions {
@@ -75,7 +77,7 @@ public class PathFollower extends Command {
         m_chooser.addOption("Force Right", TrenchOptions.FORCERIGHT);
 
         constraints = new PathConstraints(
-                DriveConstants.maxSpeedMetersPerSec, 4.0,
+                DriveConstants.maxSpeedMetersPerSec, 3.0,
                 Math.PI * 2, Units.degreesToRadians(720));
 
         CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
@@ -129,7 +131,7 @@ public class PathFollower extends Command {
                 }
         } else if(target == Target.OUTPOST) {
             goalPosition = outpost;
-        } else if(target == Target.HUB) {
+        } else if(target == Target.HUBSHOOT) {
             goalPosition = hubCenter;
         }
 

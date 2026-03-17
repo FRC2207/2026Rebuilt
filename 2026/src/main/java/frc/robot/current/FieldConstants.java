@@ -54,6 +54,12 @@ public class FieldConstants {
       4
     );
 
+    // TODO: Refine this position */
+    public static Translation2d blueHubShoot = new Translation2d(
+      2.5,
+      4
+    );
+
     public static Pose2d blueHubPose = new Pose2d(blueHub, new Rotation2d(0.0));
 
     public static Pose2d blueOutpostPose = new Pose2d(blueOutpost, new Rotation2d(180.0));

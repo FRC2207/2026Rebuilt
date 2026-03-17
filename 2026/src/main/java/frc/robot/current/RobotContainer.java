@@ -201,6 +201,9 @@ public class RobotContainer {
             FieldConstants.Elements.blueHubPose));
 
     driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
+    driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
+    driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+
         // .onFalse(Commands.runOnce(() -> {
         //   drive.stop();
         // }, drive));
