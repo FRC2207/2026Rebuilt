@@ -3,37 +3,48 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
-        "y": 4.0
+        "x": 0.5047310474537041,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.584152510264017,
-        "y": 3.7244710006577346
+        "x": 1.7720463152089692,
+        "y": 6.9626264401666145
       },
       "isLocked": false,
-      "linkedName": "HubCenter"
+      "linkedName": "Top Depot"
     },
     {
       "anchor": {
-        "x": 1.4,
-        "y": 3.8
+        "x": 3.75,
+        "y": 7.5
       },
       "prevControl": {
-        "x": 2.376764759046446,
-        "y": 4.20294454214871
+        "x": 2.326993668041844,
+        "y": 6.723425496372136
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "TowerCenter"
+      "linkedName": "Top Trench"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
-  "pointTowardsZones": [],
+  "pointTowardsZones": [
+    {
+      "fieldPosition": {
+        "x": 4.625,
+        "y": 4.0
+      },
+      "rotationOffset": 90.0,
+      "minWaypointRelativePos": 0.0,
+      "maxWaypointRelativePos": 0.8478379360465121,
+      "name": "Point Towards Zone"
+    }
+  ],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 1.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -41,7 +52,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 1.5,
     "rotation": 0.0
   },
   "reversed": false,
@@ -50,5 +61,5 @@
     "velocity": 0,
     "rotation": 90.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

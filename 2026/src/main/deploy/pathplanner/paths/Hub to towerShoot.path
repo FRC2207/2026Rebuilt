@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
+        "x": 3.575,
         "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.584152510264017,
-        "y": 3.7244710006577346
+        "x": 2.573051565202718,
+        "y": 3.9882948659352513
       },
       "isLocked": false,
       "linkedName": "HubCenter"
     },
     {
       "anchor": {
-        "x": 1.4,
-        "y": 3.8
+        "x": 1.7,
+        "y": 4.0
       },
       "prevControl": {
-        "x": 2.376764759046446,
-        "y": 4.20294454214871
+        "x": 1.4501072403999795,
+        "y": 3.992678203807367
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "TowerCenter"
+      "linkedName": "Tower Shoot"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,

@@ -1,22 +1,15 @@
 package frc.robot.lib.commands;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.util.AllianceFlipUtil;
@@ -25,7 +18,6 @@ public class AutoAlign extends DriveToPose {
         public static List<Pose2d> reefPositions = new ArrayList<>();
         public static List<Pose2d> sourcePositions = new ArrayList<>();
         StructArrayPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("PosArr", Pose2d.struct).publish();
-        private static Boolean ReefProtection = false;
 
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
         public static final Pose2d hubCenter = new Pose2d(
@@ -69,50 +61,6 @@ public class AutoAlign extends DriveToPose {
 
                                         System.out.print(direction.get());
                                         System.out.print("before flip");
-
-                                        // Dont slam into reef
-                                        Pose2d allianceFlippedDrive = AllianceFlipUtil.apply(drive.getPose());
-
-                                // if (ReefProtection) {
-                                //         if ((drive.getPose().getY() < FieldConstants.ReefPoints.northPoint.getY() && // If the robot is right of the northmost
-                                //                         DriverStation.getAlliance().get() == Alliance.Blue && nearestTarget == driverStationOneSource)||       // point of the BLUE reef
-                                //                 (drive.getPose().getY() > AllianceFlipUtil.apply(FieldConstants.ReefPoints.northPoint.getY()) &&                                                      // Or if the robot is right of the
-                                //                         DriverStation.getAlliance().get() == Alliance.Red && nearestTarget == driverStationOneSource)) {   // northmost point on RED side
-                                                
-                                //                         nearestTarget = new Pose2d(nearestTarget.getY(),
-                                //                                 MathUtil.clamp(nearestTarget.getX(),
-                                //                                                 allianceFlippedDrive.getX(), 2 *
-                                //                                                                 (allianceFlippedDrive.getX()
-                                //                                                                                 - FieldConstants.ReefPoints.northPoint
-                                //                                                                                                 .getX())),
-                                //                                 nearestTarget.getRotation());
-                                //         } else if ((drive.getPose().getY() > FieldConstants.ReefPoints.southPoint.getY() &&  // If the robot is left of the southmost
-                                //                         DriverStation.getAlliance().get() == Alliance.Blue && nearestTarget == driverStationThreeSource) ||               // point of the blue reed
-                                //                 (drive.getPose().getY() < AllianceFlipUtil.apply(FieldConstants.ReefPoints.southPoint.getY()) &&                                                   // or if the robot is left of the southmost
-                                //                         DriverStation.getAlliance().get() == Alliance.Red && nearestTarget == driverStationThreeSource)) {
-
-                                //                         nearestTarget = new Pose2d(nearestTarget.getY(),
-                                //                                 MathUtil.clamp(nearestTarget.getX(),
-                                //                                                 allianceFlippedDrive.getX(), 2 *
-                                //                                                                 (allianceFlippedDrive.getX()
-                                //                                                                                 - FieldConstants.ReefPoints.southPoint
-                                //                                                                                                 .getX())),
-                                //                                 nearestTarget.getRotation());
-                                //         }
-                                // }
-
-                                        // // Dont slam into subwoofer
-                                        // if ((target.get() == Target.SOURCE || target.get() == Target.REEF) &&
-                                        //                 (drive.getPose().getY() < FieldConstants.Speaker.topLeftSpeaker
-                                        //                                 .getY() - 0.25
-                                        //                                 || drive.getPose()
-                                        //                                                 .getY() > FieldConstants.Speaker.topRightSpeaker
-                                        //                                                                 .getY() +
-                                        //                                                                 0.25)) {
-                                        //         nearestTarget = new Pose2d(MathUtil.clamp(nearestTarget.getX(), 1.5,
-                                        //                         Double.MAX_VALUE), nearestTarget.getY(),
-                                        //                         nearestTarget.getRotation());
-                                        // }
 
                                 nearestTarget = AllianceFlipUtil.apply(nearestTarget);
                                 System.out.print("after flip");

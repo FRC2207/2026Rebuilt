@@ -49,9 +49,9 @@ public class DriveToPose extends Command {
     private static double ffMaxRadius;
 
     static {
-        switch (Constants.robot) {
-            case "SIM":
-            case "Real":
+        switch (Constants.currentMode) {
+            case SIM:
+            case REAL:
             default:
                 driveKp = 6.0; // Old value = 6
                 driveKd = 0.0;

@@ -17,19 +17,13 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
-          "type": "parallel",
+          "type": "sequential",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sweep"
+                  "pathName": "Side start to Depot"
                 }
               },
               {
@@ -44,7 +38,26 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Lower Trench to hub"
+            "pathName": "Thru Depot"
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Depot to Hub"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOff"
+                }
+              }
+            ]
           }
         },
         {

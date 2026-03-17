@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.746618060595065,
-        "y": 5.172195267144412
+        "x": 1.2305542937700462,
+        "y": 5.372307678994359
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.4061536760703919,
-        "y": 3.7351589146407838
+        "x": 1.4,
+        "y": 3.8
       },
       "prevControl": {
-        "x": 1.9238693418904207,
-        "y": 3.896520829553701
+        "x": 1.2438283588255672,
+        "y": 4.757304267349731
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "TowerCenter"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

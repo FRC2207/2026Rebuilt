@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 1.5,
-        "y": 3.75
+        "x": 1.4,
+        "y": 3.8
       },
       "prevControl": {
-        "x": 1.6510208331233596,
-        "y": 3.0447912723873407
+        "x": 1.5510208331233595,
+        "y": 3.0947912723873405
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "TowerCenter"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

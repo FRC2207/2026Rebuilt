@@ -17,34 +17,28 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sweep"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeOn"
+                  "pathName": "Center Shoot to Outpost"
                 }
               }
             ]
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 3.0
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Lower Trench to hub"
+            "pathName": "Outpost to hub"
           }
         },
         {

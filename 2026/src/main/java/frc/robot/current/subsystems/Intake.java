@@ -1,82 +1,94 @@
 package frc.robot.current.subsystems;
 
-import com.revrobotics.spark.config.SparkMaxConfig;
+import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import com.revrobotics.spark.config.SparkFlexConfig;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
+import frc.robot.current.Constants.IntakeConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
-import frc.robot.lib.motors.motorController.MotorIOSparkMax;
-
+import frc.robot.lib.motors.motorController.MotorControllerIO;
+import frc.robot.lib.motors.motorController.MotorIOSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Intake extends SubsystemBase {
   private MotorController intakeMotor;
 
-  private final int intakeMotorID = Constants.IntakeConstants.intakeID;
-  
-  public Intake(String robotType, Drive drive) {
-    // TODO: change table and entry keys
-    // table = NetworkTableInstance.getDefault().getTable("default");
-    // visionTarget = table.getEntry("default");
+  private final int intakeMotorId = Constants.IntakeConstants.intakeID;
 
-    SparkMaxConfig rightConfig = new SparkMaxConfig();
-    rightConfig.inverted(true);
-    rightConfig.smartCurrentLimit(30);
+  public Boolean isIntaking = false;
 
-    switch (robotType) {
-      case "Real":
-        intakeMotor = new MotorController(new MotorIOSparkMax(intakeMotorID, rightConfig, 35), "Intake", "1");
+  public Intake(Drive drive) {
 
+    SparkFlexConfig intakeConfig = new SparkFlexConfig();
+    intakeConfig.inverted(true);
+    intakeConfig.smartCurrentLimit(30);
+    intakeConfig.closedLoop
+        .p(IntakeConstants.kP)
+        .i(IntakeConstants.kI)
+        .d(IntakeConstants.kD).feedForward // Set Feedforward gains for the velocity controller
+        .kS(IntakeConstants.kS) // Static gain (volts)
+        .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
+        .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
+
+    switch (Constants.currentMode) {
+      case REAL:
+        intakeMotor = new MotorController(
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
         break;
-      case "SIM":
-        // Just don't use sim.
-
+      case SIM:
+        intakeMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_G,
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
-        intakeMotor = new MotorController(new MotorIOSparkMax(intakeMotorID, rightConfig, 30), "Intake", "1");
-
+        // Blank IO for REPLAY
+        intakeMotor = new MotorController(new MotorControllerIO() {}, "Intake");
         break;
     }
   }
 
   public void periodic() {
     intakeMotor.updateInputs();
+
+    // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+    Logger.recordOutput("Intake/SetpointRPM", intakeMotor.getSetpoint());
   }
 
-
-  public void setVoltage(double volts) {
-    intakeMotor.setVoltage(volts);
-  }
-
-  public Command launch() {
-    double percent = 20;
+  public Command spit() {
+    double percent = 2000;
 
     return Commands.sequence(
         runOnce(() -> {
-          intakeMotor.setPercent(percent);
+          intakeMotor.setSpeedRPM(percent);
         }),
         Commands.waitSeconds(.5),
         runOnce(() -> {
-          intakeMotor.setPercent(0);
+          intakeMotor.setSpeedRPM(0);
         }));
   }
 
   public Command intake() {
-    return Commands.run(() -> {
-      intakeMotor.setPercent(Constants.IntakeConstants.intakeSpeed);
-    },
-        this);
+    return Commands.runOnce(() -> {
+      isIntaking = true;
+      intakeMotor.setSpeedRPM(IntakeConstants.intakeSpeed);
+    }, this);
   }
 
   public Command stop() {
     return Commands.run(() -> {
-      intakeMotor.setVoltage(0);
-    },
-        this);
+      isIntaking = false;
+      intakeMotor.setSpeedRPM(0);
+      ;
+    }, this);
   }
 }

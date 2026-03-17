@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
+        "x": 1.7,
         "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.584152510264017,
-        "y": 3.7244710006577346
+        "x": 1.8708735532407412,
+        "y": 2.6040342881944447
       },
       "isLocked": false,
-      "linkedName": "HubCenter"
+      "linkedName": "Tower Shoot"
     },
     {
       "anchor": {
-        "x": 1.4,
-        "y": 3.8
+        "x": 0.3,
+        "y": 0.675
       },
       "prevControl": {
-        "x": 2.376764759046446,
-        "y": 4.20294454214871
+        "x": 1.1889832899305557,
+        "y": 1.7346947337962968
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "TowerCenter"
+      "linkedName": "Outpost"
     }
   ],
   "rotationTargets": [],

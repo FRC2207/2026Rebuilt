@@ -8,7 +8,6 @@
 package frc.robot.current;
 
 import static edu.wpi.first.apriltag.AprilTagFields.k2026RebuiltWelded;
-
 import java.io.IOException;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -35,6 +34,9 @@ import edu.wpi.first.math.util.Units;
 public class FieldConstants {
   public static double fieldLength = Units.inchesToMeters(651.22);
   public static double fieldWidth = Units.inchesToMeters(317.7);
+  public static double neutralLine = Units.inchesToMeters(157.06);
+  public static double trenchCenterOffset = Units.inchesToMeters(25.62);
+  public static double trenchX = Units.inchesToMeters(181.56);
 
   /** The centers of the blue alliance elements */
   public static final class Elements {
@@ -69,6 +71,14 @@ public class FieldConstants {
     );
 
     public static Pose2d redHubPose = new Pose2d(redHub, new Rotation2d(0.0));
+
+    public static Translation2d leftTrench = new Translation2d(
+      trenchX,
+      fieldWidth - trenchCenterOffset);
+      
+    public static Translation2d rightTrench = new Translation2d(
+      trenchX,
+      trenchCenterOffset);
   }
 
   public static double aprilTagWidth = Units.inchesToMeters(6.50);
@@ -81,4 +91,10 @@ public class FieldConstants {
       throw new RuntimeException(e);
     }
   }
+
+  public static Pose2d SimBlueStartingPose = 
+      new Pose2d(
+        new Translation2d(2.75, 4.5),            // ~1.9 meters in front of the hub and just off center
+        new Rotation2d(Units.degreesToRadians(-20))  // rotated to face the hub
+    );
 }

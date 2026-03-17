@@ -5,46 +5,22 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "PivotDown"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Launch"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sweep"
+                  "pathName": "Hub to Tower - No Turn"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "IntakeOn"
+                  "name": "PivotDown"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Lower Trench to hub"
           }
         },
         {
