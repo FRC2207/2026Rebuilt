@@ -4,20 +4,28 @@ import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.Constants;
 import frc.robot.current.Constants.PivotConstants;
-import frc.robot.lib.motors.positionController.PositionController;
-import frc.robot.lib.motors.positionController.PositionIOSparkMax;
+import frc.robot.lib.motors.motorController.MotorController;
+import frc.robot.lib.motors.motorController.MotorControllerIO;
+import frc.robot.lib.motors.motorController.MotorIOSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
+import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Pivot extends SubsystemBase {
-  private PositionController pivotMotor;
+  private MotorController pivotMotor;
 
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
-  private final String robotType = Constants.robot;
+  private EncoderType encoderType = EncoderType.EXTERNAL_ABSOLUTE;
 
   public Boolean isUp = false;
 
@@ -40,67 +48,54 @@ public class Pivot extends SubsystemBase {
         .kA(PivotConstants.kA)
         .kG(PivotConstants.kG); // Acceleration gain (volts per RPM/s)
 
-    switch (robotType) {
-      case "Real":
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig, 0.0), "Pivot");
+    switch (Constants.currentMode) {
+      case REAL:
+        pivotMotor = new MotorController(
+            new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
-      case "SIM":
-        // Just don't use sim.
-
+      case SIM:
+        pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Postion, PivotConstants.kSim_P,
+            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 3), "Pivot");
         break;
       default:
-        pivotMotor = new PositionController(new PositionIOSparkMax(pivotMotorID, pivotConfig, 0.0), "Pivot");
+        // Blank IO for REPLAY
+        pivotMotor = new MotorController(
+            new MotorControllerIO() {}, "Pivot");
         break;
     }
   }
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("pivotSetpoint", pivotMotor.getMotorSetpoint());
-    SmartDashboard.putBoolean("IsUp", isUp);
+    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpoint());
+    Logger.recordOutput("Pivot/IsUp", isUp);
 
-    if (pivotMotor.getAngle() >= .2) {
+    if (pivotMotor.getPositionRotations() >= .2) {
       isUp = true;
     } else {
       isUp = false;
     }
+
+    Logger.recordOutput("Pivot/ComponentPose", new Pose3d[] {new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0))});
   }
 
   public void initialization() {
-    setPivotPosition(pivotMotor.getAngle());
+    setPivotPosition(pivotMotor.getPositionRotations());
   }
 
   public void setPivotPosition(double setpoint) {
-    pivotMotor.setMotorPosition(setpoint);
+    pivotMotor.setPositionRotations(setpoint);
   }
 
   public Command gotoStoredPos() {
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(Constants.PivotConstants.storedRotations);
+      pivotMotor.setPositionRotations(Constants.PivotConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
     return Commands.run(() -> {
-      pivotMotor.setMotorPosition(Constants.PivotConstants.collectionRotations);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateUp() {
-    // THE value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.runOnce(() -> {
-      isUp = true;
-      pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() + 1);
-    }, this);
-  }
-
-  // DO NOT USE
-  public Command rotateDown() {
-    // THE - value HAS TO BE EXTREMLY SMALL AS IT IS IN ROTATIONS AND NOT ANGLES
-    return Commands.runOnce(() -> {
-      isUp = false;
-      pivotMotor.setMotorPositionDegrees(pivotMotor.getMotorSetpointDegrees() - 1);
+      pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
     }, this);
   }
 }
