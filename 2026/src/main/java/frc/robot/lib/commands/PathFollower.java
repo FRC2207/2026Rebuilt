@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
+import frc.robot.lib.util.AllianceFlipUtil;
 
 public class PathFollower extends Command {
     public boolean running = false;
@@ -36,6 +37,7 @@ public class PathFollower extends Command {
     private static PathConstraints constraints;
 
     // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
+    
     public static final Pose2d hubCenter = new Pose2d(
             FieldConstants.Elements.blueHub, Rotation2d.fromDegrees(0));
     public static final Pose2d hubShoot = new Pose2d(
@@ -142,6 +144,7 @@ public class PathFollower extends Command {
     @Override
     public void execute() {
         running = true;
+        goalPosition = AllianceFlipUtil.apply(goalPosition);
 
         Command pathFindingCommand = AutoBuilder.pathfindToPose(
                                 goalPosition,
