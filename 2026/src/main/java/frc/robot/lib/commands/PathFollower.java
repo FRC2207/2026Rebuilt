@@ -124,7 +124,7 @@ public class PathFollower extends Command {
                 } else { // If we are outside
                         goalPosition = new Pose2d(
                                         whichTrenchIn.getTranslation()
-                                                        .minus(new Translation2d(Units.inchesToMeters(22), 0)),
+                                                        .minus(new Translation2d(Units.inchesToMeters(55), 0)),
                                         whichTrenchIn.getRotation());
                 }
         } else if(target == Target.OUTPOST) {
