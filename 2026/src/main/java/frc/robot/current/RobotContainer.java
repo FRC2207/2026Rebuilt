@@ -20,7 +20,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.current.subsystems.PathFollower;
+import frc.robot.lib.commands.PathFollower;
+//import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -113,7 +114,7 @@ public class RobotContainer {
 
 
     Hopper hopper = new Hopper();
-    pathFollower = new PathFollower(drive);
+    //pathFollower = new PathFollower(drive);
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
@@ -199,12 +200,12 @@ public class RobotContainer {
             () -> -driveXbox.getLeftY(),
             FieldConstants.Elements.blueHubPose));
 
-    driveXbox.start().whileTrue(Commands.run(() -> pathFollower.driveThruTrench()))
-        .onFalse(Commands.runOnce(() -> {
-          drive.stop();
-        }, drive));
+    driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
+        // .onFalse(Commands.runOnce(() -> {
+        //   drive.stop();
+        // }, drive));
 
-    driveXbox.back().whileTrue(Commands.run(() -> pathFollower.driveToOutpost()));
+    //driveXbox.back().whileTrue(Commands.run(() -> pathFollower.driveToOutpost()));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
