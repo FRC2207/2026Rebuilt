@@ -5,9 +5,34 @@
     "data": {
       "commands": [
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Hub to towerShoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PivotDown"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Launch"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Hub to Tower"
+            "pathName": "towerShoot to Climb"
           }
         }
       ]

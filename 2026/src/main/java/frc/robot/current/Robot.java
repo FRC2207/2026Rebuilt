@@ -11,9 +11,14 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.current.subsystems.swerveDrive.Drive;
+import frc.robot.lib.util.AllianceRotationUtil;
+import frc.robot.lib.util.LocalADStarAK;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -24,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
+  private Drive drive;
   private final RobotContainer m_robotContainer;
 
   /**
@@ -36,7 +42,7 @@ public class Robot extends LoggedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
     // autonomous chooser on the dashboard.
-
+    
     if (isReal()) {
       Logger.addDataReceiver(new NT4Publisher());
       Logger.addDataReceiver(new WPILOGWriter());
@@ -62,8 +68,12 @@ public class Robot extends LoggedRobot {
       PortForwarder.add(1186, "10.22.7.69", 1186);
     }
 
+    Pathfinding.setPathfinder(new LocalADStarAK());
+
     Logger.start();
     m_robotContainer = new RobotContainer();
+    drive = m_robotContainer.getDriveSubsystem();
+
   }
 
   /**
@@ -108,6 +118,13 @@ public class Robot extends LoggedRobot {
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
+      System.out.print("Auto Initiated");
+    }
+
+    if (Constants.currentMode == Constants.Mode.SIM) {
+      // Set the initial pose in simulation to a location relative to 0,0 which is by default on the 
+      // blue alliance end. AllianceFlipUtil will flip the pose to the red side if needed, so this works for both alliances.
+      drive.setPose(AllianceRotationUtil.apply(FieldConstants.SimBlueStartingPose));
     }
   }
 

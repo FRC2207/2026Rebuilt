@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Launch"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -32,13 +26,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 3.0
+            "waitTime": 2.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Outpost to hub"
+            "pathName": "Outpost to towerShoot"
           }
         },
         {
