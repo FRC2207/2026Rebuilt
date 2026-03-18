@@ -39,7 +39,7 @@ public class MotorIOSim implements MotorControllerIO {
      * </ul>
      * @param controlType The type of control the motor is using <ul>
      * <ls> {@link ControlType#Simple}
-     * <ls> {@link ControlType#Postion}
+     * <ls> {@link ControlType#Position}
      * <ls> {@link ControlType#Velocity}
      * </ul>
      * @param kP The P value of PID
