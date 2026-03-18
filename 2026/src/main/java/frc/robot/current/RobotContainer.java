@@ -59,6 +59,12 @@ public class RobotContainer {
   private static Boolean cameraYes = true;
   private PathFollower pathFollower;
 
+  private static ControlType controlType = ControlType.TWOXBOX;
+
+  public enum ControlType {
+    ONEXBOX, TWOXBOX
+  }
+
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
@@ -223,15 +229,25 @@ public class RobotContainer {
                 drive)
                 .ignoringDisable(true));
 
-    controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+    switch (controlType) {
+      case ONEXBOX:
+        driveXbox.leftTrigger().onTrue(intake.intake()).onFalse(intake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.povUp().onTrue(pivot.gotoStoredPos());
+        driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
+        break;
+      case TWOXBOX:
+      default:
+        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-    controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
-    controlXbox.povUp().onTrue(pivot.gotoStoredPos());
-    controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
+        controlXbox.povUp().onTrue(pivot.gotoStoredPos());
+        controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-    controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-    controlXbox.leftBumper().onTrue(intake.spit());
+        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.spit());
+    }
   }
 
   /**
