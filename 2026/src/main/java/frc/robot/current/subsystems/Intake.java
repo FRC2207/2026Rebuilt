@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
         }),
         Commands.waitSeconds(.5),
         runOnce(() -> {
-          intakeMotor.setSpeedRPM(percent);
+          intakeMotor.setSpeedRPM(0);
         }));
   }
 

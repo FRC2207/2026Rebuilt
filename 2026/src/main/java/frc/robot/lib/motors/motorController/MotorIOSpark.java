@@ -117,76 +117,93 @@ public class MotorIOSpark implements MotorControllerIO {
         return velocitySupplier.get();
     }
 
+    @Override
     /** Sets the motor percentage from -1 to 1 */
     public void setMotorPercent(double percent) {
         percent = MathUtil.clamp(percent, -1, 1);
         motor.set(percent);
     }
 
+    @Override
     public void setMotorVoltage(double voltage) {
         voltage = MathUtil.clamp(voltage, -12, 12);
         motor.setVoltage(voltage);
     }
 
+    @Override
     public double getAppliedVolts() {
         return motor.getAppliedOutput();
     }
 
+    @Override
     public double getCurrent() {
         return motor.getOutputCurrent();
     }
 
+    @Override
     public double getMotorTemp() {
         return motor.getMotorTemperature();
     }
 
+    @Override
     public double getVelocityRadPerSec() {
         return getVelocity() * ((2 * Math.PI) / 60);
     }
 
+    @Override
     public double getVelocityRPM() {
         return getVelocity();
     }
 
+    @Override
     public double getPostiionDegrees() {
         return getPosition() * 360;
     }
 
+    @Override
     public double getPositionRadians() {
         return getPosition() * (2 * Math.PI);
     }
 
+    @Override
     public double getPositionRotations() {
         return getPosition();
     }
 
+    @Override
     public void setPositionDegrees(double degrees) {
         double clampDegrees = MathUtil.clamp(degrees, -360, 360);
         closedLoopController.setSetpoint(clampDegrees / 360, SparkBase.ControlType.kPosition);
     }
 
+    @Override
     public void setPositionRadians(double radians) {
         double clampRadians = MathUtil.clamp(radians, -2 * Math.PI, 2 * Math.PI);
         closedLoopController.setSetpoint(clampRadians / (2 * Math.PI), SparkBase.ControlType.kPosition);
     }
 
+    @Override
     public void setPositionRotations(double rotations) {
         double clampRotations = MathUtil.clamp(rotations, -1, 1);
         closedLoopController.setSetpoint(clampRotations, SparkBase.ControlType.kPosition);
     }
 
+    @Override
     public double getSetpointDegrees() {
         return closedLoopController.getSetpoint() * 360;
     }
 
+    @Override
     public double getSetpointRadians() {
         return closedLoopController.getSetpoint() * (2 * Math.PI);
     }
 
+    @Override
     public double getSetpoint() {
         return closedLoopController.getSetpoint();
     }
 
+    @Override
     public void setSpeedRPM(double speed) {
         double clampSpeed;
 

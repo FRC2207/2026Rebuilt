@@ -10,15 +10,13 @@ package frc.robot.current.subsystems.swerveDrive;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.robot.current.Constants.SwerveConstants;
 
 public class DriveConstants {
-  public static final double maxSpeedMetersPerSec = 6.858 * MathUtil.clamp(SwerveConstants.speedLimit, 0, 1);
+  public static final double maxSpeedMetersPerSec = 6.858;
   public static final double odometryFrequency = 100.0; // Hz
   public static final double trackWidth = Units.inchesToMeters(14.75);      // This is the robot's Y, but we needed to switch with wheelbase in order for it to spin properly
   public static final double wheelBase = Units.inchesToMeters(29.75);       // This is the robot's X   ^^^^^^^^^^^^^^^^^^^^
