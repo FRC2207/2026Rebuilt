@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
-import frc.robot.lib.util.AllianceFlipUtil;
+import frc.robot.lib.util.AllianceRotationUtil;
 
 public class PathFollower extends Command {
         public boolean running = false;
@@ -144,7 +144,7 @@ public class PathFollower extends Command {
                 }
 
                 // Takes the previous position and applies alliance rotation if need.
-                goalPosition = AllianceFlipUtil.apply(goalPosition);
+                goalPosition = AllianceRotationUtil.apply(goalPosition);
 
                 // Record the goal position and selected trench option to the logger for
                 // debugging purposes

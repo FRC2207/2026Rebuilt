@@ -17,7 +17,7 @@ import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.current.subsystems.swerveDrive.Drive;
-import frc.robot.lib.util.AllianceFlipUtil;
+import frc.robot.lib.util.AllianceRotationUtil;
 import frc.robot.lib.util.LocalADStarAK;
 
 /**
@@ -124,7 +124,7 @@ public class Robot extends LoggedRobot {
     if (Constants.currentMode == Constants.Mode.SIM) {
       // Set the initial pose in simulation to a location relative to 0,0 which is by default on the 
       // blue alliance end. AllianceFlipUtil will flip the pose to the red side if needed, so this works for both alliances.
-      drive.setPose(AllianceFlipUtil.apply(FieldConstants.SimBlueStartingPose));
+      drive.setPose(AllianceRotationUtil.apply(FieldConstants.SimBlueStartingPose));
     }
   }
 
