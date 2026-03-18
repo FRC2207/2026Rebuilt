@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
-import frc.robot.current.subsystems.ExamplePivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
@@ -150,7 +149,6 @@ public class RobotContainer {
     // Instantiate the other subsystems
     hopper = new Hopper();
     pathFollower = new PathFollower(drive);
-    outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
 
