@@ -6,22 +6,46 @@ public interface MotorControllerIO {
     @AutoLog
     public static class MotorControllerIOInputs {
         public double motorAppliedVolts = 0.0;
-        public double[] motorCurrentAmps = new double[] {};
-        public double motorEncoder = 0.0;
+        public double motorCurrentAmps = 0.0;
         public double motorTemp = 0.0;
+
+        public double velocityRadsPerSec = 0.0;
+        public double velocityRotationPerMinute = 0.0;
+
+        public double positionDegrees = 0.0;
+        public double positionRadians = 0.0;
+        public double positionRotations = 0.0;
     }
 
     /** Updates the set of loggable inputs. */
     public default void updateInputs(MotorControllerIOInputs inputs) {}
 
-    /** Run the motor at the specified voltage. */
-    public default void setMotorVoltage(double volts) {}
+    /** Sets the motor percentage from -1 to 1 */
+    public abstract void setMotorPercent(double percent);
 
-    public abstract void setMotor(double percent);
+    public abstract void setMotorVoltage(double voltage);
 
-    public abstract double getEncoder();
-
-    public abstract boolean assessCurrent();
+    public abstract double getAppliedVolts();
 
     public abstract double getCurrent();
+
+    public abstract double getMotorTemp();
+
+    public abstract double getVelocityRadPerSec();
+    public abstract double getVelocityRPM();
+
+    public abstract double getPostiionDegrees();
+    public abstract double getPositionRadians();
+    public abstract double getPositionRotations();
+
+    public abstract void setPositionDegrees(double degrees);
+    public abstract void setPositionRadians(double radians);
+    public abstract void setPositionRotations(double rotations);
+
+
+    public abstract double getSetpointDegrees();
+    public abstract double getSetpointRadians();
+    public abstract double getSetpoint();
+
+    public abstract void setSpeedRPM(double speed);
 }

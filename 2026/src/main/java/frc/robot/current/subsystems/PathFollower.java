@@ -165,7 +165,11 @@ public class PathFollower {
                         case FORCERIGHT:
                                 whichTrenchOut = rightTrench;
                                 whichTrenchIn = rightTrench;
+                                break;
                         case NEAREST:
+                                whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
+                                whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                break;
                         default:
                                 whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
                                 whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
