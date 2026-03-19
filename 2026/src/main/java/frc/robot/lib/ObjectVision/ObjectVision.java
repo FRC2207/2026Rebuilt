@@ -22,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.subsystems.swerveDrive.Drive;
+import edu.wpi.first.math.util.Units;
+import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 
 public class ObjectVision extends SubsystemBase {
     private final Drive swerve;
@@ -35,8 +37,8 @@ public class ObjectVision extends SubsystemBase {
     private static final int DBSCAN_MIN_PTS = 2;
 
     private static final PathConstraints CONSTRAINTS = new PathConstraints(
-        3.0, 3.0, Math.toRadians(540), Math.toRadians(720)
-    );
+                                DriveConstants.maxSpeedMetersPerSec, 3.0,
+                                Math.PI * 2, Units.degreesToRadians(720));
 
     private static final int MAX_BALLS = 100;
     private final Pose3d[] ballPosesBuf = new Pose3d[MAX_BALLS];
@@ -165,7 +167,7 @@ public class ObjectVision extends SubsystemBase {
         );
         path.preventFlipping = true;
 
-        return AutoBuilder.followPath(path);
+        return AutoBuilder.pathfindThenFollowPath(path, CONSTRAINTS);
     }
 
     private static List<Pose2d> clusterToSmartPoints(List<Translation2d> cluster, Translation2d from) {
