@@ -24,6 +24,7 @@ import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.ObjectVision.ObjectVision;
 
 public class Outtake extends SubsystemBase {
     private MotorController highMotor;

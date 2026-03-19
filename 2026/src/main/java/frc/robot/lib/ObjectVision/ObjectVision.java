@@ -1,7 +1,9 @@
 package frc.robot.lib.ObjectVision;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -12,138 +14,201 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 
 public class ObjectVision extends SubsystemBase {
-    private Drive swerve;
-
-    private PathConstraints constraints;
-    private double recalculatePathPeriod = 0.5;
-    private ObjectVisionIO io;
-    private boolean debugFuelPoints = false;
+    private final Drive swerve;
+    private final ObjectVisionIO io;
     private final ObjectVisionIOInputsAutoLogged inputs = new ObjectVisionIOInputsAutoLogged();
 
+    private static final double MIN_BALL_DISTANCE_M = 0.3;
+    private static final double RECALCULATE_PERIOD_S = 0.4;
+    
+    private static final double DBSCAN_EPS = 1.2;
+    private static final int DBSCAN_MIN_PTS = 2;
+
+    private static final PathConstraints CONSTRAINTS = new PathConstraints(
+        3.0, 3.0, Math.toRadians(540), Math.toRadians(720)
+    );
+
+    private static final int MAX_BALLS = 100;
+    private final Pose3d[] ballPosesBuf = new Pose3d[MAX_BALLS];
+
     public ObjectVision(Drive drive, ObjectVisionIO io) {
-        this.io = io;
+        this.io     = io;
         this.swerve = drive;
-        
-        constraints = new PathConstraints(
-            swerve.getMaxLinearSpeedMetersPerSec(), // Max velocity
-            2.0, // Max acceleration hopefully 2 mps^2 is safe
-            swerve.getMaxAngularSpeedRadPerSec(), // Max rotation velocity
-            Units.degreesToRadians(720) // Max rotation acceleration, this is probaly okay
-        );
+        for (int i = 0; i < MAX_BALLS; i++) ballPosesBuf[i] = new Pose3d();
     }
 
-    private double[] getFuelPointsX() {
-        return inputs.fuelX;
-    }
-
-    private double[] getFuelPointsY() {
-        return inputs.fuelY;
-    }
-
-    public void periodic(){
+    @Override
+    public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("ObjectVision", inputs);
 
-        if (debugFuelPoints) {
-            List<Translation2d> points = getObjectPostionsRelativeToRobot();
-            if (points != null) {
-                Pose2d robotPose = swerve.getPose();
-                Pose2d[] fieldPoses = points.stream()
-                    .map(p -> robotPose.transformBy(new Transform2d(p, new Rotation2d())))
-                    .toArray(Pose2d[]::new);
-                Logger.recordOutput("ObjectVision/FuelPoints", fieldPoses);
+        double[] rx = inputs.fuelX, ry = inputs.fuelY;
+        if (rx == null || ry == null) { Logger.recordOutput("ObjectVision/Balls", new Pose3d[0]); return; }
+        int n = Math.min(rx.length, MAX_BALLS);
+        for (int i = 0; i < n; i++)
+            ballPosesBuf[i] = new Pose3d(rx[i], ry[i], 0.0, new Rotation3d());
+        Logger.recordOutput("ObjectVision/Balls", java.util.Arrays.copyOf(ballPosesBuf, n));
+    }
+
+    private static List<List<Translation2d>> dbscan(List<Translation2d> points) {
+        List<List<Translation2d>> clusters = new ArrayList<>();
+        Set<Translation2d> visited = new HashSet<>();
+        Set<Translation2d> noise = new HashSet<>();
+
+        for (Translation2d point : points) {
+            if (visited.contains(point)) continue;
+            visited.add(point);
+
+            List<Translation2d> neighbors = getNeighbors(point, points);
+
+            if (neighbors.size() < DBSCAN_MIN_PTS) {
+                noise.add(point);
+            } else {
+                List<Translation2d> cluster = new ArrayList<>();
+                expandCluster(point, neighbors, cluster, visited, points);
+                clusters.add(cluster);
             }
         }
+        return clusters;
     }
 
-    private List<Translation2d> doubleArraysToTranslation2dList(double[] xArray, double[] yArray) {
-        List<Translation2d> poses = new ArrayList<>();
-        int length = Math.min(xArray.length, yArray.length);
-        for (int i = 0; i < length; i++) {
-            poses.add(new Translation2d(xArray[i], yArray[i]));
+    private static void expandCluster(Translation2d point, List<Translation2d> neighbors, List<Translation2d> cluster, Set<Translation2d> visited, List<Translation2d> allPoints) {
+        cluster.add(point);
+        for (int i = 0; i < neighbors.size(); i++) {
+            Translation2d neighbor = neighbors.get(i);
+            if (!visited.contains(neighbor)) {
+                visited.add(neighbor);
+                List<Translation2d> nextNeighbors = getNeighbors(neighbor, allPoints);
+                if (nextNeighbors.size() >= DBSCAN_MIN_PTS) {
+                    neighbors.addAll(nextNeighbors);
+                }
+            }
+            if (!cluster.contains(neighbor)) cluster.add(neighbor);
         }
-        return poses;
     }
 
-    public Boolean hopperSeesObject() {
-        return inputs.hopperSeesObject;
-    }
-
-    private List<Translation2d> getObjectPostionsRelativeToRobot() {
-        double[] fuelPointsX = getFuelPointsX();
-        double[] fuelPointsY = getFuelPointsY();
-
-        if (fuelPointsX.length != fuelPointsY.length) {
-            // This shouldn't happen but just in case
-            return null;
+    private static List<Translation2d> getNeighbors(Translation2d point, List<Translation2d> allPoints) {
+        List<Translation2d> neighbors = new ArrayList<>();
+        for (Translation2d p : allPoints) {
+            if (point.getDistance(p) <= DBSCAN_EPS) {
+                neighbors.add(p);
+            }
         }
-
-        return doubleArraysToTranslation2dList(fuelPointsX, fuelPointsY);
+        return neighbors;
     }
 
-    /**
-     * My first java doc
-     * this should return a robot relative Trajectory idk how to implement that
-     */
-    public Command getPath() {
-        List<Translation2d> relativePoints = getObjectPostionsRelativeToRobot();
-        if (relativePoints == null || relativePoints.isEmpty()) return Commands.none();
+    private Command buildFollowCommand() {
+        double[] rx = inputs.fuelX, ry = inputs.fuelY;
+        if (rx == null || ry == null || rx.length == 0) return null;
 
         Pose2d robotPose = swerve.getPose();
+        Translation2d robotPos = robotPose.getTranslation();
+        double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
+
+        List<Translation2d> balls = new ArrayList<>();
+        for (int i = 0; i < rx.length; i++) {
+            double dx = rx[i] - robotPos.getX(), dy = ry[i] - robotPos.getY();
+            if (dx*dx + dy*dy >= min2) balls.add(new Translation2d(rx[i], ry[i]));
+        }
+        if (balls.isEmpty()) return null;
+
+        // Run DBSCAN
+        List<List<Translation2d>> clusters = dbscan(balls);
         List<Pose2d> poses = new ArrayList<>();
-        
         poses.add(robotPose);
 
-        // Convert to field relative points (which is what PathPlannerPath works with)
-        for (Translation2d relToken : relativePoints) {
-            Pose2d fieldPose = robotPose.transformBy(new Transform2d(relToken, new Rotation2d()));
-            poses.add(fieldPose);
+        Translation2d current = robotPos;
+        List<List<Translation2d>> remaining = new ArrayList<>(clusters);
+
+        while (!remaining.isEmpty()) {
+            final Translation2d ref = current;
+            
+            // Find nearest cluster based on the closest ball in that cluster
+            List<Translation2d> nearestCluster = remaining.stream().min((a, b) -> {
+                double distA = a.stream().mapToDouble(ref::getDistance).min().getAsDouble();
+                double distB = b.stream().mapToDouble(ref::getDistance).min().getAsDouble();
+                return Double.compare(distA, distB);
+            }).get();
+
+            remaining.remove(nearestCluster);
+
+            List<Pose2d> clusterPath = clusterToSmartPoints(nearestCluster, ref);
+            
+            if (!clusterPath.isEmpty()) {
+                poses.addAll(clusterPath);
+                current = clusterPath.get(clusterPath.size() - 1).getTranslation();
+            }
         }
 
-        // Create waypoints which will help the path generation
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
+        if (poses.size() < 2) return null;
 
+        Logger.recordOutput("ObjectVision/Waypoints",
+            poses.stream().map(p -> new Pose3d(p.getX(), p.getY(), 0, new Rotation3d()))
+                .toArray(Pose3d[]::new));
+
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
         PathPlannerPath path = new PathPlannerPath(
             waypoints,
-            constraints,
+            CONSTRAINTS,
             null,
-            new GoalEndState(0.0, robotPose.getRotation()) // Stop at the end, maybe not ideal can fix later
+            new GoalEndState(0.0, poses.get(poses.size() - 1).getRotation())
         );
-
         path.preventFlipping = true;
-
-        // Plotting for AdvantageScope debugging
-        // inst.getTable("Vision").getStructArrayTopic("PlannedPathHailMary", Pose2d.struct)
-            // .publish(path.getPathPoses().toArray(new Pose2d[0]));
 
         return AutoBuilder.followPath(path);
     }
 
-    public void setDebugFuelPoints(boolean debug) {
-        this.debugFuelPoints = debug;
+    private static List<Pose2d> clusterToSmartPoints(List<Translation2d> cluster, Translation2d from) {
+        if (cluster.isEmpty()) return List.of();
+        
+        // Calculate centroid
+        double sumX = 0, sumY = 0;
+        for (Translation2d p : cluster) {
+            sumX += p.getX();
+            sumY += p.getY();
+        }
+        Translation2d centroid = new Translation2d(sumX / cluster.size(), sumY / cluster.size());
+
+        // Calc ball furthest from robot to drive through the cluster
+        Translation2d exit = cluster.stream()
+            .max((a, b) -> Double.compare(from.getDistance(a), from.getDistance(b)))
+            .get();
+
+        Rotation2d heading = exit.minus(centroid).getAngle();
+
+        List<Pose2d> points = new ArrayList<>();
+        points.add(new Pose2d(centroid, heading));
+        
+        if (centroid.getDistance(exit) > 0.2) {
+            points.add(new Pose2d(exit, heading));
+        }
+        
+        return points;
     }
 
+    public Command getPath() {
+        return Commands.defer(() -> {
+            Command c = buildFollowCommand();
+            return c != null ? c : Commands.none();
+        }, java.util.Set.of(swerve));
+    }
 
     public Command getDynamicPath() {
-        return Commands.deferredProxy(() -> {
-            Command followCommand = getPath(); 
-            
-            if (followCommand == null) return Commands.waitSeconds(0.1);
-
-            return followCommand.withTimeout(recalculatePathPeriod); 
-        })
-        .repeatedly()
-        .finallyDo(() -> swerve.runVelocity(new ChassisSpeeds())); // Emergency stop
+        return Commands.defer(() -> {
+            Command c = buildFollowCommand();
+            return c != null ? c : Commands.none();
+        }, java.util.Set.of(swerve))
+        .withTimeout(RECALCULATE_PERIOD_S)
+        .repeatedly();
     }
 }

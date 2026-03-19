@@ -4,13 +4,9 @@
 
 package frc.robot.current;
 
-import static frc.robot.lib.vision.VisionConstants.camera0Name;
 import static frc.robot.lib.vision.VisionConstants.camera1Name;
-import static frc.robot.lib.vision.VisionConstants.camera2Name;
 import static frc.robot.lib.vision.VisionConstants.camera3Name;
-import static frc.robot.lib.vision.VisionConstants.robotToCamera0;
 import static frc.robot.lib.vision.VisionConstants.robotToCamera1;
-import static frc.robot.lib.vision.VisionConstants.robotToCamera2;
 import static frc.robot.lib.vision.VisionConstants.robotToCamera3;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -25,15 +21,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.lib.commands.PathFollower;
 //import frc.robot.current.subsystems.PathFollower;
 import frc.robot.current.subsystems.Pivot;
-import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIO;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
@@ -43,15 +36,11 @@ import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 import frc.robot.lib.ObjectVision.ObjectVision;
 import frc.robot.lib.ObjectVision.ObjectVisionIODetection;
 import frc.robot.lib.commands.DriveCommands;
-import frc.robot.lib.vision.Vision;
-import frc.robot.lib.vision.VisionIOPhotonVision;
-import frc.robot.lib.vision.VisionIOPhotonVisionSim;
+import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
-
-import static frc.robot.lib.vision.VisionConstants.*;
-
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import frc.robot.lib.vision.VisionIOPhotonVision;
+import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -71,13 +60,13 @@ public class RobotContainer {
   private Intake intake;
   private Pivot pivot;
   private Vision vision;
-  private ObjectVision objectDetectionVision;
+  private ObjectVision objectVision;
   private Outtake outtake;
   private Hopper hopper;
 
   // private PathFollower pathFollower;
 
-  private static ControlType controlType = ControlType.TWOXBOX;
+  private static ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -149,7 +138,8 @@ public class RobotContainer {
 
     hopper = new Hopper();
     //pathFollower = new PathFollower(drive);
-    outtake = new Outtake(drive, hopper);
+    objectVision = new ObjectVision(drive, new ObjectVisionIODetection(drive));
+    outtake = new Outtake(drive, hopper, objectVision);
     intake = new Intake(drive);
     pivot = new Pivot();
 
@@ -240,12 +230,6 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // This will not recalculate when ball moves
-    // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
-    // This will recalculate every 0.5 seconds I think, more complex and less likely to work
-    driveXbox.rightTrigger().whileTrue(
-      objectDetectionVision.getDynamicPath()
-    );
     // Reset gyro to 0° when B button is pressed
     driveXbox
         .b()
@@ -258,10 +242,20 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.leftTrigger().onTrue(intake.intake()).onFalse(intake.stop());
-        driveXbox.rightTrigger().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        // driveXbox.leftTrigger().onTrue(intake.intake()).onFalse(intake.stop());
+        // driveXbox.rightTrigger().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
+        // This will not recalculate when ball moves
+        // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
+        // This will recalculate every 0.5 seconds I think, more complex and less likely to work
+        driveXbox.rightTrigger().onTrue(
+          objectVision.getPath()
+        );
+
+        driveXbox.leftTrigger().whileTrue(
+          objectVision.getDynamicPath()
+        );
         break;
       case TWOXBOX:
       default:

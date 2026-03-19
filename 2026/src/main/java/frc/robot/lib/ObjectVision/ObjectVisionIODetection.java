@@ -17,20 +17,24 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
     public ObjectVisionIODetection(Drive drive) {
         this.swerve = drive;
 
-        fuelSub = table.getStructArrayTopic("fuel_data", FuelStruct.struct).subscribe(new FuelStruct[0]);
+        // fuelSub = table.getStructArrayTopic("fuel_data", FuelStruct.struct).subscribe(new FuelStruct[]);
 
+        fuelSub = table.getStructArrayTopic("vision_data", FuelStruct.struct).subscribe(new FuelStruct[0]);
         hopperSubscriber = table.getBooleanTopic("hopper_sees_object").subscribe(false);
     }
     
     @Override
     public void updateInputs(ObjectVisionIOInputs inputs) {
         FuelStruct[] fuels = fuelSub.get();
-        inputs.fuelX = new double[fuels.length];
-        inputs.fuelY = new double[fuels.length];
+        double[] fuelXPoints = new double[fuels.length];
+        double[] fuelYPoints = new double[fuels.length];
         for (int i = 0; i < fuels.length; i++) {
-            inputs.fuelX[i] = fuels[i].x;
-            inputs.fuelY[i] = fuels[i].y;
+            fuelXPoints[i] = fuels[i].x;
+            fuelYPoints[i] = fuels[i].y;
         }
+        
+        inputs.fuelX = fuelXPoints;
+        inputs.fuelY = fuelYPoints;
         inputs.hopperSeesObject = hopperSubscriber.get();
     }
 }
