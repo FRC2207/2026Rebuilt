@@ -9,15 +9,15 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "Start to Depot"
-                }
-              },
-              {
                 "type": "named",
                 "data": {
                   "name": "PivotDown"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Hub to towerShoot"
                 }
               }
             ]
@@ -26,7 +26,26 @@
         {
           "type": "named",
           "data": {
-            "name": "IntakeOn"
+            "name": "Launch"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "towerShoot to Depot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOn"
+                }
+              }
+            ]
           }
         },
         {
@@ -42,6 +61,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Launch"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -52,24 +77,36 @@
                 }
               },
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "Launch"
+                  "pathName": "towerShoot to outpost"
                 }
               }
             ]
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "Outpost to towerShoot"
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "PivotUp"
+            "name": "Launch"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "towerShoot to Climb"
+            "pathName": "Outpost to towerShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Launch"
           }
         }
       ]

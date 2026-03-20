@@ -5,24 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "PivotDown"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Launch"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -35,6 +17,12 @@
               {
                 "type": "named",
                 "data": {
+                  "name": "PivotDown"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
                   "name": "IntakeOn"
                 }
               }
@@ -42,15 +30,34 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Lower Trench to hub"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOff"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Lower Trench to towerShoot"
+                }
+              }
+            ]
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Launch"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "towerShoot to Climb"
           }
         }
       ]
