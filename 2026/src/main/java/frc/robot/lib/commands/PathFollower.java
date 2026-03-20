@@ -38,6 +38,7 @@ public class PathFollower extends Command {
         private Target target;
 
         private static PathConstraints constraints;
+        private Command pathFindingCommand;
 
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
         public static final Pose2d hubCenter = new Pose2d(
@@ -81,7 +82,7 @@ public class PathFollower extends Command {
                 m_chooser.addOption("Force Right", TrenchOptions.FORCERIGHT);
 
                 constraints = new PathConstraints(
-                                DriveConstants.maxSpeedMetersPerSec, 3.0,
+                                DriveConstants.maxSpeedMetersPerSec * .75, 3.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
 
                 addRequirements(drive);
@@ -176,31 +177,35 @@ public class PathFollower extends Command {
                 // debugging purposes
                 Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
                 Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
+
+                // Builds the path using the position we just finalized
+                pathFindingCommand = AutoBuilder.pathfindToPose(
+                                goalPosition,
+                                constraints,
+                                0.0);
+
+                pathFindingCommand.initialize();
         }
 
         @Override
         public void execute() {
                 Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
 
-                // Builds the path using the position we just finalized
-                Command pathFindingCommand = AutoBuilder.pathfindToPose(
-                                goalPosition,
-                                constraints,
-                                0.0);
-
+                pathFindingCommand.execute();
                 // Schedules the command. This is what runs the path.
-                CommandScheduler.getInstance().schedule(pathFindingCommand);
+                //CommandScheduler.getInstance().schedule(pathFindingCommand);
         }
 
         @Override
         public void end(boolean interrupted) {
                 running = false;
                 drive.stop();
+                pathFindingCommand.end(interrupted);
         }
 
         @Override
         public boolean isFinished() {
-                return false;
+                return pathFindingCommand.isFinished();
         }
 
         /**
