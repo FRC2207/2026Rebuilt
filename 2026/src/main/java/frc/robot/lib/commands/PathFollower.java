@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -29,8 +30,8 @@ public class PathFollower extends Command {
 
         public static List<Pose2d> trenchPositions = new ArrayList<>();
 
-        private final LoggedDashboardChooser<TrenchOptions> m_chooser = new LoggedDashboardChooser<>(
-                        "PathFollower/Chooser");
+        private LoggedDashboardChooser<TrenchOptions> m_chooser = new LoggedDashboardChooser<>(
+                         "PathFollower/Chooser");
 
         private Pose2d goalPosition;
         private TrenchOptions selected;
@@ -59,11 +60,11 @@ public class PathFollower extends Command {
         }
 
         public static enum TrenchOptions {
-                NEAREST,
                 CLOCKWISE,
                 COUNTERCLOCKWISE,
                 FORCELEFT,
-                FORCERIGHT
+                FORCERIGHT,
+                NEAREST
         }
 
         public PathFollower(Drive drive, Target target) {
@@ -84,7 +85,8 @@ public class PathFollower extends Command {
                                 Math.PI * 2, Units.degreesToRadians(720));
 
                 addRequirements(drive);
-                //CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+
+                // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
         @Override
@@ -118,27 +120,42 @@ public class PathFollower extends Command {
                                 case CLOCKWISE:
                                         whichTrenchOut = leftTrench;
                                         whichTrenchIn = rightTrench;
+                                        SmartDashboard.putBoolean("Running default", false);
+
                                         break;
                                 case COUNTERCLOCKWISE:
                                         whichTrenchOut = rightTrench;
                                         whichTrenchIn = leftTrench;
+                                        SmartDashboard.putBoolean("Running default", false);
+
                                         break;
                                 case FORCELEFT:
                                         whichTrenchOut = leftTrench;
                                         whichTrenchIn = leftTrench;
+                                        SmartDashboard.putBoolean("Running default", false);
+
                                         break;
                                 case FORCERIGHT:
                                         whichTrenchOut = rightTrench;
                                         whichTrenchIn = rightTrench;
+                                        SmartDashboard.putBoolean("Running default", false);
+
                                         break;
                                 case NEAREST:
-                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
-                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
+                                        SmartDashboard.putBoolean("Running default", false);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
                                         break;
                                 default:
-                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
-                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        System.out.print("Invalid trench option selected, defaulting to nearest");
                                         Commands.print("Invalid trench option selected, defaulting to nearest");
+                                        SmartDashboard.putBoolean("Running default", true);
                                         break;
                         }
 
@@ -170,12 +187,14 @@ public class PathFollower extends Command {
                 // Record the goal position and selected trench option to the logger for
                 // debugging purposes
                 Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
-                Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
+                Logger.recordOutput("PathFollower/InitialTrenchOption", selected);
         }
 
         @Override
         public void execute() {
-                Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
+                selected = m_chooser.get();
+
+                Logger.recordOutput("PathFollower/PeriodicTrenchOption", selected);
 
                 // Builds the path using the position we just finalized
                 Command pathFindingCommand = AutoBuilder.pathfindToPose(
