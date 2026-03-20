@@ -62,7 +62,7 @@ public class RobotContainer {
 
   // private PathFollower pathFollower;
 
-  private static ControlType controlType = ControlType.TWOXBOX;
+  private static final ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -188,13 +188,13 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () -> -driveXbox.getRightX()));
 
-    driveXbox.back()
-        .whileTrue(
-            DriveCommands.joystickDrive(
-                drive,
-                () -> -0.45 * driveXbox.getLeftY(),
-                () -> -0.45 * driveXbox.getLeftX(),
-                () -> -0.5 * driveXbox.getRightX()));
+    // driveXbox.back()
+    //     .whileTrue(
+    //         DriveCommands.joystickDrive(
+    //             drive,
+    //             () -> -0.45 * driveXbox.getLeftY(),
+    //             () -> -0.45 * driveXbox.getLeftX(),
+    //             () -> -0.5 * driveXbox.getRightX()));
 
     // Lock to 0° when A button is held
     driveXbox
@@ -212,8 +212,8 @@ public class RobotContainer {
             () -> -driveXbox.getLeftY(),
             FieldConstants.Elements.blueHubPose));
 
-    driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
-    driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
+    //driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
+    //driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
     driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
 
         // .onFalse(Commands.runOnce(() -> {
@@ -237,10 +237,15 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.leftTrigger().onTrue(intake.intake()).onFalse(intake.stop());
-        driveXbox.rightTrigger().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+
+        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
+
+        driveXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+        driveXbox.leftBumper().onTrue(intake.spit());
         break;
       case TWOXBOX:
       default:

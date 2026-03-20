@@ -6,8 +6,8 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathfindingCommand;
+// import com.pathplanner.lib.auto.AutoBuilder;
+// import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -15,7 +15,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+// import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -81,7 +81,7 @@ public class PathFollower extends Command {
                                 DriveConstants.maxSpeedMetersPerSec, 3.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
 
-                CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+                // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
         @Override
@@ -155,13 +155,13 @@ public class PathFollower extends Command {
         @Override
         public void execute() {
                 // Builds the path using the position we just finalized
-                Command pathFindingCommand = AutoBuilder.pathfindToPose(
-                                goalPosition,
-                                constraints,
-                                0.0);
+                // Command pathFindingCommand = AutoBuilder.pathfindToPose(
+                //                goalPosition,
+                //                constraints,
+                //                0.0);
 
                 // Schedules the command. This is what runs the path.
-                CommandScheduler.getInstance().schedule(pathFindingCommand);
+                // CommandScheduler.getInstance().schedule(pathFindingCommand);
         }
 
         @Override

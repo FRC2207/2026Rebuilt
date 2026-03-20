@@ -164,12 +164,17 @@ public class Outtake extends SubsystemBase {
 
     public Command variableLaunchEquation() {
         return Commands.run(() -> {
-            double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+            double distanceRaw = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                     ? FieldConstants.Elements.redHubPose
                     : FieldConstants.Elements.blueHubPose);
-            double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732) / 4.9) * 14.04848);
-            System.out.println("Velocity: " + velocity); // velocity is incorrect ; reported in 0.x
-            System.out.println("Distance: " + distance);
+            double distance = distanceRaw - 0.5;
+            // The velocity the ball needs to be at to hit the target in m/s
+            double ball_velocity = (Math.sqrt((23.0526875 * Math.pow(distance, 2))/(distance + (-1.482/4.7046))))/0.978147;
+            double velocity = ball_velocity * (60/ (0.0254 * Math.PI));
+            Logger.recordOutput("Outtake/ballVelocity", ball_velocity);
+            Logger.recordOutput("Outtake/distance", distance);
+            // System.out.println("Velocity: " + velocity);
+            // System.out.println("Distance: " + distance);
             hopper.run();
             highMotor.setSpeedRPM(velocity * 1.25);
             lowMotor.setSpeedRPM(velocity);
