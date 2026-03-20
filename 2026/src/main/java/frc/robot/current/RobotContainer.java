@@ -212,7 +212,7 @@ public class RobotContainer {
             () -> -driveXbox.getLeftY(),
             FieldConstants.Elements.blueHubPose));
 
-    //driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
+    driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
     //driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
     driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
 
@@ -237,7 +237,7 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        //driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
