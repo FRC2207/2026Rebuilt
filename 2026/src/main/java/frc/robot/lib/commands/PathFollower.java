@@ -6,7 +6,7 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-// import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.AutoBuilder;
 // import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -14,8 +14,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-// import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -23,6 +25,7 @@ import frc.robot.lib.util.AllianceRotationUtil;
 
 public class PathFollower extends Command {
         public boolean running = false;
+        public boolean inside;
         private Drive drive;
 
         public static List<Pose2d> trenchPositions = new ArrayList<>();
@@ -44,11 +47,11 @@ public class PathFollower extends Command {
         public static final Pose2d depotCenter = new Pose2d(
                         FieldConstants.Elements.blueDepot, Rotation2d.fromDegrees(90));
         public static final Pose2d outpost = new Pose2d(
-                        FieldConstants.Elements.blueOutpost, Rotation2d.fromDegrees(180));
+                        FieldConstants.Elements.blueOutpost, Rotation2d.fromDegrees(0));
         public static final Pose2d leftTrench = new Pose2d(
-                        FieldConstants.Elements.leftTrench, Rotation2d.fromDegrees(180));
+                        FieldConstants.Elements.leftTrench, Rotation2d.fromDegrees(0));
         public static final Pose2d rightTrench = new Pose2d(
-                        FieldConstants.Elements.rightTrench, Rotation2d.fromDegrees(180));
+                        FieldConstants.Elements.rightTrench, Rotation2d.fromDegrees(0));
 
         public static enum Target {
                 TRENCH,
@@ -81,6 +84,7 @@ public class PathFollower extends Command {
                                 DriveConstants.maxSpeedMetersPerSec, 3.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
 
+                addRequirements(drive);
                 // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
@@ -88,10 +92,25 @@ public class PathFollower extends Command {
         public void initialize() {
                 // Basic boolean which can be used in other subsystems.
                 running = true;
+
                 Pose2d whichTrenchOut;
                 Pose2d whichTrenchIn;
 
                 selected = m_chooser.get();
+
+                if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
+                        if (FieldConstants.fieldLength - FieldConstants.neutralLine < drive.getPose().getX()) {
+                                inside = true;
+                        } else {
+                                inside = false;
+                        }
+                } else {
+                        if (drive.getPose().getX() < FieldConstants.neutralLine) {
+                                inside = true;
+                        } else {
+                                inside = false;
+                        }
+                }
 
                 // Determine which trench to go to based on the selected option from
                 // Smartdashboard
@@ -114,18 +133,23 @@ public class PathFollower extends Command {
                                         whichTrenchIn = rightTrench;
                                         break;
                                 case NEAREST:
-                                        whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
-                                        whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
                                         break;
                                 default:
-                                        whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
-                                        whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
+                                                        trenchPositions);
+                                        Commands.print("Invalid trench option selected, defaulting to nearest");
                                         break;
                         }
 
                         // Uses the current position of the robot to determine whether to go to the
                         // inside or outside trench position.
-                        if (drive.getPose().getX() < FieldConstants.neutralLine) { // If we are inside
+                        if (inside) { // If we are inside
                                 goalPosition = new Pose2d(
                                                 whichTrenchOut.getTranslation()
                                                                 .plus(new Translation2d(Units.inchesToMeters(55), 0)),
@@ -140,9 +164,11 @@ public class PathFollower extends Command {
                 } else if (target == Target.OUTPOST) {
                         goalPosition = outpost;
                 } else if (target == Target.HUBSHOOT) {
-                        goalPosition = hubCenter;
+                        goalPosition = new Pose2d(hubCenter.getTranslation().plus(new Translation2d(-2.825, 0)),
+                                        new Rotation2d(Units.degreesToRadians(90)));
                 }
 
+                Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
                 // Takes the previous position and applies alliance rotation if need.
                 goalPosition = AllianceRotationUtil.apply(goalPosition);
 
@@ -154,14 +180,16 @@ public class PathFollower extends Command {
 
         @Override
         public void execute() {
+                Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
+
                 // Builds the path using the position we just finalized
-                // Command pathFindingCommand = AutoBuilder.pathfindToPose(
-                //                goalPosition,
-                //                constraints,
-                //                0.0);
+                Command pathFindingCommand = AutoBuilder.pathfindToPose(
+                                goalPosition,
+                                constraints,
+                                0.0);
 
                 // Schedules the command. This is what runs the path.
-                // CommandScheduler.getInstance().schedule(pathFindingCommand);
+                CommandScheduler.getInstance().schedule(pathFindingCommand);
         }
 
         @Override
