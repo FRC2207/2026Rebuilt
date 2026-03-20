@@ -10,7 +10,7 @@ public class ObjectVisionIODetection implements ObjectVisionIO {
     private Drive swerve;
 
     private NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    private NetworkTable table = inst.getTable("VisionData");
+    private NetworkTable table = inst.getTable("VisionData");   
     private StructArraySubscriber<FuelStruct> fuelSub;
     private BooleanSubscriber hopperSubscriber;
 

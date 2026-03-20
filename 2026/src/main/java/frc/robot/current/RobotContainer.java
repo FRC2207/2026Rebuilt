@@ -41,7 +41,6 @@ import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
-
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -219,7 +218,7 @@ public class RobotContainer {
 
     driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
     driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
-    driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+    // driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
 
         // .onFalse(Commands.runOnce(() -> {
         //   drive.stop();
@@ -254,12 +253,19 @@ public class RobotContainer {
         );
 
         driveXbox.leftTrigger().whileTrue(
-          objectVision.getDynamicPath()
+          objectVision.driveSpinePath()
+        );
+
+        driveXbox.leftBumper().onTrue(
+          objectVision.driveToClump()
+        );
+
+        driveXbox.rightBumper().onTrue(
+          objectVision.driveThroughClump()
         );
         break;
       case TWOXBOX:
       default:
-        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
