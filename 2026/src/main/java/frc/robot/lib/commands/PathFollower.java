@@ -16,6 +16,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -82,6 +83,7 @@ public class PathFollower extends Command {
                                 DriveConstants.maxSpeedMetersPerSec, 3.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
 
+                addRequirements(drive);
                 //CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
@@ -130,12 +132,13 @@ public class PathFollower extends Command {
                                         whichTrenchIn = rightTrench;
                                         break;
                                 case NEAREST:
-                                        whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
-                                        whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
                                         break;
                                 default:
-                                        whichTrenchOut = closestGoal(drive.getPose(), trenchPositions);
-                                        whichTrenchIn = closestGoal(drive.getPose(), trenchPositions);
+                                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
+                                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()), trenchPositions);
+                                        Commands.print("Invalid trench option selected, defaulting to nearest");
                                         break;
                         }
 
@@ -172,7 +175,7 @@ public class PathFollower extends Command {
 
         @Override
         public void execute() {
-                selected = m_chooser.get();
+                Logger.recordOutput("PathFollower/SelectedTrenchOption", selected);
 
                 // Builds the path using the position we just finalized
                 Command pathFindingCommand = AutoBuilder.pathfindToPose(

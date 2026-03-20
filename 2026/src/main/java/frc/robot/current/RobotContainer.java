@@ -10,6 +10,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -188,14 +189,6 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () -> -driveXbox.getRightX()));
 
-    driveXbox.back()
-        .whileTrue(
-            DriveCommands.joystickDrive(
-                drive,
-                () -> -0.45 * driveXbox.getLeftY(),
-                () -> -0.45 * driveXbox.getLeftX(),
-                () -> -0.5 * driveXbox.getRightX()));
-
     // Lock to 0° when A button is held
     driveXbox
         .a()
@@ -212,9 +205,9 @@ public class RobotContainer {
             () -> -driveXbox.getLeftY(),
             FieldConstants.Elements.blueHubPose));
 
-    driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH));
-    driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
-    driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+    driveXbox.start().whileTrue(new PathFollower(drive, PathFollower.Target.TRENCH)).onFalse(CommandScheduler.getInstance().getDefaultCommand(drive));
+    driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST)).onFalse(CommandScheduler.getInstance().getDefaultCommand(drive));
+    driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT)).onFalse(CommandScheduler.getInstance().getDefaultCommand(drive));
 
         // .onFalse(Commands.runOnce(() -> {
         //   drive.stop();
