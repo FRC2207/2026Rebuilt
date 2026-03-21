@@ -170,7 +170,7 @@ public class Outtake extends SubsystemBase {
             double distance = distanceRaw - 0.5;
             // The velocity the ball needs to be at to hit the target in m/s
             double ball_velocity = (Math.sqrt((23.0526875 * Math.pow(distance, 2))/(distance + (-1.482/4.7046))))/0.978147;
-            double velocity = ball_velocity * (60/ (0.0254 * Math.PI));
+            double velocity = (ball_velocity * (60/ (0.0254 * Math.PI * 3))) + 4;
             Logger.recordOutput("Outtake/ballVelocity", ball_velocity);
             Logger.recordOutput("Outtake/distance", distance);
             // System.out.println("Velocity: " + velocity);

@@ -201,16 +201,16 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    driveXbox.leftBumper().whileTrue(
-        DriveCommands.joystickDrivePointTarget(
-            drive,
-            () -> -driveXbox.getLeftY(),
-            FieldConstants.Elements.blueHubPose));
+    //driveXbox.leftBumper().whileTrue(
+    //    DriveCommands.joystickDrivePointTarget(
+    //        drive,
+    //        () -> -driveXbox.getLeftY(),
+    //        FieldConstants.Elements.blueHubPose));
 
     driveXbox.start().whileTrue(Commands.parallel(Commands.runOnce(() -> PathFollower.setTrenchOption(trenchOption.get())),
         new PathFollower(drive, PathFollower.Target.TRENCH)));
     driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
-    driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+    // driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -227,9 +227,9 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        // driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-        driveXbox.rightTrigger().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
