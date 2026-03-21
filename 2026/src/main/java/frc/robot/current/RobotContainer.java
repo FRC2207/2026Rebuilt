@@ -232,15 +232,15 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        // driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
-        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        // driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        driveXbox.leftBumper().onTrue(intake.spit());
+        // driveXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
+        // driveXbox.leftBumper().onTrue(intake.spit());
         // This will not recalculate when ball moves
         // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
         // This will recalculate every 0.5 seconds I think, more complex and less likely to work
