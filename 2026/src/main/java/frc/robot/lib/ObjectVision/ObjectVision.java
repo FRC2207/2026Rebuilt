@@ -33,26 +33,16 @@ public class ObjectVision extends SubsystemBase {
 
     private static final double PASS_THROUGH_VEL = 1.5; // How fast the robot should end a sequence. This is good
 
-    // Momentum params
-    private static final double MOMENTUM_MAX_TURN_RAD = Math.toRadians(100); // Reject clumps that 110 degrees
-    private static final double MOMENTUM_FILL_MAX_TURN = Math.toRadians(120); // Second pass reject clumps hat are 140
-                                                                              // degrees
-    private static final double MOMENTUM_STRAGGLER_DIST = 1; // At end of path, control how far robot will go for new
-                                                             // clumps
-    private static final double MOMENTUM_HEAD_PEN = 10; // Each radian of "turn" add that many "virutal meteress"
-    private static final double MOMENTUM_EMA_ALPHA = 0.55; // How quickly the smoothed heading cahnges the actual
-                                                           // direction of travel
-    private static final double MOMENTUM_RELAX_STEP = Math.toRadians(30); // If fails, reduces angles by 30 for awkward
-                                                                          // feild setups
-    private static final double PHYS_MAX_SPEED = 6.8;
-    private static final double PHYS_MAX_ACCEL = 3;
-    private static final double PHYS_TURN_DECAY = 2;
-    private static final double PHYS_MIN_SPEED = 0.3;
-    private static final double PHYS_TURN_HARD_STOP = 2.1; // ~120 degrees
-    private static final double PHYS_TURN_CLIFF = 8.0; // seconds penalty
-    private static final double PHYS_ALIGN_BONUS = 1.6; // time divisor for <20deg turns
+    private static final double PHYS_MAX_SPEED = 6.8; // Top speed
+    private static final double PHYS_MAX_ACCEL = 3; // Max accel
+    private static final double PHYS_TURN_DECAY = 2.3; // Speed loss per radian, lower = more turning
+    private static final double PHYS_MIN_SPEED = 0.3; // Lowest speed the robot will ever go
+    private static final double PHYS_TURN_HARD_STOP = Math.toRadians(100); // 100 degrees, any turns greater then this get double penalty
+    private static final double PHYS_TURN_CLIFF = 8.0; // Pentaly for above param. Adds 8 seconds of time
+    private static final double PHYS_ALIGN_BONUS = 1.6; // Bonus for clusters ahead of robot 20 degrees, get (time / 1.6)
+    private static final double PHYS_AHEAD_ANGLE = 20; // Degrees fora cluster to be counted as ahead of robot
 
-    private static final double BUDGET_M = 16.0; // Max path lenght in meters. Use auto_time_seconds × average_speed_m/s
+    private static final double BUDGET_M = 10.0; // Max path lenght in meters. Use auto_time_seconds × average_speed_m/s
     private static final int MAX_BALLS = 300; // Max amount of balls to accept
 
     private static final PathConstraints CONSTRAINTS = new PathConstraints(
@@ -120,13 +110,11 @@ public class ObjectVision extends SubsystemBase {
         double tThrough  = trapezoidTime(dThrough,  vEntry,  vExit);
         double totalTime = tApproach + tThrough;
 
-        // Layer 2: hard cliff past ~120 degrees
         if (turn > PHYS_TURN_HARD_STOP) {
             totalTime += PHYS_TURN_CLIFF;
         }
 
-        // Layer 3: alignment bonus for nearly-straight runs (<20 degrees)
-        if (curHdg != null && turn < Math.toRadians(20)) {
+        if (curHdg != null && turn < Math.toRadians(PHYS_AHEAD_ANGLE)) {
             totalTime /= PHYS_ALIGN_BONUS;
         }
 
@@ -265,7 +253,7 @@ public class ObjectVision extends SubsystemBase {
 
             int    bestIdx   = -1;
             double bestScore = -1.0;
-            double bestTCost = 0.0;
+            // double bestTCost = 0.0;
             double bestSpd   = 0.0;
 
             for (int i = 0; i < n; i++) {
@@ -294,7 +282,7 @@ public class ObjectVision extends SubsystemBase {
                 if (score > bestScore) {
                     bestScore = score;
                     bestIdx   = i;
-                    bestTCost = tCost;
+                    // bestTCost = tCost;
                     bestSpd   = exitSpd;
                 }
             }
@@ -404,184 +392,6 @@ public class ObjectVision extends SubsystemBase {
         });
     }
 
-    private Command buildMomentumPathCommand() {
-        List<Translation2d> balls = getValidBalls();
-        if (balls.isEmpty())
-            return null;
-
-        Translation2d robotPos = swerve.getPose().getTranslation();
-        List<List<Translation2d>> clusters = dbscan(balls);
-        int n = clusters.size();
-
-        List<Integer> seq = new ArrayList<>();
-        boolean[] visited = new boolean[n];
-        double spent = 0.0;
-        Translation2d cur = robotPos;
-        Double smoothH = null;
-
-        boolean anyAdded = true;
-        while (anyAdded) {
-            anyAdded = false;
-            double limit = MOMENTUM_MAX_TURN_RAD;
-
-            for (int attempt = 0; attempt < 5; attempt++) {
-                int bestIdx = -1;
-                double bestScore = -1.0;
-                double bestCost = 0.0;
-
-                for (int i = 0; i < n; i++) {
-                    if (visited[i])
-                        continue;
-                    List<Translation2d> c = clusters.get(i);
-
-                    double cost = traverseDist(c, cur);
-                    if (spent + cost > BUDGET_M)
-                        continue;
-
-                    Translation2d entry = nearestPoint(c, cur);
-                    double turn = (smoothH != null)
-                            ? headingDiff(smoothH, angleTo(cur, entry))
-                            : 0.0;
-                    if (turn > limit)
-                        continue;
-
-                    double score = (c.size() * c.size()) / Math.max(cost + MOMENTUM_HEAD_PEN * turn, 0.01);
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestIdx = i;
-                        bestCost = cost;
-                    }
-                }
-
-                if (bestIdx >= 0) {
-                    Translation2d ex = exitPos(clusters.get(bestIdx), cur);
-                    double newH = angleTo(cur, ex);
-                    if (smoothH == null) {
-                        smoothH = newH;
-                    } else {
-                        double delta = ((newH - smoothH + Math.PI) % (2 * Math.PI)) - Math.PI;
-                        smoothH += MOMENTUM_EMA_ALPHA * delta;
-                    }
-                    seq.add(bestIdx);
-                    visited[bestIdx] = true;
-                    spent += bestCost;
-                    cur = ex;
-                    anyAdded = true;
-                    break; // restart outer loop
-                }
-                limit += MOMENTUM_RELAX_STEP;
-            }
-        }
-
-        // ── Phase 2: Fill-in — insert skipped clusters between existing waypoints ─
-        boolean changed = true;
-        while (changed) {
-            changed = false;
-
-            // Build position list: pos[k] = robot exit after visiting seq[0..k-1]
-            List<Translation2d> posList = buildPosList(seq, clusters, robotPos);
-
-            int bestK = -1;
-            int bestI = -1;
-            double bestGain = -1.0;
-            double bestExtra = 0.0;
-
-            for (int i = 0; i < n; i++) {
-                if (visited[i])
-                    continue;
-                List<Translation2d> c = clusters.get(i);
-
-                for (int k = 0; k <= seq.size(); k++) {
-                    Translation2d pb = posList.get(k);
-                    Translation2d pa = (k < seq.size()) ? posList.get(k + 1) : posList.get(k);
-
-                    Translation2d entry = nearestPoint(c, pb);
-                    Translation2d ex = exitPos(c, pb);
-
-                    double extra = (k < seq.size())
-                            ? (pb.getDistance(entry) + entry.getDistance(ex) + ex.getDistance(pa)
-                                    - pb.getDistance(pa))
-                            : (pb.getDistance(entry) + entry.getDistance(ex));
-
-                    if (spent + extra > BUDGET_M)
-                        continue;
-
-                    double hIn = angleTo(pb, entry);
-                    double hPb = (k > 0) ? angleTo(posList.get(k - 1), pb) : hIn;
-                    double hOut = (k < seq.size()) ? angleTo(ex, pa) : hIn;
-
-                    if (headingDiff(hPb, hIn) > MOMENTUM_FILL_MAX_TURN)
-                        continue;
-                    if (headingDiff(hIn, hOut) > MOMENTUM_FILL_MAX_TURN)
-                        continue;
-
-                    double gain = (c.size() * c.size()) / Math.max(extra, 0.01);
-                    if (gain > bestGain) {
-                        bestGain = gain;
-                        bestK = k;
-                        bestI = i;
-                        bestExtra = extra;
-                    }
-                }
-            }
-
-            if (bestI >= 0) {
-                seq.add(bestK, bestI);
-                visited[bestI] = true;
-                spent += bestExtra;
-                changed = true;
-            }
-        }
-
-        // ── Phase 3: Append nearby stragglers at the end ──────────────────────────
-        List<Translation2d> posList = buildPosList(seq, clusters, robotPos);
-        cur = posList.get(posList.size() - 1);
-
-        for (int i = 0; i < n; i++) {
-            if (visited[i])
-                continue;
-            List<Translation2d> c = clusters.get(i);
-            double cost = traverseDist(c, cur);
-            if (cost > MOMENTUM_STRAGGLER_DIST)
-                continue;
-            if (spent + cost > BUDGET_M)
-                continue;
-
-            Translation2d entry = nearestPoint(c, cur);
-            if (smoothH != null && headingDiff(smoothH, angleTo(cur, entry)) > Math.toRadians(150))
-                continue;
-
-            seq.add(i);
-            visited[i] = true;
-            spent += cost;
-            cur = exitPos(c, cur);
-        }
-
-        // ── Convert sequence → Pose2d targets ────────────────────────────────────
-        List<Pose2d> targets = new ArrayList<>();
-        cur = robotPos;
-        for (int idx : seq) {
-            List<Pose2d> pts = clusterToSpinePoints(clusters.get(idx), cur);
-            targets.addAll(pts);
-            if (!pts.isEmpty())
-                cur = pts.get(pts.size() - 1).getTranslation();
-        }
-
-        if (targets.isEmpty())
-            return null;
-
-        Logger.recordOutput("ObjectVision/MomentumWaypoints",
-                targets.stream()
-                        .map(p -> new Pose3d(p.getX(), p.getY(), 0.0, new Rotation3d()))
-                        .toArray(Pose3d[]::new));
-
-        Command sequence = Commands.none();
-        for (Pose2d target : targets)
-            sequence = sequence.andThen(
-                    AutoBuilder.pathfindToPose(target, CONSTRAINTS, PASS_THROUGH_VEL));
-        return sequence;
-    }
-
     private Command buildDriveToClosestBallCommand() {
         List<Translation2d> balls = getValidBalls();
         if (balls.isEmpty())
@@ -602,13 +412,6 @@ public class ObjectVision extends SubsystemBase {
                 new Pose3d(closest.getX(), closest.getY(), 0.0, new Rotation3d()));
 
         return AutoBuilder.pathfindToPose(target, CONSTRAINTS, 0.0);
-    }
-
-    public Command driveMomentumPath() {
-        return Commands.deferredProxy(() -> {
-            Command c = buildMomentumPathCommand();
-            return c != null ? c : Commands.none();
-        });
     }
 
     public Command driveToClosestBall() {
@@ -650,15 +453,6 @@ public class ObjectVision extends SubsystemBase {
         return cluster.stream()
                 .max((a, b) -> Double.compare(ref.getDistance(a), ref.getDistance(b)))
                 .orElseThrow();
-    }
-
-    private static List<Translation2d> buildPosList(
-            List<Integer> seq, List<List<Translation2d>> clusters, Translation2d robot) {
-        List<Translation2d> pos = new ArrayList<>();
-        pos.add(robot);
-        for (int idx : seq)
-            pos.add(exitPos(clusters.get(idx), pos.get(pos.size() - 1)));
-        return pos;
     }
 
     @Override
@@ -755,7 +549,7 @@ public class ObjectVision extends SubsystemBase {
 
         Pose2d robotPose = swerve.getPose();
         Translation2d robotPos = robotPose.getTranslation();
-        double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
+        // double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
 
         List<Translation2d> balls = getValidBalls();
         if (balls.isEmpty())
@@ -790,7 +584,7 @@ public class ObjectVision extends SubsystemBase {
 
         Pose2d robotPose = swerve.getPose();
         Translation2d robotPos = robotPose.getTranslation();
-        double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
+        // double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
 
         // Collect valid balls (not too close to the robot)
         List<Translation2d> balls = getValidBalls();
@@ -821,39 +615,6 @@ public class ObjectVision extends SubsystemBase {
         return balls;
     }
 
-    private Command buildFollowCommand() {
-        double[] rx = inputs.fuelX, ry = inputs.fuelY;
-        if (rx == null || ry == null || rx.length == 0)
-            return null;
-
-        Pose2d robotPose = swerve.getPose();
-        Translation2d robotPos = robotPose.getTranslation();
-        double min2 = MIN_BALL_DISTANCE_M * MIN_BALL_DISTANCE_M;
-
-        // Collect valid balls (not too close to the robot)
-        List<Translation2d> balls = getValidBalls();
-        if (balls.isEmpty())
-            return null;
-
-        // Cluster and order greedily from the robot outward
-        List<List<Translation2d>> clusters = dbscan(balls);
-        List<Pose2d> targets = orderedClusterTargets(clusters, robotPos);
-        if (targets.isEmpty())
-            return null;
-
-        Logger.recordOutput("ObjectVision/Waypoints",
-                targets.stream()
-                        .map(p -> new Pose3d(p.getX(), p.getY(), 0, new Rotation3d()))
-                        .toArray(Pose3d[]::new));
-
-        Command sequence = Commands.none();
-        for (Pose2d target : targets) {
-            sequence = sequence.andThen(
-                    AutoBuilder.pathfindToPose(target, CONSTRAINTS, PASS_THROUGH_VEL));
-        }
-        return sequence;
-    }
-
     private static List<Pose2d> orderedClusterTargets(
             List<List<Translation2d>> clusters, Translation2d from) {
 
@@ -881,31 +642,6 @@ public class ObjectVision extends SubsystemBase {
         }
         return result;
     }
-
-    // This uses centroid, and exit point.
-    // private static List<Pose2d> clusterToSmartPoints(
-    // List<Translation2d> cluster, Translation2d from) {
-
-    // if (cluster.isEmpty()) return List.of();
-
-    // double sumX = 0, sumY = 0;
-    // for (Translation2d p : cluster) { sumX += p.getX(); sumY += p.getY(); }
-    // Translation2d centroid = new Translation2d(sumX / cluster.size(), sumY /
-    // cluster.size());
-
-    // Translation2d exit = cluster.stream()
-    // .max((a, b) -> Double.compare(from.getDistance(a), from.getDistance(b)))
-    // .get();
-
-    // Rotation2d heading = exit.minus(centroid).getAngle();
-
-    // List<Pose2d> points = new ArrayList<>();
-    // points.add(new Pose2d(centroid, heading));
-    // if (centroid.getDistance(exit) > 0.2)
-    // points.add(new Pose2d(exit, heading));
-
-    // return points;
-    // }
 
     private static List<Pose2d> clusterToSmartPoints(
             List<Translation2d> cluster, Translation2d from) {
@@ -988,13 +724,6 @@ public class ObjectVision extends SubsystemBase {
     public Command driveThroughClump() {
         return Commands.deferredProxy(() -> {
             Command c = buildDriveThroughClumpCommand();
-            return c != null ? c : Commands.none();
-        });
-    }
-
-    public Command getPath() {
-        return Commands.deferredProxy(() -> {
-            Command c = buildFollowCommand();
             return c != null ? c : Commands.none();
         });
     }
