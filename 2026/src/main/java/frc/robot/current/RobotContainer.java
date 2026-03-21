@@ -248,20 +248,20 @@ public class RobotContainer {
         // This will not recalculate when ball moves
         // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
         // This will recalculate every 0.5 seconds I think, more complex and less likely to work
-        driveXbox.rightTrigger().onTrue(
-          objectVision.getPath()
-        );
-
         driveXbox.leftTrigger().whileTrue(
-          objectVision.driveSpinePath()
+          objectVision.driveFastOpPath()
         );
 
         driveXbox.leftBumper().onTrue(
-          objectVision.driveToClump()
+          objectVision.driveThroughClump()
         );
 
-        driveXbox.rightBumper().onTrue(
-          objectVision.driveThroughClump()
+        driveXbox.rightBumper().whileTrue(
+          objectVision.driveToClosestBall()
+        );
+
+        driveXbox.rightTrigger().onTrue(
+          objectVision.driveVelocityOpPath()
         );
         break;
       case TWOXBOX:
