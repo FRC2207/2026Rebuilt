@@ -21,9 +21,11 @@ import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Intake extends SubsystemBase {
-  private MotorController intakeMotor;
+  private MotorController intakeMotorA;
+  private MotorController intakeMotorB;
 
   private final int intakeMotorId = Constants.IntakeConstants.intakeID;
+  // private final int followerMotorId = Constants.IntakeConstants.followerID;
 
   public Boolean isIntaking = false;
 
@@ -39,55 +41,60 @@ public class Intake extends SubsystemBase {
         .kS(IntakeConstants.kS) // Static gain (volts)
         .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
         .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
+    
+    SparkFlexConfig followerConfig = new SparkFlexConfig();
+    followerConfig.follow(intakeMotorId, true);
 
     switch (Constants.currentMode) {
       case REAL:
-        intakeMotor = new MotorController(
+        intakeMotorA = new MotorController(
             new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
+        // intakeMotorB = new MotorController(
+        //    new MotorIOSpark(followerMotorId, followerConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
         break;
       case SIM:
-        intakeMotor = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+        intakeMotorA = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
             IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
         // Blank IO for REPLAY
-        intakeMotor = new MotorController(new MotorControllerIO() {}, "Intake");
+        intakeMotorA = new MotorController(new MotorControllerIO() {}, "Intake");
         break;
     }
   }
 
   public void periodic() {
-    intakeMotor.updateInputs();
+    intakeMotorA.updateInputs();
 
     // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-    Logger.recordOutput("Intake/SetpointRPM", intakeMotor.getSetpoint());
+    Logger.recordOutput("Intake/SetpointRPM", intakeMotorA.getSetpoint());
   }
 
   public Command spit() {
-    double percent = 2000;
+    double percent = -2000;
 
     return Commands.sequence(
         runOnce(() -> {
-          intakeMotor.setSpeedRPM(percent);
+          intakeMotorA.setSpeedRPM(percent);
         }),
         Commands.waitSeconds(.5),
         runOnce(() -> {
-          intakeMotor.setSpeedRPM(0);
+          intakeMotorA.setSpeedRPM(0);
         }));
   }
 
   public Command intake() {
     return Commands.runOnce(() -> {
       isIntaking = true;
-      intakeMotor.setSpeedRPM(IntakeConstants.intakeSpeed);
+      intakeMotorA.setSpeedRPM(IntakeConstants.intakeSpeed);
     }, this);
   }
 
   public Command stop() {
     return Commands.run(() -> {
       isIntaking = false;
-      intakeMotor.setSpeedRPM(0);
+      intakeMotorA.setSpeedRPM(0);
       ;
     }, this);
   }

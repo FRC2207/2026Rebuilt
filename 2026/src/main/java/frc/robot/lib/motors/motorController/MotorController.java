@@ -2,9 +2,9 @@ package frc.robot.lib.motors.motorController;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+//import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class MotorController extends SubsystemBase {
+public class MotorController{
     private MotorControllerIO io;
     private final MotorControllerIOInputsAutoLogged inputs = new MotorControllerIOInputsAutoLogged();
     private String loggingKey;
