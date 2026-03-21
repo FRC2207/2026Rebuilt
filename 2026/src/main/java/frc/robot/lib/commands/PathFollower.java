@@ -35,7 +35,7 @@ public class PathFollower extends Command {
                          "PathFollower/Chooser");
 
         private Pose2d goalPosition;
-        private TrenchOptions selected;
+        private static TrenchOptions selected;
         private Target target;
 
         private static PathConstraints constraints;
@@ -97,8 +97,6 @@ public class PathFollower extends Command {
 
                 Pose2d whichTrenchOut;
                 Pose2d whichTrenchIn;
-
-                selected = m_chooser.get();
 
                 if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
                         if (FieldConstants.fieldLength - FieldConstants.neutralLine < drive.getPose().getX()) {
@@ -229,6 +227,11 @@ public class PathFollower extends Command {
         public boolean isRunning() {
                 return running;
         }
+
+        public static void setTrenchOption(TrenchOptions option) {
+              selected = option;
+        }
+
 
         /**
          * Assesses all reef locations and determines which one is the closest to the
