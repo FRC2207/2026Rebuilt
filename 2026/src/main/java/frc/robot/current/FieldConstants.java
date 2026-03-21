@@ -42,7 +42,7 @@ public class FieldConstants {
   public static final class Elements {
     // Blue alliance elements
     public static Translation2d blueOutpost = new Translation2d(
-        0.35,
+        0.37, 
         0.68); // 26.22 = 0.67 meters
 
     public static Translation2d blueDepot = new Translation2d(

@@ -41,7 +41,8 @@ public final class Constants {
   public final static String moduleSysId = "rotation"; // Either rotation or drive
 
   public static final Mode simMode = Mode.SIM;
-  public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
+  public static final Mode currentMode = Mode.REAL;
+  //RobotBase.isReal() ? Mode.REAL : simMode;
 
   public static enum Mode {
     /** Running on a real robot. */
@@ -64,8 +65,9 @@ public final class Constants {
   }
 
   public static class IntakeConstants {
-    public static final int intakeID = 41;
-    public static final double intakeSpeed = -6000;
+    public static final int intakeID = 42;
+    // public static final int followerID = 42;
+    public static final double intakeSpeed = 6000;
     public static final double kSim_MOI = 0.0007; // kg*m^2, moment of inertia of the flywheel being simulated for the
                                                   // intake motor
     public static final double kSim_GearReduction = 1.0; // Gear reduction of the intake motor

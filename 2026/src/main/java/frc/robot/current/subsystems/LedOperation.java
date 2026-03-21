@@ -25,6 +25,12 @@ public class LedOperation extends SubsystemBase {
   
   public boolean automaticLED = false;
 
+  public boolean isPathing = false;
+  public boolean isShooting = false;
+  public boolean isIntaking = false;
+  public boolean isClimbing = false;
+  public boolean isInRange = false;
+
   public LedOperation() {
     leds.addSection("full", 0, 240);
     leds.addSection("right", 32, 80);
@@ -99,14 +105,14 @@ public class LedOperation extends SubsystemBase {
       if (DriverStation.isDSAttached()) {
         leds.fill("front", LedColor.ORANGE, 2, 2, false);
       } else if (DriverStation.isFMSAttached()) {
-        leds.solid("front", LedColor.ORANGE);
+        leds.carnival("front", LedColor.ORANGE, LedColor.WHITE, 2, 1);
       } else {
         leds.breath("front", LedColor.ORANGE, 2);
       }
     }
 
     Optional<Alliance> ally = DriverStation.getAlliance();
-    if (ally.isPresent()) {
+    
       if (ally.get() == Alliance.Blue) {
         leds.solid("underglow", LedColor.BLUE);
         leds.solid("underglow1", LedColor.BLUE);
@@ -114,12 +120,34 @@ public class LedOperation extends SubsystemBase {
         leds.solid("underglow", LedColor.RED);
         leds.solid("underglow1", LedColor.RED);
       }
-    }
+    
   }
 
   /* Method to set the LEDs automatically depending on the robots state */
   public void updateState() {
+      if (isPathing) {
+        leds.rainbow("mechanismFrame", 3);
+      } else {
+        leds.solid("mechanismFrame", LedColor.ORANGE);
+      }
+      
+      if (isShooting) {
+        leds.strobe("intakeSide", LedColor.YELLOW, 1);
+      } 
+      
+      else if (isIntaking) {
+        leds.solidTwoColor("mechanismFrame", LedColor.GREEN, LedColor.BLACK);
+      } else if (!isInRange) {
+        leds.strobe("mechanismFrame", LedColor.RED_ORANGE, 1);
+      } else if (isInRange) {
+        leds.breath("mechanismFrame", LedColor.GREEN, 3);
+      } else {
+        leds.solid("mechanismFrame", LedColor.ORANGE);
+      }
 
+      if (isClimbing) {
+        leds.fill("climbers", LedColor.PURPLE, 2, 2, false);
+      }
   }
 
   /* Method to set the LEDs to different states during the match */
