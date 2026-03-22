@@ -18,8 +18,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.lib.commands.PathFollower;
-import frc.robot.lib.commands.PathFollower.TrenchOptions;
+import frc.robot.current.Pather.TrenchOptions;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -129,6 +128,8 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
+    new Pather(drive);
+
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
@@ -207,10 +208,9 @@ public class RobotContainer {
     //        () -> -driveXbox.getLeftY(),
     //        FieldConstants.Elements.blueHubPose));
 
-     driveXbox.start().whileTrue(Commands.parallel(Commands.runOnce(() -> PathFollower.setTrenchOption(trenchOption.get())),
-        new PathFollower(drive, PathFollower.Target.TRENCH)));
-     driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
-     driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+     driveXbox.start().whileTrue(Pather.pathFinder(Pather.Target.TRENCH,() -> trenchOption.get()));
+     driveXbox.back().whileTrue(Pather.pathFinder(Pather.Target.HUBSHOOT, null));
+     driveXbox.rightBumper().whileTrue(Pather.pathFinder(Pather.Target.OUTPOST, null));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
