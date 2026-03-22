@@ -67,8 +67,8 @@ public class Pivot extends SubsystemBase {
 
   public void periodic() {
     pivotMotor.updateInputs();
-    Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpoint());
-    Logger.recordOutput("Pivot/IsUp", isUp);
+    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Pivot/Setpoint", pivotMotor.getSetpoint()));
+    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Pivot/IsUp", isUp));
 
     if (pivotMotor.getPositionRotations() >= .2) {
       isUp = true;
@@ -76,7 +76,7 @@ public class Pivot extends SubsystemBase {
       isUp = false;
     }
 
-    Logger.recordOutput("Pivot/ComponentPose", new Pose3d[] {new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0))});
+    Logger.runEveryN(2, (Runnable) () -> Logger.recordOutput("Pivot/ComponentPose", new Pose3d[] {new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0))}));
   }
 
   public void initialization() {

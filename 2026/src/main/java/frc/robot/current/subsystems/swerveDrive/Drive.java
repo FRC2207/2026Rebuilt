@@ -48,6 +48,8 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
+  private final int loggerFrequency = 10;
+
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -105,11 +107,11 @@ public class Drive extends SubsystemBase {
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0]));
+          Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0])));
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {
-          Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+          Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
         });
 
     // Configure SysId
@@ -127,7 +129,8 @@ public class Drive extends SubsystemBase {
   public void periodic() {
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Drive/Gyro", gyroInputs);
+    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.processInputs("Drive/Gyro", gyroInputs));
+
     for (var module : modules) {
       module.periodic();
     }
@@ -192,8 +195,8 @@ public class Drive extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
 
     // Log unoptimized setpoints
-    Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-    Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds);
+    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveStates/Setpoints", setpointStates));
+    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds));
 
     // Send setpoints to modules
     for (int i = 0; i < 4; i++) {
@@ -201,7 +204,7 @@ public class Drive extends SubsystemBase {
     }
 
     // Log optimized setpoints (runSetpoint mutates each state)
-    Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates));
   }
 
   /** Runs the drive in a straight line with the specified drive output. */
@@ -253,7 +256,7 @@ public class Drive extends SubsystemBase {
     for (int i = 0; i < 4; i++) {
       states[i] = modules[i].getState();
     }
-    Logger.recordOutput("SwerveStates/Measured", states);
+    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveStates/Measured", states));
     return states;
   }
 

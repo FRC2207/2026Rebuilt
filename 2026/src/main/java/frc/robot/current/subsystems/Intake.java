@@ -68,7 +68,7 @@ public class Intake extends SubsystemBase {
     intakeMotorA.updateInputs();
 
     // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-    Logger.recordOutput("Intake/SetpointRPM", intakeMotorA.getSetpoint());
+    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Intake/SetpointRPM", intakeMotorA.getSetpoint()));
   }
 
   public Command spit() {

@@ -9,11 +9,6 @@ public class MotorController{
     private final MotorControllerIOInputsAutoLogged inputs = new MotorControllerIOInputsAutoLogged();
     private String loggingKey;
 
-    // Added: simple throttle so we don't call Logger.processInputs every single update
-    // (helps avoid heavy NT/network allocations on RoboRIO v1)
-    private int logCounter = 0;
-    private static final int LOG_EVERY_N_UPDATES = 5; // adjust as needed (5 -> ~10Hz if loop is 50Hz)
-
     /** This is the central hub for all things motors! 
      * 
      * @param io         the io object for the motorController
@@ -28,14 +23,7 @@ public class MotorController{
     public void updateInputs() {
         // Always update hardware inputs each loop (low-cost)
         io.updateInputs(inputs);
-
-        // Throttle logging/NetworkTables activity which is relatively expensive.
-        // This avoids creating heavy NT/network allocations every loop on older RIOs.
-        logCounter++;
-        if (logCounter >= LOG_EVERY_N_UPDATES) {
-            logCounter = 0;
-            Logger.processInputs(loggingKey, inputs);
-        }
+        Logger.runEveryN(5, (Runnable) () -> Logger.processInputs(loggingKey, inputs));
     }
 
     /** Sets the motor percentage from -1 to 1. This is known as <i> duty cycle. </i>
