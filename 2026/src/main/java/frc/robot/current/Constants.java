@@ -41,7 +41,7 @@ public final class Constants {
   public final static String moduleSysId = "rotation"; // Either rotation or drive
 
   public static final Mode simMode = Mode.SIM;
-  public static final Mode currentMode = Mode.REAL;
+  public static final Mode currentMode = Mode.SIM;
   //RobotBase.isReal() ? Mode.REAL : simMode;
 
   public static enum Mode {
