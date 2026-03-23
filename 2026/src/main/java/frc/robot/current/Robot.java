@@ -16,9 +16,6 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.current.subsystems.swerveDrive.Drive;
-import frc.robot.lib.util.AllianceRotationUtil;
-// import frc.robot.lib.util.LocalADStarAK;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -29,7 +26,6 @@ import frc.robot.lib.util.AllianceRotationUtil;
  */
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
-  private Drive drive;
   private final RobotContainer m_robotContainer;
 
   /**
@@ -72,8 +68,6 @@ public class Robot extends LoggedRobot {
 
     Logger.start();
     m_robotContainer = new RobotContainer();
-    drive = m_robotContainer.getDriveSubsystem();
-
   }
 
   /**
@@ -119,12 +113,6 @@ public class Robot extends LoggedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
       System.out.print("Auto Initiated");
-    }
-
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      // Set the initial pose in simulation to a location relative to 0,0 which is by default on the 
-      // blue alliance end. AllianceFlipUtil will flip the pose to the red side if needed, so this works for both alliances.
-      drive.setPose(AllianceRotationUtil.apply(FieldConstants.SimBlueStartingPose));
     }
   }
 
