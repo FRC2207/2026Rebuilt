@@ -7,7 +7,6 @@
 
 package frc.robot.current.subsystems.swerveDrive;
 
-
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.wpilibj.Notifier;
@@ -34,6 +33,9 @@ public class SparkOdometryThread {
 
   private static SparkOdometryThread instance = null;
   private Notifier notifier = new Notifier(this::run);
+
+  // Reusable buffer to avoid allocating a sparkValues array on every run()
+  private double[] sparkValuesBuf = new double[8]; // start small; will grow as needed
 
   public static SparkOdometryThread getInstance() {
     if (instance == null) {
@@ -98,11 +100,15 @@ public class SparkOdometryThread {
       // Get sample timestamp
       double timestamp = RobotController.getFPGATime() / 1e6;
 
+      // Ensure sparkValuesBuf is large enough (avoid allocating per-run)
+      if (sparkValuesBuf.length < sparkSignals.size()) {
+        sparkValuesBuf = new double[Math.max(sparkSignals.size(), sparkValuesBuf.length * 2)];
+      }
+
       // Read Spark values, mark invalid in case of error
-      double[] sparkValues = new double[sparkSignals.size()];
       boolean isValid = true;
       for (int i = 0; i < sparkSignals.size(); i++) {
-        sparkValues[i] = sparkSignals.get(i).getAsDouble();
+        sparkValuesBuf[i] = sparkSignals.get(i).getAsDouble();
         if (sparks.get(i).getLastError() != REVLibError.kOk) {
           isValid = false;
         }
@@ -110,8 +116,8 @@ public class SparkOdometryThread {
 
       // If valid, add values to queues
       if (isValid) {
-        for (int i = 0; i < sparkSignals.size(); i++) {
-          sparkQueues.get(i).offer(sparkValues[i]);
+        for (int i = 0; i < sparkQueues.size(); i++) {
+          sparkQueues.get(i).offer(sparkValuesBuf[i]);
         }
         for (int i = 0; i < genericSignals.size(); i++) {
           genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());

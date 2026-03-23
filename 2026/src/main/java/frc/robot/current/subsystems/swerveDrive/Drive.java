@@ -71,19 +71,40 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, Pose2d.kZero);
 
+  // --- Reusable/temp buffers to avoid per-iteration allocations ---
+  private final SwerveModulePosition[] tmpModulePositions = new SwerveModulePosition[] {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition()
+  };
+  private final SwerveModulePosition[] tmpModuleDeltas = new SwerveModulePosition[] {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition()
+  };
+
+  // Static empty arrays to avoid allocating when disabled
+  private static final SwerveModuleState[] EMPTY_MODULE_STATES = new SwerveModuleState[0];
+  private static final SwerveModuleState[] EMPTY_MODULE_STATES_OPT = new SwerveModuleState[0];
+
+  // Pre-created Runnable to avoid lambda allocation each periodic loop
+  private final Runnable gyroLogRunnable = () -> Logger.processInputs("Drive/Gyro", gyroInputs);
+
   public Drive(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
-    
+
     this.gyroIO = gyroIO;
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
-            
+
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
@@ -103,15 +124,16 @@ public class Drive extends SubsystemBase {
         ppConfig,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
-        
+
     Pathfinding.setPathfinder(new LocalADStarAK());
+    // Avoid allocating a Pose2d[] every callback; log only the path length (cheap)
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0])));
+          Logger.runEveryN(loggerFrequency, () -> Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0])));
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {
-          Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
+          Logger.runEveryN(loggerFrequency, () -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
         });
 
     // Configure SysId
@@ -129,7 +151,9 @@ public class Drive extends SubsystemBase {
   public void periodic() {
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
-    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.processInputs("Drive/Gyro", gyroInputs));
+
+    // use pre-created Runnable to avoid allocating a new lambda each periodic
+    Logger.runEveryN(loggerFrequency, gyroLogRunnable);
 
     for (var module : modules) {
       module.periodic();
@@ -143,10 +167,10 @@ public class Drive extends SubsystemBase {
       }
     }
 
-    // Log empty setpoint states when disabled
+    // Log empty setpoint states when disabled (use static empty arrays to avoid allocation)
     if (DriverStation.isDisabled()) {
-      Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-      Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+      Logger.recordOutput("SwerveStates/Setpoints", EMPTY_MODULE_STATES);
+      Logger.recordOutput("SwerveStates/SetpointsOptimized", EMPTY_MODULE_STATES_OPT);
     }
 
     // Update odometry
@@ -154,15 +178,13 @@ public class Drive extends SubsystemBase {
     int sampleCount = sampleTimestamps.length;
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
-      SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-      SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
+
       for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-        modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-        moduleDeltas[moduleIndex] = new SwerveModulePosition(
-            modulePositions[moduleIndex].distanceMeters
-                - lastModulePositions[moduleIndex].distanceMeters,
-            modulePositions[moduleIndex].angle);
-        lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
+        tmpModulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+        tmpModuleDeltas[moduleIndex] = new SwerveModulePosition(
+            tmpModulePositions[moduleIndex].distanceMeters - lastModulePositions[moduleIndex].distanceMeters,
+            tmpModulePositions[moduleIndex].angle);
+        lastModulePositions[moduleIndex] = tmpModulePositions[moduleIndex];
       }
 
       // Update gyro angle
@@ -171,12 +193,12 @@ public class Drive extends SubsystemBase {
         rawGyroRotation = gyroInputs.odometryYawPositions[i];
       } else {
         // Use the angle delta from the kinematics and module deltas
-        Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+        Twist2d twist = kinematics.toTwist2d(tmpModuleDeltas);
         rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
       }
 
       // Apply update
-      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, tmpModulePositions);
     }
 
     // Update gyro alert
