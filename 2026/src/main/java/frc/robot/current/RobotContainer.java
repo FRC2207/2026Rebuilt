@@ -36,6 +36,8 @@ import frc.robot.lib.vision.VisionIO;
 
 import static frc.robot.lib.vision.VisionConstants.*;
 
+import java.util.Set;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -128,8 +130,6 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    new Pather(drive);
-
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
@@ -208,9 +208,13 @@ public class RobotContainer {
     //        () -> -driveXbox.getLeftY(),
     //        FieldConstants.Elements.blueHubPose));
 
-     driveXbox.start().whileTrue(Pather.pathFinder(Pather.Target.TRENCH,() -> trenchOption.get()));
-     driveXbox.back().whileTrue(Pather.pathFinder(Pather.Target.HUBSHOOT, null));
-     driveXbox.rightBumper().whileTrue(Pather.pathFinder(Pather.Target.OUTPOST, null));
+    driveXbox.start().whileTrue(
+      Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive))
+    );
+     driveXbox.back().whileTrue(
+      Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
+     driveXbox.rightBumper().whileTrue(
+      Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));

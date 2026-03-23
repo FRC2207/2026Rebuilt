@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -17,7 +16,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.util.AllianceRotationUtil;
@@ -26,13 +24,11 @@ public class Pather {
 
     public boolean running = false;
     public static boolean inside;
-    private static Drive drive;
     
         // keep list static but populate only once
         public static List<Pose2d> trenchPositions = new ArrayList<>();
     
         private static PathConstraints constraints;
-        private static Command pathFindingCommand;
     
         // Update these locations in FIELD CONSTANTS as needed. Don't mess with angles.
         public static final Pose2d hubCenter = new Pose2d(
@@ -73,11 +69,10 @@ public class Pather {
                     Math.PI * 2, Units.degreesToRadians(720));
         }
     
-        public Pather(Drive drive) {
-            this.drive = drive;
-    
+        public static Command pathFinder(Target target) {
+            return pathFinder(target, null);
         }
-    
+
         public static Command pathFinder(Target target, Supplier<TrenchOptions> trenchOptionsSupplier) {
             // Guard against a null supplier BEFORE calling get()
             TrenchOptions selected = TrenchOptions.NEAREST;
@@ -91,102 +86,97 @@ public class Pather {
             Pose2d whichTrenchOut;
             Pose2d whichTrenchIn;
             Pose2d goalPosition;
-    
-            // Ensure drive is not null before using it (fail fast)
-            if (drive == null) {
-            throw new IllegalStateException(
-                    "Pather.drive is not initialized. Call new Pather(drive) in RobotContainer.");
-        }
+        
 
-        if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
-            if (FieldConstants.fieldLength - FieldConstants.neutralLine < drive.getPose().getX()) {
-                inside = true;
+            if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
+                if (FieldConstants.fieldLength - FieldConstants.neutralLine < AutoBuilder.getCurrentPose().getX()) {
+                    inside = true;
+                } else {
+                    inside = false;
+                }
             } else {
-                inside = false;
+                if (AutoBuilder.getCurrentPose().getX() < FieldConstants.neutralLine) {
+                    inside = true;
+                } else {
+                    inside = false;
+                }
             }
-        } else {
-            if (drive.getPose().getX() < FieldConstants.neutralLine) {
-                inside = true;
+
+            // Determine which trench to go to based on the selected option
+            if (target == Target.TRENCH) {
+                switch (selected) {
+                    case CLOCKWISE:
+                        whichTrenchOut = leftTrench;
+                        whichTrenchIn = rightTrench;
+                        SmartDashboard.putBoolean("Running default", false);
+                        break;
+                    case COUNTERCLOCKWISE:
+                        whichTrenchOut = rightTrench;
+                        whichTrenchIn = leftTrench;
+                        SmartDashboard.putBoolean("Running default", false);
+                        break;
+                    case FORCELEFT:
+                        whichTrenchOut = leftTrench;
+                        whichTrenchIn = leftTrench;
+                        SmartDashboard.putBoolean("Running default", false);
+                        break;
+                    case FORCERIGHT:
+                        whichTrenchOut = rightTrench;
+                        whichTrenchIn = rightTrench;
+                        SmartDashboard.putBoolean("Running default", false);
+                        break;
+                    case NEAREST:
+                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(AutoBuilder.getCurrentPose()),
+                                trenchPositions);
+                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(AutoBuilder.getCurrentPose()),
+                                trenchPositions);
+                        break;
+                    default:
+                        whichTrenchOut = closestGoal(AllianceRotationUtil.apply(AutoBuilder.getCurrentPose()),
+                                trenchPositions);
+                        whichTrenchIn = closestGoal(AllianceRotationUtil.apply(AutoBuilder.getCurrentPose()),
+                                trenchPositions);
+                        Commands.print("Invalid trench option selected, defaulting to nearest");
+                        SmartDashboard.putBoolean("Running default", true);
+                        break;
+                }
+
+                // Uses the current position of the robot to determine whether to go to the
+                // inside or outside trench position.
+                if (inside) { // If we are inside
+                    goalPosition = new Pose2d(
+                            whichTrenchOut.getTranslation()
+                                    .plus(new Translation2d(Units.inchesToMeters(55), 0)),
+                            whichTrenchOut.getRotation());
+                } else { // If we are outside
+                    goalPosition = new Pose2d(
+                            whichTrenchIn.getTranslation()
+                                    .minus(new Translation2d(Units.inchesToMeters(55), 0)),
+                            whichTrenchIn.getRotation());
+                }
+                // The other options to pathFind to.
+            } else if (target == Target.OUTPOST) {
+                goalPosition = outpost;
+            } else if (target == Target.HUBSHOOT) {
+                goalPosition = new Pose2d(hubCenter.getTranslation().plus(new Translation2d(-2.825, 0)),
+                        new Rotation2d(Units.degreesToRadians(90)));
             } else {
-                inside = false;
-            }
-        }
-
-        // Determine which trench to go to based on the selected option
-        if (target == Target.TRENCH) {
-            switch (selected) {
-                case CLOCKWISE:
-                    whichTrenchOut = leftTrench;
-                    whichTrenchIn = rightTrench;
-                    SmartDashboard.putBoolean("Running default", false);
-                    break;
-                case COUNTERCLOCKWISE:
-                    whichTrenchOut = rightTrench;
-                    whichTrenchIn = leftTrench;
-                    SmartDashboard.putBoolean("Running default", false);
-                    break;
-                case FORCELEFT:
-                    whichTrenchOut = leftTrench;
-                    whichTrenchIn = leftTrench;
-                    SmartDashboard.putBoolean("Running default", false);
-                    break;
-                case FORCERIGHT:
-                    whichTrenchOut = rightTrench;
-                    whichTrenchIn = rightTrench;
-                    SmartDashboard.putBoolean("Running default", false);
-                    break;
-                case NEAREST:
-                    whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
-                            trenchPositions);
-                    whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
-                            trenchPositions);
-                    break;
-                default:
-                    whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
-                            trenchPositions);
-                    whichTrenchIn = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
-                            trenchPositions);
-                    Commands.print("Invalid trench option selected, defaulting to nearest");
-                    SmartDashboard.putBoolean("Running default", true);
-                    break;
+                goalPosition = AutoBuilder.getCurrentPose();
             }
 
-            // Uses the current position of the robot to determine whether to go to the
-            // inside or outside trench position.
-            if (inside) { // If we are inside
-                goalPosition = new Pose2d(
-                        whichTrenchOut.getTranslation()
-                                .plus(new Translation2d(Units.inchesToMeters(55), 0)),
-                        whichTrenchOut.getRotation());
-            } else { // If we are outside
-                goalPosition = new Pose2d(
-                        whichTrenchIn.getTranslation()
-                                .minus(new Translation2d(Units.inchesToMeters(55), 0)),
-                        whichTrenchIn.getRotation());
+            Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
+            // Takes the previous position and applies alliance rotation if need.
+            goalPosition = AllianceRotationUtil.apply(goalPosition);
+
+            // Record the goal position and selected trench option to the logger for
+            // debugging purposes
+            Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
+            if (trenchOptionsSupplier != null) {
+                Logger.recordOutput("PathFollower/SelectedTrenchOption", trenchOptionsSupplier.get());
             }
-            // The other options to pathFind to.
-        } else if (target == Target.OUTPOST) {
-            goalPosition = outpost;
-        } else if (target == Target.HUBSHOOT) {
-            goalPosition = new Pose2d(hubCenter.getTranslation().plus(new Translation2d(-2.825, 0)),
-                    new Rotation2d(Units.degreesToRadians(90)));
-        } else {
-            goalPosition = drive.getPose();
-        }
 
-        Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
-        // Takes the previous position and applies alliance rotation if need.
-        goalPosition = AllianceRotationUtil.apply(goalPosition);
-
-        // Record the goal position and selected trench option to the logger for
-        // debugging purposes
-        Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
-        Logger.recordOutput("PathFollower/SelectedTrenchOption", trenchOptionsSupplier.get());
-
-        return pathFinder(goalPosition, true);
+            return pathFinder(goalPosition, true);
     }
-
-    private static Pose2d lastGoalPosition = null;
 
     /**
      * Finds a path to a pose2d from anywhere on the field.
@@ -209,21 +199,7 @@ public class Pather {
             Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
         }
 
-        // If the goal hasn't meaningfully changed, return the cached command to avoid
-        // reallocation
-        if (lastGoalPosition != null) {
-            double dx = Math.abs(goalPosition.getX() - lastGoalPosition.getX());
-            double dy = Math.abs(goalPosition.getY() - lastGoalPosition.getY());
-            double dtheta = Math
-                    .abs(goalPosition.getRotation().getRadians() - lastGoalPosition.getRotation().getRadians());
-            if (dx < 0.01 && dy < 0.01 && dtheta < 0.01) {
-                return pathFindingCommand; // reuse existing command
-            }
-        }
-
-        // Otherwise build a new one and cache it
-        lastGoalPosition = goalPosition;
-        return pathFindingCommand = AutoBuilder.pathfindToPose(
+        return AutoBuilder.pathfindToPose(
                 goalPosition,
                 constraints,
                 0.0);
@@ -242,7 +218,7 @@ public class Pather {
         double shortestDistance = Double.MAX_VALUE;
 
         for (Pose2d position : positions) {
-            double distance = calculateDistance(currentPose, position);
+            double distance = currentPose.getTranslation().getDistance(position.getTranslation());
 
             if (distance < shortestDistance) {
                 shortestDistance = distance;
@@ -252,16 +228,4 @@ public class Pather {
 
         return closestGoal;
     }
-
-    /**
-     * Calculates the hypotenuse distance between any Pose2d's.
-     * 
-     * @param p1 the first point
-     * @param p2 the second point
-     * @return The distance between the two points.
-     */
-    private static double calculateDistance(Pose2d p1, Pose2d p2) {
-        return Math.sqrt(Math.pow(p1.getX() - p2.getX(), 2) + Math.pow(p1.getY() - p2.getY(), 2));
-    }
-
 }
