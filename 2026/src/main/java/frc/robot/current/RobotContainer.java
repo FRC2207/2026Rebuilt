@@ -89,15 +89,16 @@ public class RobotContainer {
             new ModuleIOSpark(3));
 
         vision = new Vision(drive::addVisionMeasurement,
-         new VisionIOPhotonVision(camera0Name, robotToCamera0),
-         new VisionIOPhotonVision(camera1Name, robotToCamera1),
-         new VisionIOPhotonVision(camera2Name, robotToCamera2),
-         new VisionIOPhotonVision(camera3Name, robotToCamera3));
+            new VisionIOPhotonVision(camera0Name, robotToCamera0),
+            new VisionIOPhotonVision(camera1Name, robotToCamera1),
+            new VisionIOPhotonVision(camera2Name, robotToCamera2),
+            new VisionIOPhotonVision(camera3Name, robotToCamera3));
         break;
 
       case SIM:
         drive = new Drive(
-            new GyroIO() {},
+            new GyroIO() {
+            },
             new ModuleIOSim(),
             new ModuleIOSim(),
             new ModuleIOSim(),
@@ -111,17 +112,24 @@ public class RobotContainer {
         break;
       default:
         drive = new Drive(
-            new GyroIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {},
-            new ModuleIO() {});
+            new GyroIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            });
 
         vision = new Vision(drive::addVisionMeasurement,
             // new VisionIOPhotonVision(camera0Name, robotToCamera0),
-            new VisionIO() {},
+            new VisionIO() {
+            },
             // new VisionIOPhotonVision(camera2Name, robotToCamera2),
-            new VisionIO() {});
+            new VisionIO() {
+            });
         break;
     }
 
@@ -184,13 +192,13 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () -> -driveXbox.getRightX()));
 
-    // driveXbox.back()
-    // .whileTrue(
-    // DriveCommands.joystickDrive(
-    // drive,
-    // () -> -0.45 * driveXbox.getLeftY(),
-    // () -> -0.45 * driveXbox.getLeftX(),
-    // () -> -0.5 * driveXbox.getRightX()));
+    driveXbox.y()
+        .whileTrue(
+            DriveCommands.joystickDrive(
+                drive,
+                () -> -0.45 * driveXbox.getLeftY(),
+                () -> -0.45 * driveXbox.getLeftX(),
+                () -> -0.5 * driveXbox.getRightX()));
 
     // Lock to 0° when A button is held
     driveXbox
@@ -202,19 +210,19 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    //driveXbox.leftBumper().whileTrue(
-    //    DriveCommands.joystickDrivePointTarget(
-    //        drive,
-    //        () -> -driveXbox.getLeftY(),
-    //        FieldConstants.Elements.blueHubPose));
+    driveXbox.leftBumper().whileTrue(
+        DriveCommands.joystickDrivePointToTarget(
+            drive,
+            () -> -driveXbox.getLeftY(),
+            () -> -driveXbox.getLeftX(),
+            () -> drive.targetOffset(FieldConstants.Elements.blueHubPose).getRotation().getRadians()));
 
     driveXbox.start().whileTrue(
-      Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive))
-    );
-     driveXbox.back().whileTrue(
-      Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
-     driveXbox.rightBumper().whileTrue(
-      Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
+        Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
+    driveXbox.back().whileTrue(
+        Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
+    driveXbox.rightBumper().whileTrue(
+        Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -231,7 +239,7 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        //driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        // driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
