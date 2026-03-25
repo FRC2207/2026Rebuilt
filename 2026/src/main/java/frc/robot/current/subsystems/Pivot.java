@@ -46,7 +46,8 @@ public class Pivot extends SubsystemBase {
         .kS(PivotConstants.kS) // Static gain (volts)
         .kV(PivotConstants.kV) // Velocity gain (volts per RPM)
         .kA(PivotConstants.kA)
-        .kG(PivotConstants.kG); // Acceleration gain (volts per RPM/s)
+        .kG(PivotConstants.kG)
+        .kCos(PivotConstants.kCos); // Acceleration gain (volts per RPM/s)
 
     switch (Constants.currentMode) {
       case REAL:

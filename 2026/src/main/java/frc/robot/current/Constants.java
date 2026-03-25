@@ -90,13 +90,14 @@ public final class Constants {
     public static final int pivotID = 40;
 
     // PID
-    public static final double kP = 1.6;
+    public static final double kP = 1.9;
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kS = 0;
     public static final double kV = 0;
     public static final double kA = 0;
-    public static final double kG = .42;
+    public static final double kG = 0;
+    public static final double kCos = 0.7;
 
     public static final double kSim_P = 12.6;
     public static final double kSim_I = 0;
@@ -126,11 +127,11 @@ public final class Constants {
     // The velocity for quick launch and continous launch
     public static final double velocityDefault = 3267 - 1000; // 67!
 
-    public static final double kP = 0.00006;
+    public static final double kP = 0.00008;
     public static final double kI = 0.0;
-    public static final double kD = 0.0003;
+    public static final double kD = 0.02;
     public static final double kS = 0.0;
-    public static final double kV = 0.00181;
+    public static final double kV = 0.001816;
     public static final double kA = 0.0;
 
     public static final double kSim_P = 0.006;
