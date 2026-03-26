@@ -147,7 +147,7 @@ public class DriveCommands {
                       : drive.getRotation()));
         },
         drive).beforeStarting(() -> {
-          angleController.reset(drive.getRotation().getRadians());
+          angleController.reset(drive.getRotation().getRadians() - robotOffset);
         });
   }
 
