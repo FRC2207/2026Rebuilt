@@ -29,6 +29,7 @@ import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 
 import frc.robot.lib.commands.DriveCommands;
+import frc.robot.lib.util.AllianceRotationUtil;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
@@ -215,7 +216,14 @@ public class RobotContainer {
             drive,
             () -> -driveXbox.getLeftY(),
             () -> -driveXbox.getLeftX(),
-            () -> drive.targetOffset(FieldConstants.Elements.blueHubPose).getRotation().getRadians()));
+            // compute absolute heading to the target (field frame) from current robot pose
+            () -> {
+              Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+              Pose2d robotPose = drive.getPose();
+              double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+              double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+              return Math.atan2(dy, dx);
+            }));
 
     driveXbox.start().whileTrue(
         Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));

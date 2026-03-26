@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
+import frc.robot.lib.util.AllianceRotationUtil;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -109,13 +110,15 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier target) {
-        // Create PID controller
+    // Create PID controller
     ProfiledPIDController angleController = new ProfiledPIDController(
         ANGLE_KP,
         0.0,
         ANGLE_KD,
         new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
-          angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+    double robotOffset = Units.degreesToRadians(90);
 
     return Commands.run(
         () -> {
@@ -127,7 +130,7 @@ public class DriveCommands {
 
           // Calculate angular speed to maintain direct aim
           double omega = angleController.calculate(
-              drive.getRotation().getRadians(), angleToTarget);
+              drive.getRotation().getRadians() - robotOffset, angleToTarget);
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds = new ChassisSpeeds(
@@ -150,7 +153,8 @@ public class DriveCommands {
 
   /**
    * This command enables X input, but restricts the Y supplier of the bot. It
-   * will automatically rotate to maintain it's aim and maintain the distance when initiated
+   * will automatically rotate to maintain it's aim and maintain the distance when
+   * initiated
    */
   public static Command joystickDrivePointTarget(
       Drive drive,
@@ -189,8 +193,8 @@ public class DriveCommands {
           double vy = angleToTarget.getSin() * speedTowardsTarget;
 
           // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, ySupplier.getAsDouble() - 
-              vy);  
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, ySupplier.getAsDouble() -
+              vy);
 
           // Calculate angular speed to maintain direct aim
           double omega = angleController.calculate(
