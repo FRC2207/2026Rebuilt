@@ -245,7 +245,7 @@ public class RobotContainer {
         // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
         // This will recalculate every 0.5 seconds I think, more complex and less likely to work
         driveXbox.leftTrigger().whileTrue(
-          objectVision.driveFastOpPath()
+          objectVision.driveKindleWaypoints()
         );
 
         driveXbox.leftBumper().onTrue(

@@ -1,6 +1,7 @@
 package frc.robot.lib.ObjectVision;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.networktables.NetworkTableEvent;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,9 +41,11 @@ public class ObjectVision extends SubsystemBase {
     private static final double PHYS_MAX_ACCEL = 3; // Max accel
     private static final double PHYS_TURN_DECAY = 2.3; // Speed loss per radian, lower = more turning
     private static final double PHYS_MIN_SPEED = 0.3; // Lowest speed the robot will ever go
-    private static final double PHYS_TURN_HARD_STOP = Math.toRadians(100); // 100 degrees, any turns greater then this get double penalty
+    private static final double PHYS_TURN_HARD_STOP = Math.toRadians(100); // 100 degrees, any turns greater then this
+                                                                           // get double penalty
     private static final double PHYS_TURN_CLIFF = 8.0; // Pentaly for above param. Adds 8 seconds of time
-    private static final double PHYS_ALIGN_BONUS = 1.6; // Bonus for clusters ahead of robot 20 degrees, get (time / 1.6)
+    private static final double PHYS_ALIGN_BONUS = 1.6; // Bonus for clusters ahead of robot 20 degrees, get (time /
+                                                        // 1.6)
     private static final double PHYS_AHEAD_ANGLE = 20; // Degrees fora cluster to be counted as ahead of robot
 
     private static final double BUDGET_M = 10.0; // Max path lenght in meters. Use auto_time_seconds × average_speed_m/s
@@ -51,33 +57,60 @@ public class ObjectVision extends SubsystemBase {
 
     private final Pose3d[] ballPosesBuf = new Pose3d[MAX_BALLS];
 
+    private Command kindleWaypointCommand = Commands.none();
+
     public ObjectVision(Drive drive, ObjectVisionIO io) {
         this.io = io;
         this.swerve = drive;
         for (int i = 0; i < MAX_BALLS; i++)
             ballPosesBuf[i] = new Pose3d();
+
+        io.setWaypointListener(this::updateKindleWaypointsCommand);
+    }
+
+    private void updateKindleWaypointsCommand(Pose2d waypoints[]) {
+        // Safety checsk
+        if (waypoints == null || waypoints.length == 0) {
+            kindleWaypointCommand = Commands.none();
+            return;
+        }
+
+        Command sequence = Commands.none();
+
+        for (int i = 0; i < waypoints.length; i++) {
+            Pose2d target = waypoints[i];
+
+            sequence = sequence.andThen(
+                AutoBuilder.pathfindToPose(
+                    target,
+                    CONSTRAINTS,
+                    PASS_THROUGH_VEL
+                )
+            );
+        }
+
+        kindleWaypointCommand = sequence;
     }
 
     private static double trapezoidTime(double dist, double v0, double v1) {
-        if (dist < 1e-6) return 0.0;
+        if (dist < 1e-6)
+            return 0.0;
         v0 = Math.min(v0, PHYS_MAX_SPEED);
         v1 = Math.min(v1, PHYS_MAX_SPEED);
 
-        double dUp   = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v0 * v0) / (2 * PHYS_MAX_ACCEL);
+        double dUp = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v0 * v0) / (2 * PHYS_MAX_ACCEL);
         double dDown = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v1 * v1) / (2 * PHYS_MAX_ACCEL);
 
         if (dUp + dDown <= dist) {
-            // Trapezoidal — robot reaches full speed
-            double tUp   = (PHYS_MAX_SPEED - v0) / PHYS_MAX_ACCEL;
+            double tUp = (PHYS_MAX_SPEED - v0) / PHYS_MAX_ACCEL;
             double tDown = (PHYS_MAX_SPEED - v1) / PHYS_MAX_ACCEL;
             double tFlat = (dist - dUp - dDown) / PHYS_MAX_SPEED;
             return tUp + tFlat + tDown;
         } else {
-            // Triangular — too short to reach full speed
             double vPeak = Math.sqrt(Math.max(0.0,
                     PHYS_MAX_ACCEL * dist + (v0 * v0 + v1 * v1) / 2.0));
-            vPeak      = Math.min(vPeak, PHYS_MAX_SPEED);
-            double tUp   = (vPeak - v0) / PHYS_MAX_ACCEL;
+            vPeak = Math.min(vPeak, PHYS_MAX_SPEED);
+            double tUp = (vPeak - v0) / PHYS_MAX_ACCEL;
             double tDown = (vPeak - v1) / PHYS_MAX_ACCEL;
             return tUp + tDown;
         }
@@ -96,18 +129,17 @@ public class ObjectVision extends SubsystemBase {
         Translation2d exit_ = farthestPoint(cluster, fromPos);
 
         double dApproach = fromPos.getDistance(entry);
-        double dThrough  = entry.getDistance(exit_);
+        double dThrough = entry.getDistance(exit_);
 
         double turn = (curHdg != null)
                 ? headingDiff(curHdg, angleTo(fromPos, entry))
                 : 0.0;
 
-        // Layer 1: exponential speed loss
         double vEntry = turnSpeed(PHYS_MAX_SPEED, turn);
-        double vExit  = vEntry;
+        double vExit = vEntry;
 
         double tApproach = trapezoidTime(dApproach, curSpeed, vEntry);
-        double tThrough  = trapezoidTime(dThrough,  vEntry,  vExit);
+        double tThrough = trapezoidTime(dThrough, vEntry, vExit);
         double totalTime = tApproach + tThrough;
 
         if (turn > PHYS_TURN_HARD_STOP) {
@@ -118,10 +150,10 @@ public class ObjectVision extends SubsystemBase {
             totalTime /= PHYS_ALIGN_BONUS;
         }
 
-        return new double[]{ totalTime, vExit };
+        return new double[] { totalTime, vExit };
     }
 
-    private Command buildFastOpPathCommand() {
+    private Command buildVelocityOpPathCommand(double budgetMeters, double passThroughVel, int maxClusters) {
         List<Translation2d> balls = getValidBalls();
         if (balls.isEmpty())
             return null;
@@ -132,40 +164,69 @@ public class ObjectVision extends SubsystemBase {
 
         List<Integer> seq = new ArrayList<>();
         boolean[] visited = new boolean[n];
-        double spent = 0.0;
+        double spentDist = 0.0;
         Translation2d cur = robotPos;
+        double curSpeed = 0.0;
+        // robot starts stationary
+        Double curHdg = null; // no heading until first move
 
         boolean anyAdded = true;
         while (anyAdded) {
             anyAdded = false;
+
+            if (maxClusters > 0 && seq.size() >= maxClusters)
+                break;
+
             int bestIdx = -1;
-            double bestRatio = -1.0;
-            double bestCost = 0.0;
+            double bestScore = -1.0;
+            // double bestTCost = 0.0;
+            double bestSpd = 0.0;
 
             for (int i = 0; i < n; i++) {
                 if (visited[i])
                     continue;
                 List<Translation2d> c = clusters.get(i);
 
-                double cost = traverseDist(c, cur);
-                if (spent + cost > BUDGET_M)
+                double distCost = traverseDist(c, cur);
+                if (spentDist + distCost > budgetMeters)
                     continue;
 
-                double ratio = (c.size() * c.size()) / Math.max(cost, 0.01);
-                if (ratio > bestRatio) {
-                    bestRatio = ratio;
+                // Hard-reject near-reversals as long as other options exist
+                if (curHdg != null) {
+
+                    Translation2d entry = nearestPoint(c, cur);
+                    double turn = headingDiff(curHdg, angleTo(cur, entry));
+                    final int currentI = i;
+                    long remaining = java.util.stream.IntStream.range(0, n)
+                            .filter(j -> !visited[j] && j != currentI).count();
+                    if (turn > Math.toRadians(150) && remaining > 0)
+                        continue;
+                }
+
+                double[] phys = clusterPhysCost(c, cur, curSpeed, curHdg);
+                double tCost = phys[0];
+                double exitSpd = phys[1];
+                double score = (c.size() * c.size()) / Math.max(tCost, 0.01);
+
+                if (score > bestScore) {
+                    bestScore = score;
                     bestIdx = i;
-                    bestCost = cost;
+                    // bestTCost = tCost;
+                    bestSpd = exitSpd;
                 }
             }
 
-            if (bestIdx >= 0) {
-                seq.add(bestIdx);
-                visited[bestIdx] = true;
-                spent += bestCost;
-                cur = exitPos(clusters.get(bestIdx), cur);
-                anyAdded = true;
-            }
+            if (bestIdx < 0)
+                break;
+
+            Translation2d ex = exitPos(clusters.get(bestIdx), cur);
+            curHdg = angleTo(cur, ex);
+            curSpeed = bestSpd;
+            spentDist += traverseDist(clusters.get(bestIdx), cur);
+            cur = ex;
+            seq.add(bestIdx);
+            visited[bestIdx] = true;
+            anyAdded = true;
         }
 
         if (seq.isEmpty())
@@ -176,16 +237,12 @@ public class ObjectVision extends SubsystemBase {
             improved = false;
             outer: for (int i = 0; i < seq.size() - 1; i++) {
                 for (int j = i + 2; j < seq.size(); j++) {
-
                     Translation2d posI = getSeqPos(seq, i, clusters, robotPos);
+                    Translation2d exitIp1 = exitPos(clusters.get(seq.get(i)), posI);
                     Translation2d posJ = getSeqPos(seq, j - 1, clusters, robotPos);
 
-                    Translation2d nearI = nearestPoint(clusters.get(seq.get(i)), posI);
-                    Translation2d nearJ = nearestPoint(clusters.get(seq.get(j)), posJ);
-                    Translation2d exitIp1 = exitPos(clusters.get(seq.get(i)), posI);
-
-                    double dOrig = posI.getDistance(nearI)
-                            + exitIp1.getDistance(nearJ);
+                    double dOrig = posI.getDistance(nearestPoint(clusters.get(seq.get(i)), posI))
+                            + exitIp1.getDistance(nearestPoint(clusters.get(seq.get(j)), posJ));
 
                     Translation2d nearJfromI = nearestPoint(clusters.get(seq.get(j)), posI);
                     Translation2d exitJfromI = exitPos(clusters.get(seq.get(j)), posI);
@@ -218,7 +275,7 @@ public class ObjectVision extends SubsystemBase {
         if (targets.isEmpty())
             return null;
 
-        Logger.recordOutput("ObjectVision/FastOpWaypoints",
+        Logger.recordOutput("ObjectVision/VelocityOpWaypoints",
                 targets.stream()
                         .map(p -> new Pose3d(p.getX(), p.getY(), 0.0, new Rotation3d()))
                         .toArray(Pose3d[]::new));
@@ -226,144 +283,10 @@ public class ObjectVision extends SubsystemBase {
         Command sequence = Commands.none();
         for (Pose2d target : targets)
             sequence = sequence.andThen(
-                    AutoBuilder.pathfindToPose(target, CONSTRAINTS, PASS_THROUGH_VEL));
+                    AutoBuilder.pathfindToPose(target, CONSTRAINTS, passThroughVel));
         return sequence;
     }
 
-    private Command buildVelocityOpPathCommand(double budgetMeters, double passThroughVel, int maxClusters) {
-        List<Translation2d> balls = getValidBalls();
-        if (balls.isEmpty()) return null;
-
-        Translation2d robotPos = swerve.getPose().getTranslation();
-        List<List<Translation2d>> clusters = dbscan(balls);
-        int n = clusters.size();
-
-        List<Integer>  seq       = new ArrayList<>();
-        boolean[]      visited   = new boolean[n];
-        double         spentDist = 0.0;
-        Translation2d  cur       = robotPos;
-        double         curSpeed  = 0.0;    // robot starts stationary
-        Double         curHdg    = null;   // no heading until first move
-
-        boolean anyAdded = true;
-        while (anyAdded) {
-            anyAdded = false;
-
-            if (maxClusters > 0 && seq.size() >= maxClusters) break;
-
-            int    bestIdx   = -1;
-            double bestScore = -1.0;
-            // double bestTCost = 0.0;
-            double bestSpd   = 0.0;
-
-            for (int i = 0; i < n; i++) {
-                if (visited[i]) continue;
-                List<Translation2d> c = clusters.get(i);
-
-                double distCost = traverseDist(c, cur);
-                if (spentDist + distCost > budgetMeters) continue;
-
-                // Hard-reject near-reversals as long as other options exist
-                if (curHdg != null) {
-                    
-                    Translation2d entry = nearestPoint(c, cur);
-                    double turn = headingDiff(curHdg, angleTo(cur, entry));
-                    final int currentI = i;
-                    long remaining = java.util.stream.IntStream.range(0, n)
-                            .filter(j -> !visited[j] && j != currentI).count();
-                    if (turn > Math.toRadians(150) && remaining > 0) continue;
-                }
-
-                double[] phys  = clusterPhysCost(c, cur, curSpeed, curHdg);
-                double tCost   = phys[0];
-                double exitSpd = phys[1];
-                double score   = (c.size() * c.size()) / Math.max(tCost, 0.01);
-
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestIdx   = i;
-                    // bestTCost = tCost;
-                    bestSpd   = exitSpd;
-                }
-            }
-
-            if (bestIdx < 0) break;
-
-            Translation2d ex = exitPos(clusters.get(bestIdx), cur);
-            curHdg    = angleTo(cur, ex);
-            curSpeed  = bestSpd;
-            spentDist += traverseDist(clusters.get(bestIdx), cur);
-            cur = ex;
-            seq.add(bestIdx);
-            visited[bestIdx] = true;
-            anyAdded = true;
-        }
-
-        if (seq.isEmpty()) return null;
-
-        // ── Single 2-opt pass (geometry-based) ───────────────────────────────────
-        boolean improved = true;
-        while (improved) {
-            improved = false;
-            outer:
-            for (int i = 0; i < seq.size() - 1; i++) {
-                for (int j = i + 2; j < seq.size(); j++) {
-                    Translation2d posI    = getSeqPos(seq, i,     clusters, robotPos);
-                    Translation2d exitIp1 = exitPos(clusters.get(seq.get(i)), posI);
-                    Translation2d posJ    = getSeqPos(seq, j - 1, clusters, robotPos);
-
-                    double dOrig = posI.getDistance(nearestPoint(clusters.get(seq.get(i)), posI))
-                                + exitIp1.getDistance(nearestPoint(clusters.get(seq.get(j)), posJ));
-
-                    Translation2d nearJfromI = nearestPoint(clusters.get(seq.get(j)), posI);
-                    Translation2d exitJfromI = exitPos(clusters.get(seq.get(j)), posI);
-                    Translation2d nearIfromJ = nearestPoint(clusters.get(seq.get(i)), posI);
-
-                    double dRev = posI.getDistance(nearJfromI)
-                                + exitJfromI.getDistance(nearIfromJ);
-
-                    if (dRev < dOrig - 0.05) {
-                        List<Integer> sub = new ArrayList<>(seq.subList(i, j + 1));
-                        java.util.Collections.reverse(sub);
-                        for (int k = 0; k < sub.size(); k++) seq.set(i + k, sub.get(k));
-                        improved = true;
-                        break outer;
-                    }
-                }
-            }
-        }
-
-        // ── Convert sequence → Pose2d targets ────────────────────────────────────
-        List<Pose2d> targets = new ArrayList<>();
-        cur = robotPos;
-        for (int idx : seq) {
-            List<Pose2d> pts = clusterToSpinePoints(clusters.get(idx), cur);
-            targets.addAll(pts);
-            if (!pts.isEmpty())
-                cur = pts.get(pts.size() - 1).getTranslation();
-        }
-
-        if (targets.isEmpty()) return null;
-
-        Logger.recordOutput("ObjectVision/VelocityOpWaypoints",
-            targets.stream()
-                .map(p -> new Pose3d(p.getX(), p.getY(), 0.0, new Rotation3d()))
-                .toArray(Pose3d[]::new));
-
-        Command sequence = Commands.none();
-        for (Pose2d target : targets)
-            sequence = sequence.andThen(
-                AutoBuilder.pathfindToPose(target, CONSTRAINTS, passThroughVel));
-        return sequence;
-    }
-
-    // ── Public command factories ──────────────────────────────────────────────────
-
-    /**
-     * @param budgetMeters   Max total path length in metres (e.g. 16.0)
-     * @param passThroughVel Velocity m/s at each waypoint, 0.0 = full stop
-     * @param maxClusters    Max clusters to visit, -1 = unlimited
-     */
     public Command driveVelocityOpPath(double budgetMeters, double passThroughVel, int maxClusters) {
         return Commands.deferredProxy(() -> {
             Command c = buildVelocityOpPathCommand(budgetMeters, passThroughVel, maxClusters);
@@ -371,7 +294,6 @@ public class ObjectVision extends SubsystemBase {
         });
     }
 
-    // No-arg version uses class-level defaults
     public Command driveVelocityOpPath() {
         return driveVelocityOpPath(BUDGET_M, PASS_THROUGH_VEL, -1);
     }
@@ -383,13 +305,6 @@ public class ObjectVision extends SubsystemBase {
         for (int k = 0; k <= upToIndex && k < seq.size(); k++)
             cur = exitPos(clusters.get(seq.get(k)), cur);
         return cur;
-    }
-
-    public Command driveFastOpPath() {
-        return Commands.deferredProxy(() -> {
-            Command c = buildFastOpPathCommand();
-            return c != null ? c : Commands.none();
-        });
     }
 
     private Command buildDriveToClosestBallCommand() {
@@ -733,5 +648,11 @@ public class ObjectVision extends SubsystemBase {
             Command c = buildDriveThroughClumpCommand();
             return c != null ? c : Commands.none();
         }).withTimeout(0.1).repeatedly();
+    }
+
+    public Command driveKindleWaypoints() {
+        return Commands.deferredProxy(() ->
+            kindleWaypointCommand != null ? kindleWaypointCommand : Commands.none()
+        );
     }
 }
