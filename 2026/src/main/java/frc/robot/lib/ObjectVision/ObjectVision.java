@@ -1,6 +1,7 @@
 package frc.robot.lib.ObjectVision;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,6 +18,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.networktables.NetworkTableEvent;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,9 +42,11 @@ public class ObjectVision extends SubsystemBase {
     private static final double PHYS_MAX_ACCEL = 3; // Max accel
     private static final double PHYS_TURN_DECAY = 2.3; // Speed loss per radian, lower = more turning
     private static final double PHYS_MIN_SPEED = 0.3; // Lowest speed the robot will ever go
-    private static final double PHYS_TURN_HARD_STOP = Math.toRadians(100); // 100 degrees, any turns greater then this get double penalty
+    private static final double PHYS_TURN_HARD_STOP = Math.toRadians(100); // 100 degrees, any turns greater then this
+                                                                           // get double penalty
     private static final double PHYS_TURN_CLIFF = 8.0; // Pentaly for above param. Adds 8 seconds of time
-    private static final double PHYS_ALIGN_BONUS = 1.6; // Bonus for clusters ahead of robot 20 degrees, get (time / 1.6)
+    private static final double PHYS_ALIGN_BONUS = 1.6; // Bonus for clusters ahead of robot 20 degrees, get (time /
+                                                        // 1.6)
     private static final double PHYS_AHEAD_ANGLE = 20; // Degrees fora cluster to be counted as ahead of robot
 
     private static final double BUDGET_M = 10.0; // Max path lenght in meters. Use auto_time_seconds × average_speed_m/s
@@ -63,33 +69,60 @@ public class ObjectVision extends SubsystemBase {
 
     private final Pose3d[] ballPosesBuf = new Pose3d[MAX_BALLS];
 
+    private Command kindleWaypointCommand = Commands.none();
+
     public ObjectVision(Drive drive, ObjectVisionIO io) {
         this.io = io;
         this.swerve = drive;
         for (int i = 0; i < MAX_BALLS; i++)
             ballPosesBuf[i] = new Pose3d();
+
+        io.setWaypointListener(this::updateKindleWaypointsCommand);
+    }
+
+    private void updateKindleWaypointsCommand(Pose2d waypoints[]) {
+        // Safety checsk
+        if (waypoints == null || waypoints.length == 0) {
+            kindleWaypointCommand = Commands.none();
+            return;
+        }
+
+        Command sequence = Commands.none();
+
+        for (int i = 0; i < waypoints.length; i++) {
+            Pose2d target = waypoints[i];
+
+            sequence = sequence.andThen(
+                AutoBuilder.pathfindToPose(
+                    target,
+                    CONSTRAINTS,
+                    PASS_THROUGH_VEL
+                )
+            );
+        }
+
+        kindleWaypointCommand = sequence;
     }
 
     private static double trapezoidTime(double dist, double v0, double v1) {
-        if (dist < 1e-6) return 0.0;
+        if (dist < 1e-6)
+            return 0.0;
         v0 = Math.min(v0, PHYS_MAX_SPEED);
         v1 = Math.min(v1, PHYS_MAX_SPEED);
 
-        double dUp   = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v0 * v0) / (2 * PHYS_MAX_ACCEL);
+        double dUp = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v0 * v0) / (2 * PHYS_MAX_ACCEL);
         double dDown = (PHYS_MAX_SPEED * PHYS_MAX_SPEED - v1 * v1) / (2 * PHYS_MAX_ACCEL);
 
         if (dUp + dDown <= dist) {
-            // Trapezoidal — robot reaches full speed
-            double tUp   = (PHYS_MAX_SPEED - v0) / PHYS_MAX_ACCEL;
+            double tUp = (PHYS_MAX_SPEED - v0) / PHYS_MAX_ACCEL;
             double tDown = (PHYS_MAX_SPEED - v1) / PHYS_MAX_ACCEL;
             double tFlat = (dist - dUp - dDown) / PHYS_MAX_SPEED;
             return tUp + tFlat + tDown;
         } else {
-            // Triangular — too short to reach full speed
             double vPeak = Math.sqrt(Math.max(0.0,
                     PHYS_MAX_ACCEL * dist + (v0 * v0 + v1 * v1) / 2.0));
-            vPeak      = Math.min(vPeak, PHYS_MAX_SPEED);
-            double tUp   = (vPeak - v0) / PHYS_MAX_ACCEL;
+            vPeak = Math.min(vPeak, PHYS_MAX_SPEED);
+            double tUp = (vPeak - v0) / PHYS_MAX_ACCEL;
             double tDown = (vPeak - v1) / PHYS_MAX_ACCEL;
             return tUp + tDown;
         }
@@ -108,7 +141,7 @@ public class ObjectVision extends SubsystemBase {
         Translation2d exit_ = farthestPoint(cluster, fromPos);
 
         double dApproach = fromPos.getDistance(entry);
-        double dThrough  = entry.getDistance(exit_);
+        double dThrough = entry.getDistance(exit_);
 
         double turn = (curHdg != null)
                 ? headingDiff(curHdg, angleTo(fromPos, entry))
@@ -119,7 +152,7 @@ public class ObjectVision extends SubsystemBase {
         double vExit  = vEntry;
 
         double tApproach = trapezoidTime(dApproach, curSpeed, vEntry);
-        double tThrough  = trapezoidTime(dThrough,  vEntry,  vExit);
+        double tThrough = trapezoidTime(dThrough, vEntry, vExit);
         double totalTime = tApproach + tThrough;
 
         if (turn > PHYS_TURN_HARD_STOP) {
@@ -131,7 +164,7 @@ public class ObjectVision extends SubsystemBase {
             totalTime /= PHYS_ALIGN_BONUS;
         }
 
-        return new double[]{ totalTime, vExit };
+        return new double[] { totalTime, vExit };
     }
 
     private Command buildVelocityOpPathCommand(double budgetMeters, double passThroughVel, int maxClusters) {
@@ -274,13 +307,6 @@ public class ObjectVision extends SubsystemBase {
         return sequence;
     }
 
-    // ── Public command factories ──────────────────────────────────────────────────
-
-    /**
-     * @param budgetMeters   Max total path length in metres (e.g. 16.0)
-     * @param passThroughVel Velocity m/s at each waypoint, 0.0 = full stop
-     * @param maxClusters    Max clusters to visit, -1 = unlimited
-     */
     public Command driveVelocityOpPath(double budgetMeters, double passThroughVel, int maxClusters) {
         return Commands.deferredProxy(() -> {
             Command c = buildVelocityOpPathCommand(budgetMeters, passThroughVel, maxClusters);
