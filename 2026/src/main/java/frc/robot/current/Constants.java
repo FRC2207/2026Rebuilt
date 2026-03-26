@@ -114,8 +114,8 @@ public final class Constants {
   }
 
   public static class OuttakeConstants {
-    public static final int highMotorId = 20;
-    public static final int lowMotorId = 31;
+    public static final int highMotorId = 31;
+    public static final int lowMotorId = 30;
 
     public static final double kSim_TopMOI = 0.0007; // kg*m^2, moment of inertia of the flywheel being simulated for
                                                      // the top motor

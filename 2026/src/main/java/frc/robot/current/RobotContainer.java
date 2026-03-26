@@ -229,7 +229,7 @@ public class RobotContainer {
         Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
     driveXbox.back().whileTrue(
         Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
-    driveXbox.rightBumper().whileTrue(
+    driveXbox.povRight().whileTrue(
         Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
