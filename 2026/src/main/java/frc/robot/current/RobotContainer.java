@@ -6,6 +6,7 @@ package frc.robot.current;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.current.Pather.TrenchOptions;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.swerveDrive.Drive;
@@ -34,10 +34,7 @@ import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
-
 import static frc.robot.lib.vision.VisionConstants.*;
-
-import java.util.Set;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -60,7 +57,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
 
-  private static final ControlType controlType = ControlType.ONEXBOX;
+  private static final ControlType controlType = ControlType.TWOXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -71,8 +68,6 @@ public class RobotContainer {
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
   private final LoggedDashboardChooser<Command> autoChooser;
-  private final LoggedDashboardChooser<TrenchOptions> trenchOption;
-
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -139,34 +134,14 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(5));
     NamedCommands.registerCommand("IntakeOn", intake.intake());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
-    trenchOption = new LoggedDashboardChooser<>("Trench Option");
 
-    trenchOption.addDefaultOption("Nearest", TrenchOptions.NEAREST);
-    trenchOption.addOption("Clockwise", TrenchOptions.CLOCKWISE);
-    trenchOption.addOption("Counterclockwise", TrenchOptions.COUNTERCLOCKWISE);
-    trenchOption.addOption("Force Left", TrenchOptions.FORCELEFT);
-    trenchOption.addOption("Force Right", TrenchOptions.FORCERIGHT);
-
-    // Add sysID routines to the SendableChooser for autos
-    if (Constants.isTuningMode) {
-      autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-      autoChooser.addOption("Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-      autoChooser.addOption("Drive SysId (Quasistatic Forward)",
-          drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-      autoChooser.addOption("Drive SysId (Quasistatic Reverse)",
-          drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-      autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
-      autoChooser.addOption(
-          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-
-    }
     // Configure the trigger bindings
     configureBindings();
   }
@@ -211,26 +186,19 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    driveXbox.leftBumper().whileTrue(
-        DriveCommands.joystickDrivePointToTarget(
-            drive,
-            () -> -driveXbox.getLeftY(),
-            () -> -driveXbox.getLeftX(),
-            // compute absolute heading to the target (field frame) from current robot pose
-            () -> {
-              Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
-              Pose2d robotPose = drive.getPose();
-              double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
-              double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
-              return Math.atan2(dy, dx);
-            }));
-
-    driveXbox.start().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
-    driveXbox.back().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
-    driveXbox.povRight().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
+    // driveXbox.leftBumper().whileTrue(
+    //     DriveCommands.joystickDrivePointToTarget(
+    //         drive,
+    //         () -> -driveXbox.getLeftY(),
+    //         () -> -driveXbox.getLeftX(),
+    //         // compute absolute heading to the target (field frame) from current robot pose
+    //         () -> {
+    //           Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+    //           Pose2d robotPose = drive.getPose();
+    //           double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+    //           double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+    //           return Math.atan2(dy, dx);
+    //         }));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -247,8 +215,6 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        // driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
-
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());

@@ -10,7 +10,6 @@ package frc.robot.lib.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -23,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
-import frc.robot.lib.util.AllianceRotationUtil;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -34,8 +32,6 @@ import java.util.function.Supplier;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double DRIVE_KP = DriveConstants.driveKp;
-  private static final double DRIVE_KD = DriveConstants.driveKd;
   private static final double ANGLE_KP = 5.0;
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
@@ -148,78 +144,6 @@ public class DriveCommands {
         },
         drive).beforeStarting(() -> {
           angleController.reset(drive.getRotation().getRadians() - robotOffset);
-        });
-  }
-
-  /**
-   * This command enables X input, but restricts the Y supplier of the bot. It
-   * will automatically rotate to maintain it's aim and maintain the distance when
-   * initiated
-   */
-  public static Command joystickDrivePointTarget(
-      Drive drive,
-      DoubleSupplier ySupplier,
-      Pose2d target) {
-
-    // will be captured at command start
-    final double[] initialDistance = new double[1];
-
-    // Create PID controller
-    ProfiledPIDController angleController = new ProfiledPIDController(
-        ANGLE_KP,
-        0.0,
-        ANGLE_KD,
-        new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
-
-    ProfiledPIDController translationController = new ProfiledPIDController(
-        DRIVE_KP,
-        0.0,
-        DRIVE_KD,
-        new TrapezoidProfile.Constraints(1.0, 2.0));
-
-    angleController.enableContinuousInput(-Math.PI, Math.PI);
-
-    return Commands.run(
-        () -> {
-
-          Rotation2d angleToTarget = drive.targetOffset(target).getRotation();
-          double currentDistance = drive.getPose().getTranslation().getDistance(target.getTranslation());
-
-          // Calculate the necessary speed to maintain distance
-          double speedTowardsTarget = -translationController.calculate(currentDistance, initialDistance[0]);
-
-          // Resolve the scalar speed into field-relative X and Y velocities
-          double vx = angleToTarget.getCos() * speedTowardsTarget;
-          double vy = angleToTarget.getSin() * speedTowardsTarget;
-
-          // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, ySupplier.getAsDouble() -
-              vy);
-
-          // Calculate angular speed to maintain direct aim
-          double omega = angleController.calculate(
-              drive.getRotation().getRadians(), angleToTarget.getRadians());
-
-          // Convert to field relative speeds & send command
-          ChassisSpeeds speeds = new ChassisSpeeds(
-              linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-              linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-              omega);
-          boolean isFlipped = DriverStation.getAlliance().isPresent()
-              && DriverStation.getAlliance().get() == Alliance.Red;
-          drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  speeds,
-                  isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation()));
-        },
-        drive)
-        // Initialize the angle controller and capture the initial distance once when
-        // the command starts.
-        .beforeStarting(() -> {
-          angleController.reset(drive.getRotation().getRadians());
-          initialDistance[0] = drive.getPose().getTranslation().getDistance(target.getTranslation());
         });
   }
 
