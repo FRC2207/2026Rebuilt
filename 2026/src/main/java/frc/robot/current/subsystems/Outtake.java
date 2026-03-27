@@ -115,8 +115,8 @@ public class Outtake extends SubsystemBase {
         lowMotor.updateInputs();
 
         // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint());
-        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint());
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
     }
 
     public Command timedLaunch(double seconds) {
@@ -171,8 +171,8 @@ public class Outtake extends SubsystemBase {
             // The velocity the ball needs to be at to hit the target in m/s
             double ball_velocity = (Math.sqrt((23.0526875 * Math.pow(distance, 2))/(distance + (-1.482/4.7046))))/0.978147;
             double velocity = (ball_velocity * (60/ (0.0254 * Math.PI * 3))) + 200;
-            Logger.recordOutput("Outtake/ballVelocity", ball_velocity);
-            Logger.recordOutput("Outtake/distance", distance);
+            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
+            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
             // System.out.println("Velocity: " + velocity);
             // System.out.println("Distance: " + distance);
             hopper.run();

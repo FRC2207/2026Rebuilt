@@ -1,6 +1,6 @@
 package frc.robot.lib.motors.motorController;
 
-import java.util.function.Supplier;
+import java.util.function.DoubleSupplier;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
@@ -21,8 +21,9 @@ public class MotorIOSpark implements MotorControllerIO {
 
     private SparkClosedLoopController closedLoopController;
 
-    private final Supplier<Double> positionSupplier;
-    private final Supplier<Double> velocitySupplier;
+    // Use primitive-specialized supplier to avoid boxing allocations
+    private final DoubleSupplier positionSupplier;
+    private final DoubleSupplier velocitySupplier;
 
     public enum SparkType {
         SparkFlex, SparkMax
@@ -109,12 +110,12 @@ public class MotorIOSpark implements MotorControllerIO {
 
     /** Returns the position supplier from whichever encoder we are using */
     private double getPosition() {
-        return positionSupplier.get();
+        return positionSupplier.getAsDouble();
     }
 
     /** Returns the velocity supplier from whichever encoder we are using */
     private double getVelocity() {
-        return velocitySupplier.get();
+        return velocitySupplier.getAsDouble();
     }
 
     @Override

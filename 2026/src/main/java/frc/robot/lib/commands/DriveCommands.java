@@ -12,7 +12,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -24,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
+import frc.robot.lib.util.AllianceRotationUtil;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -34,6 +34,8 @@ import java.util.function.Supplier;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
+  private static final double DRIVE_KP = DriveConstants.driveKp;
+  private static final double DRIVE_KD = DriveConstants.driveKd;
   private static final double ANGLE_KP = 5.0;
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
@@ -49,15 +51,16 @@ public class DriveCommands {
   private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
     // Apply deadband
     double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), DEADBAND);
-    Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
+    double linearDirection = Math.atan2(y, x);
 
     // Square magnitude for more precise control
     linearMagnitude = linearMagnitude * linearMagnitude;
 
-    // Return new linear velocity
-    return new Pose2d(Translation2d.kZero, linearDirection)
-        .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
-        .getTranslation();
+    // Compute x/y directly (avoid constructing Pose2d/Transform2d objects)
+    double vx = linearMagnitude * Math.cos(linearDirection);
+    double vy = linearMagnitude * Math.sin(linearDirection);
+
+    return new Translation2d(vx, vy);
   }
 
   /**
@@ -99,14 +102,14 @@ public class DriveCommands {
   }
 
   /**
-   * This command enables X input, but restricts the Y movement of the bot. It
-   * will automatically rotate to maintain it's aim
+   * Field relative drive command using two joysticks (controlling linear and
+   * angular velocities).
    */
-  public static Command joystickDrivePointTarget(
+  public static Command joystickDrivePointToTarget(
       Drive drive,
       DoubleSupplier xSupplier,
-      Pose2d target) {
-
+      DoubleSupplier ySupplier,
+      DoubleSupplier target) {
     // Create PID controller
     ProfiledPIDController angleController = new ProfiledPIDController(
         ANGLE_KP,
@@ -115,14 +118,87 @@ public class DriveCommands {
         new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
 
+    double robotOffset = Units.degreesToRadians(90);
+
     return Commands.run(
         () -> {
-          // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), 0);
+          double angleToTarget = target.getAsDouble();
 
-          // Calculate angular speed
+          // Get linear velocity
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
+              ySupplier.getAsDouble());
+
+          // Calculate angular speed to maintain direct aim
           double omega = angleController.calculate(
-              drive.getRotation().getRadians(), drive.targetOffset(target).getRotation().getRadians());
+              drive.getRotation().getRadians() - robotOffset, angleToTarget);
+
+          // Convert to field relative speeds & send command
+          ChassisSpeeds speeds = new ChassisSpeeds(
+              linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+              linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+              omega * drive.getMaxAngularSpeedRadPerSec());
+          boolean isFlipped = DriverStation.getAlliance().isPresent()
+              && DriverStation.getAlliance().get() == Alliance.Red;
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive).beforeStarting(() -> {
+          angleController.reset(drive.getRotation().getRadians() - robotOffset);
+        });
+  }
+
+  /**
+   * This command enables X input, but restricts the Y supplier of the bot. It
+   * will automatically rotate to maintain it's aim and maintain the distance when
+   * initiated
+   */
+  public static Command joystickDrivePointTarget(
+      Drive drive,
+      DoubleSupplier ySupplier,
+      Pose2d target) {
+
+    // will be captured at command start
+    final double[] initialDistance = new double[1];
+
+    // Create PID controller
+    ProfiledPIDController angleController = new ProfiledPIDController(
+        ANGLE_KP,
+        0.0,
+        ANGLE_KD,
+        new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+
+    ProfiledPIDController translationController = new ProfiledPIDController(
+        DRIVE_KP,
+        0.0,
+        DRIVE_KD,
+        new TrapezoidProfile.Constraints(1.0, 2.0));
+
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+    return Commands.run(
+        () -> {
+
+          Rotation2d angleToTarget = drive.targetOffset(target).getRotation();
+          double currentDistance = drive.getPose().getTranslation().getDistance(target.getTranslation());
+
+          // Calculate the necessary speed to maintain distance
+          double speedTowardsTarget = -translationController.calculate(currentDistance, initialDistance[0]);
+
+          // Resolve the scalar speed into field-relative X and Y velocities
+          double vx = angleToTarget.getCos() * speedTowardsTarget;
+          double vy = angleToTarget.getSin() * speedTowardsTarget;
+
+          // Get linear velocity
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, ySupplier.getAsDouble() -
+              vy);
+
+          // Calculate angular speed to maintain direct aim
+          double omega = angleController.calculate(
+              drive.getRotation().getRadians(), angleToTarget.getRadians());
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds = new ChassisSpeeds(
@@ -138,7 +214,13 @@ public class DriveCommands {
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));
         },
-        drive);
+        drive)
+        // Initialize the angle controller and capture the initial distance once when
+        // the command starts.
+        .beforeStarting(() -> {
+          angleController.reset(drive.getRotation().getRadians());
+          initialDistance[0] = drive.getPose().getTranslation().getDistance(target.getTranslation());
+        });
   }
 
   /**
@@ -160,6 +242,7 @@ public class DriveCommands {
         0.0,
         ANGLE_KD,
         new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+
     angleController.enableContinuousInput(-Math.PI, Math.PI);
 
     // Construct command

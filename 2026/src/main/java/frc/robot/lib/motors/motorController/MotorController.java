@@ -21,8 +21,9 @@ public class MotorController{
     }
 
     public void updateInputs() {
+        // Always update hardware inputs each loop (low-cost)
         io.updateInputs(inputs);
-        Logger.processInputs(loggingKey, inputs);
+        Logger.runEveryN(5, (Runnable) () -> Logger.processInputs(loggingKey, inputs));
     }
 
     /** Sets the motor percentage from -1 to 1. This is known as <i> duty cycle. </i>
