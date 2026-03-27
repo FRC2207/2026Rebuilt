@@ -263,7 +263,7 @@ public class Pather {
             case RIGHT:
                 if (inside) {
                     try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Left Trench Out"),
+                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Right Trench Out"),
                                 constraints);
                     } catch (FileVersionException e) {
                         e.printStackTrace();
@@ -274,7 +274,7 @@ public class Pather {
                     }
                 } else {
                     try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Left Trench In"),
+                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Right Trench In"),
                                 constraints);
                     } catch (FileVersionException e) {
                         e.printStackTrace();

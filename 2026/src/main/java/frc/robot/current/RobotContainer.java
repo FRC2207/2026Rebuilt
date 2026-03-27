@@ -184,6 +184,12 @@ public class RobotContainer {
           double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
           return Math.atan2(dy, dx);
         }));
+      
+    SmartDashboard.putData("Slow Mode", DriveCommands.joystickDrive(
+                drive,
+                () -> -0.45 * driveXbox.getLeftY(),
+                () -> -0.45 * driveXbox.getLeftX(),
+                () -> -0.5 * driveXbox.getRightX()));
   }
 
   /**
