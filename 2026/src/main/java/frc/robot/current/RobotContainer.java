@@ -6,7 +6,6 @@ package frc.robot.current;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -14,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
@@ -29,7 +27,6 @@ import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
 
 import frc.robot.lib.commands.DriveCommands;
-import frc.robot.lib.util.AllianceRotationUtil;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
