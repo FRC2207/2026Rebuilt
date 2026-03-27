@@ -24,13 +24,13 @@ import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
-public class Vision2 extends SubsystemBase {
+public class VisionOld extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
-  public Vision2(VisionConsumer consumer, VisionIO... io) {
+  public VisionOld(VisionConsumer consumer, VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
 
