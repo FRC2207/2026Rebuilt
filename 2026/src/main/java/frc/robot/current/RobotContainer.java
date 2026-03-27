@@ -9,6 +9,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -169,6 +170,19 @@ public class RobotContainer {
     }
     // Configure the trigger bindings
     configureBindings();
+
+    SmartDashboard.putData("Point To Hub", DriveCommands.joystickDrivePointToTarget(
+        drive,
+        () -> -driveXbox.getLeftY(),
+        () -> -driveXbox.getLeftX(),
+        // compute absolute heading to the target (field frame) from current robot pose
+        () -> {
+          Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+          Pose2d robotPose = drive.getPose();
+          double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+          double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+          return Math.atan2(dy, dx);
+        }));
   }
 
   /**

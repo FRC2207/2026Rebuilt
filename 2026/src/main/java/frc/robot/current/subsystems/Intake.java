@@ -41,25 +41,33 @@ public class Intake extends SubsystemBase {
         .kS(IntakeConstants.kS) // Static gain (volts)
         .kV(IntakeConstants.kV) // Velocity gain (volts per RPM)
         .kA(IntakeConstants.kA); // Acceleration gain (volts per RPM/s)
-    
+
     SparkFlexConfig followerConfig = new SparkFlexConfig();
     followerConfig.follow(intakeMotorId, true);
 
     switch (Constants.currentMode) {
       case REAL:
         intakeMotorA = new MotorController(
-            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake/Leader" + intakeMotorId);
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex,
+                EncoderType.BUILTIN_RELATIVE),
+            "Intake/Leader" + intakeMotorId);
         intakeMotorB = new MotorController(
-            new MotorIOSpark(followerMotorId, followerConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake/Follower" + followerMotorId);
+            new MotorIOSpark(followerMotorId, followerConfig, SparkType.SparkFlex, MotorModel.Vortex,
+                EncoderType.BUILTIN_RELATIVE),
+            "Intake/Follower" + followerMotorId);
         break;
       case SIM:
         intakeMotorA = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
             IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
+        intakeMotorB = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         break;
       default:
         // Blank IO for REPLAY
-        intakeMotorA = new MotorController(new MotorControllerIO() {}, "Intake");
+        intakeMotorA = new MotorController(new MotorControllerIO() {
+        }, "Intake");
         break;
     }
   }
@@ -68,7 +76,8 @@ public class Intake extends SubsystemBase {
     intakeMotorA.updateInputs();
     intakeMotorB.updateInputs();
 
-    // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
+    // NOTE: using getSetpointRotations() because their is no setpoint retrival for
+    // velocity control
     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Intake/SetpointRPM", intakeMotorA.getSetpoint()));
   }
 
