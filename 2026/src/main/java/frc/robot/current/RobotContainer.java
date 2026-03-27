@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.Pather.Direction;
 import frc.robot.current.Pather.TrenchOptions;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.Hopper;
@@ -239,10 +240,15 @@ public class RobotContainer {
               return Math.atan2(dy, dx);
             }));
 
-    driveXbox.start().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
     driveXbox.back().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
+      Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
+    driveXbox.start().whileTrue(
+      Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+    
+    // driveXbox.start().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
+    // driveXbox.back().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
     driveXbox.povRight().whileTrue(
         Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
