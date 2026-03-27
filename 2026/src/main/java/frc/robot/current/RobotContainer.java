@@ -215,7 +215,7 @@ public class RobotContainer {
      driveXbox.start().whileTrue(Commands.parallel(Commands.runOnce(() -> PathFollower.setTrenchOption(trenchOption.get())),
         new PathFollower(drive, PathFollower.Target.TRENCH)));
      driveXbox.back().whileTrue(new PathFollower(drive, PathFollower.Target.OUTPOST));
-     driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
+    //  driveXbox.rightBumper().whileTrue(new PathFollower(drive, PathFollower.Target.HUBSHOOT));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -248,13 +248,16 @@ public class RobotContainer {
           objectVision.driveThroughClump()
         );
 
-        driveXbox.rightBumper().whileTrue(
-          objectVision.driveToClosestBall()
-        );
+        // driveXbox.rightBumper().whileTrue(
+        //   objectVision.driveToClosestBall()
+        // );
 
         driveXbox.rightTrigger().onTrue(
           objectVision.driveVelocityOpPath()
         );
+
+        driveXbox.rightStick().whileTrue(objectVision.kindleCommand());
+        
         break;
       case TWOXBOX:
       default:

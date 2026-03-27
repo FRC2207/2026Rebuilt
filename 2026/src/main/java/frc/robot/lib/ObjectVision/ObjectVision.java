@@ -1,7 +1,6 @@
 package frc.robot.lib.ObjectVision;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,9 +17,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.networktables.NetworkTableEvent;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -81,6 +77,7 @@ public class ObjectVision extends SubsystemBase {
     }
 
     private void updateKindleWaypointsCommand(Pose2d waypoints[]) {
+        //System.out.println("TEST 1" + waypoints.length);
         // Safety checsk
         if (waypoints == null || waypoints.length == 0) {
             kindleWaypointCommand = Commands.none();
@@ -90,6 +87,7 @@ public class ObjectVision extends SubsystemBase {
         Command sequence = Commands.none();
 
         for (int i = 0; i < waypoints.length; i++) {
+            //System.out.println("TEST 2");
             Pose2d target = waypoints[i];
 
             sequence = sequence.andThen(
@@ -101,6 +99,7 @@ public class ObjectVision extends SubsystemBase {
             );
         }
 
+        System.out.println("SET COMMAND");
         kindleWaypointCommand = sequence;
     }
 
@@ -665,5 +664,14 @@ public class ObjectVision extends SubsystemBase {
             Command c = buildDriveThroughClumpCommand();
             return c != null ? c : Commands.none();
         });
+    }
+
+    public Command kindleCommand() {
+
+        return Commands.parallel(
+                    Commands.runOnce(() -> { 
+                        Commands.print("RETURNED COMMAND");
+                    }),
+                    Commands.deferredProxy(() -> kindleWaypointCommand));
     }
 }
