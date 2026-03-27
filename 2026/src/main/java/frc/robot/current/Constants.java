@@ -64,9 +64,10 @@ public final class Constants {
   }
 
   public static class IntakeConstants {
-    public static final int intakeID = 42;
-    // public static final int followerID = 42;
-    public static final double intakeSpeed = 6000;
+    public static final int intakeID = 41;
+    public static final int followerID = 42;
+
+    public static final double intakeSpeed = 1750;
     public static final double kSim_MOI = 0.0007; // kg*m^2, moment of inertia of the flywheel being simulated for the
                                                   // intake motor
     public static final double kSim_GearReduction = 1.0; // Gear reduction of the intake motor
@@ -104,13 +105,13 @@ public final class Constants {
     public static final double kSim_D = 18.9;
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
-    public static final double storedRotations = 0.23;
-    public static final double collectionRotations = 0.0;
+    public static final double storedRotations = 0.20;
+    public static final double collectionRotations = -0.001;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = -0.65; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.67; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {

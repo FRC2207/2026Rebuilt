@@ -25,7 +25,7 @@ public class Intake extends SubsystemBase {
   private MotorController intakeMotorB;
 
   private final int intakeMotorId = Constants.IntakeConstants.intakeID;
-  // private final int followerMotorId = Constants.IntakeConstants.followerID;
+  private final int followerMotorId = Constants.IntakeConstants.followerID;
 
   public Boolean isIntaking = false;
 
@@ -48,9 +48,9 @@ public class Intake extends SubsystemBase {
     switch (Constants.currentMode) {
       case REAL:
         intakeMotorA = new MotorController(
-            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
-        // intakeMotorB = new MotorController(
-        //    new MotorIOSpark(followerMotorId, followerConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake");
+            new MotorIOSpark(intakeMotorId, intakeConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake/Leader" + intakeMotorId);
+        intakeMotorB = new MotorController(
+            new MotorIOSpark(followerMotorId, followerConfig, SparkType.SparkFlex, MotorModel.Vortex, EncoderType.BUILTIN_RELATIVE), "Intake/Follower" + followerMotorId);
         break;
       case SIM:
         intakeMotorA = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
@@ -66,6 +66,7 @@ public class Intake extends SubsystemBase {
 
   public void periodic() {
     intakeMotorA.updateInputs();
+    intakeMotorB.updateInputs();
 
     // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Intake/SetpointRPM", intakeMotorA.getSetpoint()));
