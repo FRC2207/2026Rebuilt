@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
-// import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+
 import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
@@ -29,13 +27,11 @@ public class PathFollower extends Command {
         public boolean inside;
         private Drive drive;
 
+        // keep list static but populate only once
         public static List<Pose2d> trenchPositions = new ArrayList<>();
 
-        private LoggedDashboardChooser<TrenchOptions> m_chooser = new LoggedDashboardChooser<>(
-                         "PathFollower/Chooser");
-
         private Pose2d goalPosition;
-        private static TrenchOptions selected;
+        private static TrenchOptions selected = TrenchOptions.NEAREST; // default to avoid null
         private Target target;
 
         private static PathConstraints constraints;
@@ -69,31 +65,31 @@ public class PathFollower extends Command {
                 NEAREST
         }
 
-        public PathFollower(Drive drive, Target target) {
-                this.drive = drive;
-                this.target = target;
-
+        // static initializer: populate trenchPositions and configure constraints exactly once
+        static {
                 trenchPositions.add(leftTrench);
                 trenchPositions.add(rightTrench);
-
-                m_chooser.addDefaultOption("Nearest", TrenchOptions.NEAREST);
-                m_chooser.addOption("Clockwise", TrenchOptions.CLOCKWISE);
-                m_chooser.addOption("Counterclockwise", TrenchOptions.COUNTERCLOCKWISE);
-                m_chooser.addOption("Force Left", TrenchOptions.FORCELEFT);
-                m_chooser.addOption("Force Right", TrenchOptions.FORCERIGHT);
 
                 constraints = new PathConstraints(
                                 DriveConstants.maxSpeedMetersPerSec * .75, 3.0,
                                 Math.PI * 2, Units.degreesToRadians(720));
+        }
+
+        public PathFollower(Drive drive, Target target) {
+                this.drive = drive;
+                this.target = target;
 
                 addRequirements(drive);
-                // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         }
 
         @Override
         public void initialize() {
-                // Basic boolean which can be used in other subsystems.
                 running = true;
+
+                // read selected (RobotContainer sets it when starting the command)
+                if (selected == null) {
+                        selected = TrenchOptions.NEAREST;
+                }
 
                 Pose2d whichTrenchOut;
                 Pose2d whichTrenchIn;
@@ -112,33 +108,28 @@ public class PathFollower extends Command {
                         }
                 }
 
-                // Determine which trench to go to based on the selected option from
-                // Smartdashboard
+                // Determine which trench to go to based on the selected option 
                 if (target == Target.TRENCH) {
                         switch (selected) {
                                 case CLOCKWISE:
                                         whichTrenchOut = leftTrench;
                                         whichTrenchIn = rightTrench;
                                         SmartDashboard.putBoolean("Running default", false);
-
                                         break;
                                 case COUNTERCLOCKWISE:
                                         whichTrenchOut = rightTrench;
                                         whichTrenchIn = leftTrench;
                                         SmartDashboard.putBoolean("Running default", false);
-
                                         break;
                                 case FORCELEFT:
                                         whichTrenchOut = leftTrench;
                                         whichTrenchIn = leftTrench;
                                         SmartDashboard.putBoolean("Running default", false);
-
                                         break;
                                 case FORCERIGHT:
                                         whichTrenchOut = rightTrench;
                                         whichTrenchIn = rightTrench;
                                         SmartDashboard.putBoolean("Running default", false);
-
                                         break;
                                 case NEAREST:
                                         whichTrenchOut = closestGoal(AllianceRotationUtil.apply(drive.getPose()),
@@ -192,30 +183,29 @@ public class PathFollower extends Command {
                                 constraints,
                                 0.0);
 
-                pathFindingCommand.initialize();
+                // schedule the command with the scheduler (let the scheduler manage lifecycle)
+                if (pathFindingCommand != null) {
+                        CommandScheduler.getInstance().schedule(pathFindingCommand);
+                }
         }
 
         @Override
         public void execute() {
-                selected = m_chooser.get();
-
-                Logger.recordOutput("PathFollower/PeriodicTrenchOption", selected);
-
-                pathFindingCommand.execute();
-                // Schedules the command. This is what runs the path.
-                //CommandScheduler.getInstance().schedule(pathFindingCommand);
+                // do not call pathFindingCommand.execute() manually
         }
 
         @Override
         public void end(boolean interrupted) {
                 running = false;
                 drive.stop();
-                pathFindingCommand.end(interrupted);
+                if (pathFindingCommand != null) {
+                        pathFindingCommand.cancel();
+                }
         }
 
         @Override
         public boolean isFinished() {
-                return pathFindingCommand.isFinished();
+                return pathFindingCommand == null || pathFindingCommand.isFinished();
         }
 
         /**

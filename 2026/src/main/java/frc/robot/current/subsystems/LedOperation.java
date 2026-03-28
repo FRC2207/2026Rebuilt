@@ -111,15 +111,16 @@ public class LedOperation extends SubsystemBase {
       }
     }
 
+    // use orElse to avoid Optional.get() and default to BLUE if not present
     Optional<Alliance> ally = DriverStation.getAlliance();
     
-      if (ally.get() == Alliance.Blue) {
-        leds.solid("underglow", LedColor.BLUE);
-        leds.solid("underglow1", LedColor.BLUE);
-      } else {
-        leds.solid("underglow", LedColor.RED);
-        leds.solid("underglow1", LedColor.RED);
-      }
+    if (ally.orElse(Alliance.Blue) == Alliance.Blue) {
+      leds.solid("underglow", LedColor.BLUE);
+      leds.solid("underglow1", LedColor.BLUE);
+    } else {
+      leds.solid("underglow", LedColor.RED);
+      leds.solid("underglow1", LedColor.RED);
+    }
     
   }
 
@@ -152,6 +153,9 @@ public class LedOperation extends SubsystemBase {
 
   /* Method to set the LEDs to different states during the match */
   public void manualState() {
-    m_chooser.getSelected().run();
+    Runnable choice = m_chooser.getSelected();
+    if (choice != null) {
+      choice.run();
+    }
   }
 }

@@ -41,8 +41,7 @@ public final class Constants {
   public final static String moduleSysId = "rotation"; // Either rotation or drive
 
   public static final Mode simMode = Mode.SIM;
-  public static final Mode currentMode = Mode.SIM;
-  //RobotBase.isReal() ? Mode.REAL : simMode;
+  public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
   public static enum Mode {
     /** Running on a real robot. */
@@ -65,9 +64,10 @@ public final class Constants {
   }
 
   public static class IntakeConstants {
-    public static final int intakeID = 42;
-    // public static final int followerID = 42;
-    public static final double intakeSpeed = 6000;
+    public static final int intakeID = 41;
+    public static final int followerID = 42;
+
+    public static final double intakeSpeed = 1750;
     public static final double kSim_MOI = 0.0007; // kg*m^2, moment of inertia of the flywheel being simulated for the
                                                   // intake motor
     public static final double kSim_GearReduction = 1.0; // Gear reduction of the intake motor
@@ -91,31 +91,33 @@ public final class Constants {
     public static final int pivotID = 40;
 
     // PID
-    public static final double kP = 1.6;
+    public static final double kP = 1.9;
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kS = 0;
     public static final double kV = 0;
     public static final double kA = 0;
-    public static final double kG = .42;
+    public static final double kG = 0;
+    public static final double kCos = 0.7;
 
     public static final double kSim_P = 12.6;
     public static final double kSim_I = 0;
     public static final double kSim_D = 18.9;
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
-    public static final double storedRotations = 0.23;
-    public static final double collectionRotations = 0.0;
+    public static final double storedRotations = 0.20;
+    public static final double collectionRotations = -0.01;
+    public static final double intermediateRotations = 0.08;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = -0.65; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.67; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {
-    public static final int highMotorId = 20;
-    public static final int lowMotorId = 31;
+    public static final int highMotorId = 31;
+    public static final int lowMotorId = 30;
 
     public static final double kSim_TopMOI = 0.0007; // kg*m^2, moment of inertia of the flywheel being simulated for
                                                      // the top motor
@@ -127,11 +129,11 @@ public final class Constants {
     // The velocity for quick launch and continous launch
     public static final double velocityDefault = 3267 - 1000; // 67!
 
-    public static final double kP = 0.00006;
+    public static final double kP = 0.00008;
     public static final double kI = 0.0;
-    public static final double kD = 0.0003;
+    public static final double kD = 0.02;
     public static final double kS = 0.0;
-    public static final double kV = 0.00181;
+    public static final double kV = 0.001816;
     public static final double kA = 0.0;
 
     public static final double kSim_P = 0.006;
