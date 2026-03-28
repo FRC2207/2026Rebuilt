@@ -61,7 +61,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
 
-  private static final ControlType controlType = ControlType.ONEXBOX;
+  private static final ControlType controlType = ControlType.TWOXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -91,9 +91,9 @@ public class RobotContainer {
             new ModuleIOSpark(3));
 
         vision = new Vision(drive::addVisionMeasurement,
-            new VisionIOPhotonVision(camera0Name, robotToCamera0),
+            // new VisionIOPhotonVision(camera0Name, robotToCamera0),
             new VisionIOPhotonVision(camera1Name, robotToCamera1),
-            new VisionIOPhotonVision(camera2Name, robotToCamera2),
+            // new VisionIOPhotonVision(camera2Name, robotToCamera2),
             new VisionIOPhotonVision(camera3Name, robotToCamera3));
         break;
 

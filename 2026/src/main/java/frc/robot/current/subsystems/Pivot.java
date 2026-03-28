@@ -89,14 +89,20 @@ public class Pivot extends SubsystemBase {
   }
 
   public Command gotoStoredPos() {
-    return Commands.run(() -> {
+    return Commands.runOnce(() -> {
       pivotMotor.setPositionRotations(Constants.PivotConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
-    return Commands.run(() -> {
-      pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
-    }, this);
+    return Commands.sequence(
+      Commands.runOnce(() -> {
+        pivotMotor.setPositionRotations(Constants.PivotConstants.intermediateRotations);
+      }, this),
+      Commands.waitSeconds(2.0),
+      Commands.runOnce(() -> {
+        pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
+      }, this)
+    );
   }
 }
