@@ -24,7 +24,6 @@ import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
-import frc.robot.lib.ObjectVision.ObjectVision;
 
 public class Outtake extends SubsystemBase {
     private MotorController highMotor;
@@ -38,13 +37,11 @@ public class Outtake extends SubsystemBase {
 
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
-    private ObjectVision objectVision;
     private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
 
-    public Outtake(Drive drive, Hopper hopper, ObjectVision objectVision) {
+    public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
         this.hopper = hopper;
-        this.objectVision = objectVision;
         SparkFlexConfig lowConfig = new SparkFlexConfig();
         SparkFlexConfig highConfig = new SparkFlexConfig();
         lowConfig.inverted(false);

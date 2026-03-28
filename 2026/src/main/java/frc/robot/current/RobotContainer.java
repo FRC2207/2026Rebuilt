@@ -38,15 +38,10 @@ import frc.robot.lib.ObjectVision.ObjectVision;
 import frc.robot.lib.ObjectVision.ObjectVisionIODetection;
 import frc.robot.lib.commands.DriveCommands;
 import frc.robot.lib.util.AllianceRotationUtil;
-import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
-import frc.robot.lib.vision.Vision;
-import frc.robot.lib.vision.VisionIO;
-
-import static frc.robot.lib.vision.VisionConstants.*;
 
 import java.util.Set;
 
@@ -72,7 +67,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
 
-  private static final ControlType controlType = ControlType.TWOXBOX;
+  private static final ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -148,12 +143,12 @@ public class RobotContainer {
 
     hopper = new Hopper();
     objectVision = new ObjectVision(drive, new ObjectVisionIODetection(drive));
-    outtake = new Outtake(drive, hopper, objectVision);
+    outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
 
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
-    NamedCommands.registerCommand("IntakeOn", intake.intake());
+    NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
@@ -240,15 +235,15 @@ public class RobotContainer {
 
     driveXbox.back().whileTrue(
       Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
-    driveXbox.start().whileTrue(
-      Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+//    driveXbox.start().whileTrue(
+//      Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
     
     // driveXbox.start().whileTrue(
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
     // driveXbox.back().whileTrue(
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null), Set.of(drive)));
-    driveXbox.povRight().whileTrue(
-        Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
+    // driveXbox.povRight().whileTrue(
+        // Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -277,32 +272,40 @@ public class RobotContainer {
         // This will not recalculate when ball moves
         // driveXbox.rightTrigger().whileTrue(objectDetectionVision.getPath());
         // This will recalculate every 0.5 seconds I think, more complex and less likely to work
-        driveXbox.leftBumper().onTrue(
-          objectVision.driveThroughClump()
-        );
+        // driveXbox.leftBumper().onTrue(
+        //   objectVision.driveThroughClump()
+        // );
+
+        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+
+        controlXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
 
         // driveXbox.rightBumper().whileTrue(
         //   objectVision.driveToClosestBall()
         // );
 
-        driveXbox.rightTrigger().onTrue(
-          objectVision.driveVelocityOpPath()
-        );
+        // driveXbox.rightTrigger().onTrue(
+        //   objectVision.driveVelocityOpPath()
+        // );
 
-        driveXbox.rightStick().whileTrue(objectVision.kindleCommand());
+        driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
         
         break;
       case TWOXBOX:
       default:
 
         controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         controlXbox.povUp().onTrue(pivot.gotoStoredPos());
         controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        controlXbox.leftBumper().onTrue(intake.spit());
-    }
+        controlXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
+        driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
+      }
   }
 
   /**
