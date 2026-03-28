@@ -61,7 +61,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
 
-  private static final ControlType controlType = ControlType.TWOXBOX;
+  private static final ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -141,7 +141,7 @@ public class RobotContainer {
     pivot = new Pivot();
 
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
-    NamedCommands.registerCommand("IntakeOn", intake.intake());
+    NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
@@ -192,7 +192,7 @@ public class RobotContainer {
             drive,
             () -> -driveXbox.getLeftY(),
             () -> -driveXbox.getLeftX(),
-            () -> -driveXbox.getRightX()));
+            () -> -driveXbox.getRightX() * 0.5));
 
     driveXbox.y()
         .whileTrue(
@@ -212,7 +212,7 @@ public class RobotContainer {
                 () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    driveXbox.leftBumper().whileTrue(
+    /* driveXbox.leftBumper().whileTrue(
         DriveCommands.joystickDrivePointToTarget(
             drive,
             () -> -driveXbox.getLeftY(),
@@ -224,12 +224,12 @@ public class RobotContainer {
               double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
               double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
               return Math.atan2(dy, dx);
-            }));
+            })); */
 
-    driveXbox.back().whileTrue(
-      Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
-    driveXbox.start().whileTrue(
-      Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+//    driveXbox.back().whileTrue(
+//      Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
+//    driveXbox.start().whileTrue(
+//      Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
     
     // driveXbox.start().whileTrue(
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.TRENCH, () -> trenchOption.get()), Set.of(drive)));
@@ -253,15 +253,14 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        // driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
-
+        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        driveXbox.leftBumper().onTrue(intake.spit());
+        driveXbox.leftTrigger().whileTrue(intake.intakeFast()).onFalse(intake.stop());
+        driveXbox.leftBumper().onTrue(intake.intakeSlow()).onFalse(intake.stop());
         break;
       case TWOXBOX:
       default:
@@ -272,8 +271,8 @@ public class RobotContainer {
         controlXbox.povUp().onTrue(pivot.gotoStoredPos());
         controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        controlXbox.leftBumper().onTrue(intake.spit());
+        controlXbox.leftTrigger().whileTrue(intake.intakeFast()).onFalse(intake.stop());
+        controlXbox.leftBumper().onTrue(intake.intakeSlow()).onFalse(intake.stop());
     }
   }
 
