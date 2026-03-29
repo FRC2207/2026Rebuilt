@@ -29,6 +29,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
+import java.util.Arrays;
 
 /**
  * Module IO implementation for Spark Flex drive motor controller, Spark Max turn motor controller,
@@ -59,6 +60,11 @@ public class ModuleIOSpark implements ModuleIO {
       new Debouncer(0.5, Debouncer.DebounceType.kFalling);
   private final Debouncer turnConnectedDebounce =
       new Debouncer(0.5, Debouncer.DebounceType.kFalling);
+
+  // Reusable small buffers to avoid repeated allocations (max queue capacity is small)
+  private final double[] timestampBuf = new double[20];
+  private final double[] drivePosBuf = new double[20];
+  private final Rotation2d[] turnPosBuf = new Rotation2d[20];
 
   public ModuleIOSpark(int module) {
     zeroRotation =
@@ -217,14 +223,30 @@ public class ModuleIOSpark implements ModuleIO {
     inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
 
     // Update odometry inputs
-    inputs.odometryTimestamps =
-        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-    inputs.odometryDrivePositionsRad =
-        drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
-    inputs.odometryTurnPositions =
-        turnPositionQueue.stream()
-            .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
-            .toArray(Rotation2d[]::new);
+    // Drain timestampQueue into timestampBuf (avoid stream + lambda)
+    int tIdx = 0;
+    Double d;
+    while ((d = timestampQueue.poll()) != null && tIdx < timestampBuf.length) {
+      timestampBuf[tIdx++] = d.doubleValue();
+    }
+    inputs.odometryTimestamps = Arrays.copyOf(timestampBuf, tIdx);
+
+    // Drain drivePositionQueue into primitive buffer and convert to double[] (radians)
+    int pIdx = 0;
+    while ((d = drivePositionQueue.poll()) != null && pIdx < drivePosBuf.length) {
+      drivePosBuf[pIdx++] = d.doubleValue();
+    }
+    inputs.odometryDrivePositionsRad = Arrays.copyOf(drivePosBuf, pIdx);
+
+    // Drain turnPositionQueue and convert to Rotation2d[] (avoid stream)
+    int rIdx = 0;
+    while ((d = turnPositionQueue.poll()) != null && rIdx < turnPosBuf.length) {
+      // create Rotation2d minus zeroRotation - unavoidable allocation of Rotation2d here,
+      // but removed stream/lambda overhead
+      turnPosBuf[rIdx++] = new Rotation2d(d.doubleValue()).minus(zeroRotation);
+    }
+    inputs.odometryTurnPositions = Arrays.copyOf(turnPosBuf, rIdx);
+
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();

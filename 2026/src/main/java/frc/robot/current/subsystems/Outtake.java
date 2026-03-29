@@ -31,7 +31,7 @@ public class Outtake extends SubsystemBase {
 
     private Drive swerve;
     private Hopper hopper;
-    private Boolean hopperEmpty = false;
+    private boolean hopperEmpty = false;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
 
@@ -115,8 +115,8 @@ public class Outtake extends SubsystemBase {
         lowMotor.updateInputs();
 
         // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-        Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint());
-        Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint());
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
     }
 
     public Command timedLaunch(double seconds) {
@@ -164,14 +164,17 @@ public class Outtake extends SubsystemBase {
 
     public Command variableLaunchEquation() {
         return Commands.run(() -> {
-            double distance = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+            double distanceRaw = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                     ? FieldConstants.Elements.redHubPose
                     : FieldConstants.Elements.blueHubPose);
-            double velocity = distance / (Math.sqrt((0.21255 * distance + 1.4732) / 4.9) * 14.04848);
-            System.out.println("Velocity: " + velocity); // velocity is incorrect ; reported in 0.x
-            System.out.println("Distance: " + distance);
+            double distance = distanceRaw - 0.5;
+            // The velocity the ball needs to be at to hit the target in m/s
+            double ball_velocity = (Math.sqrt((23.0526875 * Math.pow(distance, 2))/(distance + (-1.482/4.7046))))/0.978147;
+            double velocity = (ball_velocity * (60/ (0.0254 * Math.PI * 3))) + 200;
+            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
+            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
             hopper.run();
-            highMotor.setSpeedRPM(velocity * 1.25);
+            highMotor.setSpeedRPM(velocity + 150);
             lowMotor.setSpeedRPM(velocity);
         }, this);
     }

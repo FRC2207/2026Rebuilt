@@ -2,9 +2,9 @@ package frc.robot.lib.motors.motorController;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+//import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class MotorController extends SubsystemBase {
+public class MotorController{
     private MotorControllerIO io;
     private final MotorControllerIOInputsAutoLogged inputs = new MotorControllerIOInputsAutoLogged();
     private String loggingKey;
@@ -21,8 +21,9 @@ public class MotorController extends SubsystemBase {
     }
 
     public void updateInputs() {
+        // Always update hardware inputs each loop (low-cost)
         io.updateInputs(inputs);
-        Logger.processInputs(loggingKey, inputs);
+        Logger.runEveryN(5, (Runnable) () -> Logger.processInputs(loggingKey, inputs));
     }
 
     /** Sets the motor percentage from -1 to 1. This is known as <i> duty cycle. </i>
