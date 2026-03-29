@@ -117,22 +117,22 @@ public class Pather {
                 case CLOCKWISE:
                     whichTrenchOut = leftTrench;
                     whichTrenchIn = rightTrench;
-                    SmartDashboard.putBoolean("Running default", false);
+                    Logger.recordOutput("Pather/selected", selected);
                     break;
                 case COUNTERCLOCKWISE:
                     whichTrenchOut = rightTrench;
                     whichTrenchIn = leftTrench;
-                    SmartDashboard.putBoolean("Running default", false);
+                    Logger.recordOutput("Pather/selected", selected);
                     break;
                 case FORCELEFT:
                     whichTrenchOut = leftTrench;
                     whichTrenchIn = leftTrench;
-                    SmartDashboard.putBoolean("Running default", false);
+                    Logger.recordOutput("Pather/selected", selected);
                     break;
                 case FORCERIGHT:
                     whichTrenchOut = rightTrench;
                     whichTrenchIn = rightTrench;
-                    SmartDashboard.putBoolean("Running default", false);
+                    Logger.recordOutput("Pather/selected", selected);
                     break;
                 case NEAREST:
                     whichTrenchOut = closestGoal(AllianceRotationUtil.apply(AutoBuilder.getCurrentPose()),

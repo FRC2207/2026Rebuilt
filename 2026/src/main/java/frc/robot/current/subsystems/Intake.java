@@ -85,10 +85,17 @@ public class Intake extends SubsystemBase {
         }));
   }
 
-  public Command intake() {
+  public Command intakeSlow() {
     return Commands.runOnce(() -> {
       isIntaking = true;
       intakeMotorA.setSpeedRPM(IntakeConstants.intakeSpeed);
+    }, this);
+  }
+
+  public Command intakeFast() {
+    return Commands.runOnce(() -> {
+      isIntaking = true;
+      intakeMotorA.setSpeedRPM(IntakeConstants.intakeSpeed * 1.35);
     }, this);
   }
 
