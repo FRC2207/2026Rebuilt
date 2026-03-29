@@ -127,7 +127,7 @@ public final class Constants {
     public static final double kSim_BottomGearReduction = 1.0; // Gear reduction of the bottom motor
 
     // The velocity for quick launch and continous launch
-    public static final double velocityDefault = 3267 - 1000; // 67!
+    public static final double velocityDefault = 2600; //3267 - 1000; // 67!
 
     public static final double kP = 0.00008;
     public static final double kI = 0.0;

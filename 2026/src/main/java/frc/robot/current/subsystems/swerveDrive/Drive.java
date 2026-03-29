@@ -205,6 +205,10 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Constants.Mode.SIM);
   }
 
+  public SwerveDriveKinematics getSwerveKinematics() {
+    return kinematics;
+  }
+
   /**
    * Runs the drive at the desired velocity.
    *
@@ -299,6 +303,14 @@ public class Drive extends SubsystemBase {
   public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
+
+  /** Returns the magnitude of the robot's linear velocity in meters per second. */
+  @AutoLogOutput(key = "Drive/LinearVelocity")
+  public double getLinearVelocity() {
+    ChassisSpeeds speeds = getChassisSpeeds();
+    return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+  }
+
 
   /**
    * 
