@@ -215,92 +215,36 @@ public class Pather {
     }
 
     public static Command trenchAlign(Direction direction) {
-        Command followPath = Commands.none();
-
+        // determine inside once
+        double currentX = AutoBuilder.getCurrentPose().getX();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
-            if (FieldConstants.fieldLength - FieldConstants.neutralLine < AutoBuilder.getCurrentPose().getX()) {
-                inside = true;
-            } else {
-                inside = false;
-            }
+            inside = FieldConstants.fieldLength - FieldConstants.neutralLine < currentX;
         } else {
-            if (AutoBuilder.getCurrentPose().getX() < FieldConstants.neutralLine) {
-                inside = true;
-            } else {
-                inside = false;
-            }
+            inside = currentX < FieldConstants.neutralLine;
         }
 
+        // select file name based on direction + inside/outside
+        final String filename;
         switch (direction) {
             case LEFT:
-                if (inside) {
-                    try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Left Trench Out"),
-                                constraints);
-                    } catch (FileVersionException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                } else {
-                    try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Left Trench In"),
-                                constraints);
-                    } catch (FileVersionException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
+                filename = inside ? "Left Trench Out" : "Left Trench In";
                 break;
             case RIGHT:
-                if (inside) {
-                    try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Right Trench Out"),
-                                constraints);
-                    } catch (FileVersionException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    try {
-                        followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Right Trench In"),
-                                constraints);
-                    } catch (FileVersionException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
+                filename = inside ? "Right Trench Out" : "Right Trench In";
                 break;
             default:
-                try {
-                    followPath = AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Left Trench Out"),
-                            constraints);
-                } catch (FileVersionException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                filename = "Left Trench Out";
                 break;
-
         }
 
-        return followPath;
+        // attempt to build the path-follow command once
+        try {
+            return AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile(filename), constraints);
+        } catch (FileVersionException | IOException | ParseException e) {
+            // Log and return a no-op command on error
+            e.printStackTrace();
+            return Commands.none();
+        }
     }
 
     /**
