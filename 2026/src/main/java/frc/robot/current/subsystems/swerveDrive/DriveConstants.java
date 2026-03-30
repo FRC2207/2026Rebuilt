@@ -23,7 +23,7 @@ public class DriveConstants {
   public static final double driveBaseRadius = Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
   public static final Translation2d[] moduleTranslations =
       new Translation2d[] {
-        new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
+        new Translation2d(trackWidth / 2.0, wheelBase / 2.0), 
         new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
         new Translation2d(-trackWidth / 2.0, wheelBase / 2.0),
         new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
@@ -31,13 +31,13 @@ public class DriveConstants {
 
   // Zeroed rotation values for each module, see setup instructions
   public static final Rotation2d frontLeftZeroRotation =
-      new Rotation2d(Units.degreesToRadians(99.63));
+      new Rotation2d(Units.degreesToRadians(-80.32)); //36.85
   public static final Rotation2d frontRightZeroRotation =
-      new Rotation2d(Units.degreesToRadians(86.87));
+      new Rotation2d(Units.degreesToRadians(86.29-180)); //106/11
   public static final Rotation2d backLeftZeroRotation =
-      new Rotation2d(Units.degreesToRadians(-117.57));
+      new Rotation2d(Units.degreesToRadians(-117.71+180)); //70.16
   public static final Rotation2d backRightZeroRotation =
-      new Rotation2d(Units.degreesToRadians(137.57));
+      new Rotation2d(Units.degreesToRadians(-37.94)); //118.33
 
   // Device CAN IDs
   public static final int pigeonCanId = 53; // changed to random since we aren't using it

@@ -193,17 +193,17 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -driveXbox.getLeftY(),
-            () -> -driveXbox.getLeftX(),
-            () -> - 0.75 * driveXbox.getRightX()));
+            () -> driveXbox.getLeftY(),
+            () -> driveXbox.getLeftX(),
+            () ->  0.75 * driveXbox.getRightX()));
 
     driveXbox.y()
         .whileTrue(
             DriveCommands.joystickDrive(
                 drive,
-                () -> -0.45 * driveXbox.getLeftY(),
-                () -> -0.45 * driveXbox.getLeftX(),
-                () -> -0.5 * driveXbox.getRightX()));
+                () -> 0.45 * driveXbox.getLeftY(),
+                () -> 0.45 * driveXbox.getLeftX(),
+                () -> 0.5 * driveXbox.getRightX()));
 
     // Lock to 0° when A button is held
     driveXbox
@@ -211,23 +211,23 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                () -> -driveXbox.getLeftY(),
-                () -> -driveXbox.getLeftX(),
+                () -> driveXbox.getLeftY(),
+                () -> driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    driveXbox.leftBumper().whileTrue(
-        DriveCommands.joystickDrivePointToTarget(
-            drive,
-            () -> -driveXbox.getLeftY(),
-            () -> -driveXbox.getLeftX(),
-            // compute absolute heading to the target (field frame) from current robot pose
-            () -> {
-              Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
-              Pose2d robotPose = drive.getPose();
-              double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
-              double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
-              return Math.atan2(dy, dx);
-            }));
+    // driveXbox.leftBumper().whileTrue(
+    //     DriveCommands.joystickDrivePointToTarget(
+    //         drive,
+    //         () -> -driveXbox.getLeftY(),
+    //         () -> -driveXbox.getLeftX(),
+    //         // compute absolute heading to the target (field frame) from current robot pose
+    //         () -> {
+    //           Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+    //           Pose2d robotPose = drive.getPose();
+    //           double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+    //           double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+    //           return Math.atan2(dy, dx);
+    //         }));
 
     /*
      * // Pather Commands
