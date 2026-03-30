@@ -31,7 +31,7 @@ public class Outtake extends SubsystemBase {
 
     private Drive swerve;
     private Hopper hopper;
-    private Boolean hopperEmpty = false;
+    private boolean hopperEmpty = false;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
 
@@ -173,8 +173,6 @@ public class Outtake extends SubsystemBase {
             double velocity = (ball_velocity * (60/ (0.0254 * Math.PI * 3))) + 200;
             Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
             Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
-            // System.out.println("Velocity: " + velocity);
-            // System.out.println("Distance: " + distance);
             hopper.run();
             highMotor.setSpeedRPM(velocity + 150);
             lowMotor.setSpeedRPM(velocity);

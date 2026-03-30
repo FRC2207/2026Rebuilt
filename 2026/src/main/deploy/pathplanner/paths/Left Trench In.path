@@ -3,12 +3,20 @@
   "waypoints": [
     {
       "anchor": {
+<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
         "x": 5.75,
+========
+        "x": 3.4,
+>>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
         "y": 7.425
       },
       "prevControl": null,
       "nextControl": {
+<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
         "x": 4.75,
+========
+        "x": 4.400000000000002,
+>>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
         "y": 7.425
       },
       "isLocked": false,
@@ -16,11 +24,19 @@
     },
     {
       "anchor": {
+<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
         "x": 3.4,
         "y": 7.425
       },
       "prevControl": {
         "x": 4.4,
+========
+        "x": 5.75,
+        "y": 7.425
+      },
+      "prevControl": {
+        "x": 4.75,
+>>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
         "y": 7.425
       },
       "nextControl": null,

@@ -62,12 +62,13 @@ public class Intake extends SubsystemBase {
             IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
         intakeMotorB = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
             IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
-            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "IntakeA");
         break;
       default:
         // Blank IO for REPLAY
-        intakeMotorA = new MotorController(new MotorControllerIO() {
-        }, "Intake");
+        intakeMotorA = new MotorController(new MotorControllerIO() {}, "IntakeA");
+        intakeMotorB = new MotorController(new MotorControllerIO() {}, "IntakeB");
+
         break;
     }
   }
@@ -94,10 +95,17 @@ public class Intake extends SubsystemBase {
         }));
   }
 
-  public Command intake() {
+  public Command intakeSlow() {
     return Commands.runOnce(() -> {
       isIntaking = true;
       intakeMotorA.setSpeedRPM(IntakeConstants.intakeSpeed);
+    }, this);
+  }
+
+  public Command intakeFast() {
+    return Commands.runOnce(() -> {
+      isIntaking = true;
+      intakeMotorA.setSpeedRPM(IntakeConstants.intakeSpeed * 1.35);
     }, this);
   }
 
