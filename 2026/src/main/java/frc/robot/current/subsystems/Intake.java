@@ -55,11 +55,16 @@ public class Intake extends SubsystemBase {
       case SIM:
         intakeMotorA = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
             IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
-            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "Intake");
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "IntakeA");
+        intakeMotorB = new MotorController(new MotorIOSim(MotorModelSim.Vortex, ControlType.Velocity,
+            IntakeConstants.kSim_P, IntakeConstants.kSim_I, IntakeConstants.kSim_D, IntakeConstants.kSim_S,
+            IntakeConstants.kSim_V, IntakeConstants.kSim_MOI, IntakeConstants.kSim_GearReduction), "IntakeB");
         break;
       default:
         // Blank IO for REPLAY
-        intakeMotorA = new MotorController(new MotorControllerIO() {}, "Intake");
+        intakeMotorA = new MotorController(new MotorControllerIO() {}, "IntakeA");
+        intakeMotorB = new MotorController(new MotorControllerIO() {}, "IntakeB");
+
         break;
     }
   }
