@@ -6,6 +6,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -45,9 +46,8 @@ public class Pivot extends SubsystemBase {
         .d(PivotConstants.kD).feedForward // Set Feedforward gains for the velocity controller
         .kS(PivotConstants.kS) // Static gain (volts)
         .kV(PivotConstants.kV) // Velocity gain (volts per RPM)
-        .kA(PivotConstants.kA)
-        .kG(PivotConstants.kG)
-        .kCos(PivotConstants.kCos); // Acceleration gain (volts per RPM/s)
+        .kA(PivotConstants.kA) // Acceleration gain (volts per RPM/s)
+        .kCos(PivotConstants.kCos); // Cosine gain (volts), for gravity compensation
 
     switch (Constants.currentMode) {
       case REAL:
@@ -64,6 +64,9 @@ public class Pivot extends SubsystemBase {
             new MotorControllerIO() {}, "Pivot");
         break;
     }
+
+    SmartDashboard.putData("Pivot/Go To Stored Position", gotoStoredPos());
+    SmartDashboard.putData("Pivot/Go To Collection Position", gotoCollectionPos());
   }
 
   public void periodic() {

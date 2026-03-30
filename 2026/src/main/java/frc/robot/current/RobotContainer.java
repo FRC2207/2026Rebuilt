@@ -173,6 +173,27 @@ public class RobotContainer {
     SmartDashboard.putData("KindleCommand", objectVision.kindleCommand());
     // Configure the trigger bindings
     configureBindings();
+
+    SmartDashboard.putData("Point To Hub", DriveCommands.joystickDrivePointToTarget(
+        drive,
+        () -> -driveXbox.getLeftY(),
+        () -> -driveXbox.getLeftX(),
+        // compute absolute heading to the target (field frame) from current robot pose
+        () -> {
+          Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+          Pose2d robotPose = drive.getPose();
+          double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+          double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+          return Math.atan2(dy, dx);
+        }));
+
+    SmartDashboard.putData("Slow Mode", DriveCommands.joystickDrive(
+        drive,
+        () -> -0.45 * driveXbox.getLeftY(),
+        () -> -0.45 * driveXbox.getLeftX(),
+        () -> -0.5 * driveXbox.getRightX()));
+
+    Pather.configureKindleListeners();
   }
 
   /**
@@ -215,36 +236,17 @@ public class RobotContainer {
                 () -> driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
-    // driveXbox.leftBumper().whileTrue(
-    //     DriveCommands.joystickDrivePointToTarget(
-    //         drive,
-    //         () -> -driveXbox.getLeftY(),
-    //         () -> -driveXbox.getLeftX(),
-    //         // compute absolute heading to the target (field frame) from current robot pose
-    //         () -> {
-    //           Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
-    //           Pose2d robotPose = drive.getPose();
-    //           double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
-    //           double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
-    //           return Math.atan2(dy, dx);
-    //         }));
+    driveXbox.back().whileTrue(
+        Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
+    driveXbox.start().whileTrue(
+        Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
 
-    /*
-     * // Pather Commands
-     * 
-     * driveXbox.back().whileTrue(
-     * Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
-     * driveXbox.start().whileTrue(
-     * Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
-     * 
-     * driveXbox.back().whileTrue(
-     * Commands.defer(() -> Pather.pathFinder(Pather.Target.HUBSHOOT, null),
-     * Set.of(drive)));
-     * driveXbox.povRight().whileTrue(
-     * Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null),
-     * Set.of(drive)));
-     * 
-     */
+    // driveXbox.leftBumper().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
+    // driveXbox.rightBumper().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
+    // driveXbox.povRight().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -261,19 +263,32 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.leftTrigger().whileTrue(intake.intakeFast()).onFalse(intake.stop());
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.leftTrigger().whileTrue(intake.intakeFast()).onFalse(intake.stop());
-        driveXbox.leftBumper().onTrue(intake.intakeSlow()).onFalse(intake.stop());
+        // driveXbox.leftBumper().climberUp();
+        // driveXbox.rightBumper().climberDown();
         break;
 
       case TWOXBOX:
       default:
-        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        driveXbox.leftBumper().whileTrue(
+            DriveCommands.joystickDrivePointToTarget(
+                drive,
+                () -> -driveXbox.getLeftY(),
+                () -> -driveXbox.getLeftX(),
+                // compute absolute heading to the target (field frame) from current robot pose
+                () -> {
+                  Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+                  Pose2d robotPose = drive.getPose();
+                  double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+                  double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+                  return Math.atan2(dy, dx);
+                }));
+
         controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         controlXbox.povUp().onTrue(pivot.gotoStoredPos());
