@@ -3,7 +3,6 @@ package frc.robot.current;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
@@ -17,10 +16,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.util.AllianceRotationUtil;
@@ -79,6 +80,31 @@ public class Pather {
         constraints = new PathConstraints(
                 DriveConstants.maxSpeedMetersPerSec * .75, 3.0,
                 Math.PI * 2, Units.degreesToRadians(720));
+    }
+
+    /**
+     * Binds certain methods to network table entries
+     */
+    public static void configureKindleListeners() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("PresetTriggers");
+        
+        Trigger trenchLTgr = new Trigger(() -> table.getEntry("Trench Left").getBoolean(false));
+        trenchLTgr.whileTrue(trenchAlign(Direction.LEFT));
+
+        Trigger trenchRTgr = new Trigger(() -> table.getEntry("Trench Right").getBoolean(false));
+        trenchRTgr.whileTrue(trenchAlign(Direction.RIGHT));
+
+        Trigger shootLTgr = new Trigger(() -> table.getEntry("ShootL").getBoolean(false));
+        shootLTgr.whileTrue(pathFinderPro(Target.HUBSHOOTLEFT));
+
+        Trigger shootMTgr = new Trigger(() -> table.getEntry("ShootM").getBoolean(false));
+        shootMTgr.whileTrue(pathFinderPro(Target.HUBSHOOTCENTER));
+
+        Trigger shootRTgr = new Trigger(() -> table.getEntry("ShootR").getBoolean(false));
+        shootRTgr.whileTrue(pathFinderPro(Target.HUBSHOOTRIGHT));
+
+        Trigger outpostTgr = new Trigger(() -> table.getEntry("Outpost").getBoolean(false));
+        outpostTgr.whileTrue(pathFinderPro(Target.OUTPOST));
     }
 
     public static Command pathFinder(Target target) {

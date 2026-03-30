@@ -190,6 +190,8 @@ public class RobotContainer {
         () -> -0.45 * driveXbox.getLeftY(),
         () -> -0.45 * driveXbox.getLeftX(),
         () -> -0.5 * driveXbox.getRightX()));
+
+    Pather.configureKindleListeners();
   }
 
   /**
