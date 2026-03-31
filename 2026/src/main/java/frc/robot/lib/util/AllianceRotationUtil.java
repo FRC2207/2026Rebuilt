@@ -127,7 +127,6 @@ public class AllianceRotationUtil {
 
   private static boolean shouldFlip() {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-      System.out.print("Alliance was flipped");
       return true;
     } else {
       return false;
