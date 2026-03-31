@@ -143,4 +143,22 @@ public final class Constants {
     public static final double kSim_V = 0.00175;
   }
 
+  public static class ClimberConstants{
+    public static final int leftClimbMotorID = 1000;
+    public static final int rightClimbMotorID = 1001;
+    public static final int leftPivotMotorID = 1002;
+    public static final int rightPivotMotorID = 1002;
+
+    // The speed of the motor when climbing as a percentage
+    public static final double climbSpeed = 0.5;
+
+    // The maximum and minimum positions for the left climber in rotations
+    public static final double leftClimbMax = 0.5;
+    public static final double leftClimbMin = 0.5;
+
+    // The maximum and minimum positions for the right climber in rotations
+    public static final double rightClimbMax = 0.5;
+    public static final double rightClimbMin = 0.5;
+  }
+
 }

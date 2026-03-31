@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
+import frc.robot.current.subsystems.Climber;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.Outtake;
@@ -62,6 +63,7 @@ public class RobotContainer {
   private ObjectVision objectVision;
   private Outtake outtake;
   private Hopper hopper;
+  private Climber climber;
 
   private static final ControlType controlType = ControlType.ONEXBOX;
 
@@ -140,6 +142,7 @@ public class RobotContainer {
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
+    climber = new Climber();
 
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
     NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
