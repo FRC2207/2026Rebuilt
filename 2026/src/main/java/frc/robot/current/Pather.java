@@ -19,6 +19,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -87,7 +88,7 @@ public class Pather {
      */
     public static void configureKindleListeners() {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("PresetTriggers");
-        
+
         Trigger trenchLTgr = new Trigger(() -> table.getEntry("Trench Left").getBoolean(false));
         trenchLTgr.whileTrue(trenchAlign(Direction.LEFT));
 
@@ -105,6 +106,10 @@ public class Pather {
 
         Trigger outpostTgr = new Trigger(() -> table.getEntry("Outpost").getBoolean(false));
         outpostTgr.whileTrue(pathFinderPro(Target.OUTPOST));
+
+        SmartDashboard.putBoolean("ShootL", table.getEntry("ShootL").getBoolean(false));
+
+        SmartDashboard.putData("ShootR", pathFinderPro(Target.HUBSHOOTRIGHT));
     }
 
     public static Command pathFinder(Target target) {
@@ -135,13 +140,13 @@ public class Pather {
 
         Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
         // Takes the previous position and applies alliance rotation if need.
-        goalPosition = AllianceRotationUtil.apply(goalPosition);
+        //goalPosition = AllianceRotationUtil.apply(goalPosition);
 
         // Record the goal position and selected trench option to the logger for
         // debugging purposes
         Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
 
-        return pathFinder(goalPosition, true);
+        return pathFinder(goalPosition, false);
     }
 
     /**

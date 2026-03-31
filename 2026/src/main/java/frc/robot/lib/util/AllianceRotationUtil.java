@@ -1,8 +1,6 @@
 // ...existing code...
 package frc.robot.lib.util;
 
-import java.util.Optional;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -12,16 +10,21 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.current.FieldConstants;
 
 /**
- * Utility functions for flipping from the blue to red alliance. By default, all translations and
- * poses in {@link FieldConstants} are stored with the origin at the rightmost point on the blue
+ * Utility functions for flipping from the blue to red alliance. By default, all
+ * translations and
+ * poses in {@link FieldConstants} are stored with the origin at the rightmost
+ * point on the blue
  * alliance wall.
  */
 public class AllianceRotationUtil {
-  public static enum CoordinateAxis {  
+  public static enum CoordinateAxis {
     X, Y
   }
 
-  /** Flips a translation to the correct side of the field based on the current alliance color. */
+  /**
+   * Flips a translation to the correct side of the field based on the current
+   * alliance color.
+   */
   public static Translation2d apply(Translation2d translation) {
     if (translation == null) {
       // avoid returning null; return a safe origin translation
@@ -29,14 +32,17 @@ public class AllianceRotationUtil {
     }
     if (shouldFlip()) {
       return new Translation2d(
-        FieldConstants.fieldLength - translation.getX(), 
-        FieldConstants.fieldWidth - translation.getY());
+          FieldConstants.fieldLength - translation.getX(),
+          FieldConstants.fieldWidth - translation.getY());
     } else {
       return translation;
     }
   }
 
-  /** Flips an X or Y coordinate to the correct side of the field based on the current alliance color. */
+  /**
+   * Flips an X or Y coordinate to the correct side of the field based on the
+   * current alliance color.
+   */
   public static double apply(Double coordinate, CoordinateAxis axis) {
     // protect against nulls for convenience: if coordinate is null, treat as 0.0
     double coord = coordinate == null ? 0.0 : coordinate.doubleValue();
@@ -47,7 +53,7 @@ public class AllianceRotationUtil {
     if (shouldFlip()) {
       if (axis == CoordinateAxis.Y) {
         return FieldConstants.fieldWidth - coord;
-      } else {  
+      } else {
         return FieldConstants.fieldLength - coord;
       }
     } else {
@@ -67,7 +73,10 @@ public class AllianceRotationUtil {
     }
   }
 
-  /** Flips a pose to the correct side of the field based on the current alliance color. */
+  /**
+   * Flips a pose to the correct side of the field based on the current alliance
+   * color.
+   */
   public static Pose2d apply(Pose2d pose) {
     if (pose == null) {
       pose = new Pose2d(); // origin, zero rotation
@@ -83,7 +92,8 @@ public class AllianceRotationUtil {
   }
 
   /**
-   * Flips a trajectory state to the correct side of the field based on the current alliance color.
+   * Flips a trajectory state to the correct side of the field based on the
+   * current alliance color.
    */
   public static Trajectory.State apply(Trajectory.State state) {
     if (state == null) {
@@ -116,11 +126,10 @@ public class AllianceRotationUtil {
   }
 
   private static boolean shouldFlip() {
-    try {
-      Alliance a = DriverStation.getAlliance().get();
-      return a == Alliance.Red;
-    } catch (Exception e) {
-      // DriverStation unavailable (unit tests / early init) — default to no flip
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+      System.out.print("Alliance was flipped");
+      return true;
+    } else {
       return false;
     }
   }

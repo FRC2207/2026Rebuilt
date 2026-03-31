@@ -244,10 +244,10 @@ public class RobotContainer {
     driveXbox.start().whileTrue(
         Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
 
-    // driveXbox.leftBumper().whileTrue(
-    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
-    // driveXbox.rightBumper().whileTrue(
-    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
+    driveXbox.leftBumper().whileTrue(
+        Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
+    driveXbox.rightBumper().whileTrue(
+        Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
     // driveXbox.povRight().whileTrue(
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
