@@ -3,41 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
-        "x": 5.75,
-========
-        "x": 3.4,
->>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
-        "y": 7.425
+        "x": 6.0,
+        "y": 7.25
       },
       "prevControl": null,
       "nextControl": {
-<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
-        "x": 4.75,
-========
-        "x": 4.400000000000002,
->>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
-        "y": 7.425
+        "x": 4.999999999999998,
+        "y": 7.25
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-<<<<<<<< HEAD:2026/src/main/deploy/pathplanner/paths/Left Trench In.path
-        "x": 3.4,
-        "y": 7.425
+        "x": 3.25,
+        "y": 7.25
       },
       "prevControl": {
-        "x": 4.4,
-========
-        "x": 5.75,
-        "y": 7.425
-      },
-      "prevControl": {
-        "x": 4.75,
->>>>>>>> develop:2026/src/main/deploy/pathplanner/paths/Left Trench Out.path
-        "y": 7.425
+        "x": 4.25,
+        "y": 7.25
       },
       "nextControl": null,
       "isLocked": false,
@@ -58,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 1.0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 2.0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }
