@@ -106,7 +106,7 @@ public final class Constants {
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
     public static final double storedRotations = 0.20;
-    public static final double collectionRotations = -0.01;
+    public static final double collectionRotations = 0.02;
     public static final double intermediateRotations = 0.08;
   }
 

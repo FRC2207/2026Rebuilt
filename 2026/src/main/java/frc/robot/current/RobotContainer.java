@@ -214,17 +214,17 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> driveXbox.getLeftY(),
-            () -> driveXbox.getLeftX(),
-            () ->  0.75 * driveXbox.getRightX()));
+            () -> -driveXbox.getLeftY(),
+            () -> -driveXbox.getLeftX(),
+            () ->  -0.75 * driveXbox.getRightX()));
 
     driveXbox.y()
         .whileTrue(
             DriveCommands.joystickDrive(
                 drive,
-                () -> 0.45 * driveXbox.getLeftY(),
-                () -> 0.45 * driveXbox.getLeftX(),
-                () -> 0.5 * driveXbox.getRightX()));
+                () -> -0.45 * driveXbox.getLeftY(),
+                () -> -0.45 * driveXbox.getLeftX(),
+                () -> -0.5 * driveXbox.getRightX()));
 
     // Lock to 0° when A button is held
     driveXbox
@@ -232,8 +232,8 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                () -> driveXbox.getLeftY(),
-                () -> driveXbox.getLeftX(),
+                () -> -driveXbox.getLeftY(),
+                () -> -driveXbox.getLeftX(),
                 () -> Rotation2d.kCCW_90deg));
 
     driveXbox.back().whileTrue(
@@ -263,7 +263,8 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.leftTrigger().whileTrue(intake.intakeFast()).onFalse(intake.stop());
+        driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
+        driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
         driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
