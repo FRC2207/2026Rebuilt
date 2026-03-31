@@ -3,6 +3,7 @@ package frc.robot.current;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.current.Pather.Direction;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.util.AllianceRotationUtil;
@@ -90,26 +92,26 @@ public class Pather {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("PresetTriggers");
 
         Trigger trenchLTgr = new Trigger(() -> table.getEntry("Trench Left").getBoolean(false));
-        trenchLTgr.whileTrue(trenchAlign(Direction.LEFT));
+        trenchLTgr.whileTrue(Commands.deferredProxy(() -> trenchAlign(Direction.LEFT)));
 
         Trigger trenchRTgr = new Trigger(() -> table.getEntry("Trench Right").getBoolean(false));
-        trenchRTgr.whileTrue(trenchAlign(Direction.RIGHT));
+        trenchRTgr.whileTrue(Commands.deferredProxy(() -> trenchAlign(Direction.RIGHT)));
 
         Trigger shootLTgr = new Trigger(() -> table.getEntry("ShootL").getBoolean(false));
-        shootLTgr.whileTrue(pathFinderPro(Target.HUBSHOOTLEFT));
+        shootLTgr.whileTrue(Commands.deferredProxy(() -> pathFinderPro(Target.HUBSHOOTLEFT)));
 
         Trigger shootMTgr = new Trigger(() -> table.getEntry("ShootM").getBoolean(false));
-        shootMTgr.whileTrue(pathFinderPro(Target.HUBSHOOTCENTER));
+        shootMTgr.whileTrue(Commands.deferredProxy(() -> pathFinderPro(Target.HUBSHOOTCENTER)));
 
         Trigger shootRTgr = new Trigger(() -> table.getEntry("ShootR").getBoolean(false));
-        shootRTgr.whileTrue(pathFinderPro(Target.HUBSHOOTRIGHT));
+        shootRTgr.whileTrue(Commands.deferredProxy(() -> pathFinderPro(Target.HUBSHOOTRIGHT)));
 
         Trigger outpostTgr = new Trigger(() -> table.getEntry("Outpost").getBoolean(false));
-        outpostTgr.whileTrue(pathFinderPro(Target.OUTPOST));
+        outpostTgr.whileTrue(Commands.deferredProxy(() -> pathFinderPro(Target.OUTPOST)));
 
         SmartDashboard.putBoolean("ShootL", table.getEntry("ShootL").getBoolean(false));
 
-        SmartDashboard.putData("ShootR", pathFinderPro(Target.HUBSHOOTRIGHT));
+        SmartDashboard.putData("ShootR", Commands.deferredProxy(() -> pathFinderPro(Target.HUBSHOOTRIGHT)));
     }
 
     public static Command pathFinder(Target target) {
