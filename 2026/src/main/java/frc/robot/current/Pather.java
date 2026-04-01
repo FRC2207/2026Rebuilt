@@ -3,7 +3,6 @@ package frc.robot.current;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
@@ -24,7 +23,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.current.Pather.Direction;
 import frc.robot.current.subsystems.swerveDrive.DriveConstants;
 import frc.robot.lib.commands.PathFollower;
 import frc.robot.lib.util.AllianceRotationUtil;
@@ -63,7 +61,8 @@ public class Pather {
 
     public static enum Direction {
         LEFT,
-        RIGHT
+        RIGHT,
+        CENTER
     }
 
     public static enum TrenchOptions {
@@ -142,7 +141,7 @@ public class Pather {
 
         Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
         // Takes the previous position and applies alliance rotation if need.
-        //goalPosition = AllianceRotationUtil.apply(goalPosition);
+        // goalPosition = AllianceRotationUtil.apply(goalPosition);
 
         // Record the goal position and selected trench option to the logger for
         // debugging purposes
@@ -218,6 +217,33 @@ public class Pather {
                 break;
         }
 
+        // attempt to build the path-follow command once
+        try {
+            return AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile(filename), constraints);
+        } catch (FileVersionException | IOException | ParseException e) {
+            // Log and return a no-op command on error
+            e.printStackTrace();
+            return Commands.none();
+        }
+    }
+
+    public static Command climbAlign(Direction direction) {
+        // select file name based on direction + inside/outside
+        final String filename;
+        switch (direction) {
+            case LEFT:
+                filename = "Left Climb";
+                break;
+            case RIGHT:
+                filename = "Right Climb";
+                break;
+            case CENTER:
+                filename = "Center Climb";
+                break;
+            default:
+                filename = "Center Climb";
+                break;
+        }
         // attempt to build the path-follow command once
         try {
             return AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile(filename), constraints);
