@@ -94,7 +94,7 @@ public class LedOperation extends SubsystemBase {
 
   public void robotStatus() {
     if (DriverStation.isEStopped()) {
-      leds.strobe("full", LedColor.RED, 1);
+      leds.strobe("full", LedColor.RED, 2);
     } else if (DriverStation.isAutonomousEnabled()) {
       leds.rainbow("front", 4);
     } else if (DriverStation.isTeleopEnabled()) {
@@ -139,8 +139,8 @@ public class LedOperation extends SubsystemBase {
     }
 
     if (!outtake.isInRage) {
-      leds.strobe("left", LedColor.RED_ORANGE, 1);
-      leds.strobe("right", LedColor.RED_ORANGE, 1);
+      leds.strobe("left", LedColor.RED_ORANGE, 2);
+      leds.strobe("right", LedColor.RED_ORANGE, 2);
     } else if (outtake.isInRage) {
       if (outtake.outtaking) {
         leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 3);

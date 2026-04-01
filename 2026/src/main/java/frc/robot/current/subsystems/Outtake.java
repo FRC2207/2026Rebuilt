@@ -1,5 +1,6 @@
 package frc.robot.current.subsystems;
 
+import org.ejml.equation.VariableType;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -42,8 +43,10 @@ public class Outtake extends SubsystemBase {
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
     private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
+    private final double motorStalledCurrent = 30.0; // Current threshold to determine if the motor is stalled
 
-    private final LoggedNetworkNumber manualShooterSetpoint = new LoggedNetworkNumber("/Outtake/ShooterSetpoint", 1000.0);
+    private final LoggedNetworkNumber manualShooterSetpoint = new LoggedNetworkNumber("/Outtake/ShooterSetpoint",
+            1000.0);
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
@@ -104,13 +107,12 @@ public class Outtake extends SubsystemBase {
                         "Outtake/lowMotor");
                 break;
 
-            
         }
 
         // Set the prelearned distances (inches) with respective velocities (RPM)
-        launchMap.put(55.0, 3000.0); //tested
-        launchMap.put(75.0, 3200.0);
-        launchMap.put(200.0, 6000.0);
+        launchMap.put(55.0, 2900.0); // this is the only tested number
+        launchMap.put(75.0, 3500.0);
+        launchMap.put(100.0, 4000.0);
     }
 
     public void periodic() {
@@ -119,7 +121,8 @@ public class Outtake extends SubsystemBase {
 
         if (checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                 ? FieldConstants.Elements.redHubPose
-                : FieldConstants.Elements.blueHubPose) < 40 && checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                : FieldConstants.Elements.blueHubPose) < 40
+                && checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                         ? FieldConstants.Elements.redHubPose
                         : FieldConstants.Elements.blueHubPose) > 300) {
             isInRage = false;
@@ -134,9 +137,9 @@ public class Outtake extends SubsystemBase {
         Logger.runEveryN(5,
                 (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
         Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(
-                            checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                                    ? FieldConstants.Elements.redHubPose
-                                    : FieldConstants.Elements.blueHubPose))));
+                checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                        ? FieldConstants.Elements.redHubPose
+                        : FieldConstants.Elements.blueHubPose))));
     }
 
     public Command timedLaunch(double seconds) {
@@ -167,6 +170,24 @@ public class Outtake extends SubsystemBase {
                     lowMotor.setSpeedRPM(motorTwoSpeed);
                     outtaking = true;
                 }));
+    }
+
+    /**
+     * The launcher sometimes gets balls stuck in the front. Ideally, this code will
+     * spit that ball out if it occurs. Otherwise it will run the variable launch
+     * map
+     */
+    public Command launcherPro() {
+        if (lowMotor.getCurrent() < motorStalledCurrent) {
+            return variableLaunchMap();
+        } else {
+            return Commands.sequence(
+                    runOnce(() -> {
+                        lowMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -1);
+                    }),
+                    Commands.waitSeconds(0.1),
+                    variableLaunchMap());
+        }
     }
 
     // Runs the launcher at variable RPM in relation to distance from the hub.
