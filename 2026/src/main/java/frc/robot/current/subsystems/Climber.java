@@ -22,6 +22,11 @@ public class Climber extends SubsystemBase {
     private MotorController leftClimbMotor;
     private MotorController rightClimbMotor;
 
+    public boolean isClimbingUp = false;
+    public boolean isClimbingDown = false;
+    public boolean isAtMax = false;
+    public boolean isAtMin = true;
+
     private enum Side {
         LEFT, RIGHT
     }
@@ -80,7 +85,8 @@ public class Climber extends SubsystemBase {
 
     public Command climbUp() {
         return Commands.runOnce(() -> {
-
+        isClimbingUp = true;
+        isClimbingDown = false;
         leftClimbMotor.setMotorPercent(-climbSpeed * 1.25);
         rightClimbMotor.setMotorPercent(-climbSpeed * 1.25);
     }, this);
@@ -88,7 +94,8 @@ public class Climber extends SubsystemBase {
 
     public Command climbDown() {
         return Commands.runOnce(() -> {
-
+        isClimbingDown = true;
+        isClimbingUp = false;
         leftClimbMotor.setMotorPercent(climbSpeed);
         rightClimbMotor.setMotorPercent(climbSpeed);
     }, this);
@@ -96,7 +103,8 @@ public class Climber extends SubsystemBase {
 
     public Command stop() {
         return Commands.runOnce(() -> {
-
+        isClimbingUp = false;
+        isClimbingDown = false;
         leftClimbMotor.setMotorPercent(0);
         rightClimbMotor.setMotorPercent(0);
     });
