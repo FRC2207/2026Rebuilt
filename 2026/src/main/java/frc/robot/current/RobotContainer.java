@@ -65,6 +65,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
   private Climber climber;
+  @SuppressWarnings("unused")
   private LedOperation leds;
 
   private static final ControlType controlType = ControlType.ONEXBOX;
@@ -85,7 +86,6 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    leds = new LedOperation();
     // exPivot = new ExamplePivot(Constants.robot);
     switch (Constants.currentMode) {
       case REAL:
@@ -145,6 +145,8 @@ public class RobotContainer {
     intake = new Intake(drive);
     pivot = new Pivot();
     climber = new Climber();
+
+    leds = new LedOperation(outtake, intake, climber);
 
     NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
     NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
