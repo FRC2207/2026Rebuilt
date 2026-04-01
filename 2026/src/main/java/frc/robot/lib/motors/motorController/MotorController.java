@@ -172,4 +172,8 @@ public class MotorController{
     public void setSpeedRPM(double speed){
         io.setSpeedRPM(speed);
     }
+
+    public void resetEncoder() {
+        io.resetEncoder();
+    }
 }

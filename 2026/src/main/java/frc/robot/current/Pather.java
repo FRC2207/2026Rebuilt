@@ -129,11 +129,11 @@ public class Pather {
                 break;
             case HUBSHOOTLEFT:
                 goalPosition = new Pose2d(hubCenter.getTranslation().plus(new Translation2d(-2.62, 2)),
-                        new Rotation2d(Units.degreesToRadians(90) - .76));
+                        new Rotation2d(Units.degreesToRadians(90) - .7));
                 break;
             case HUBSHOOTRIGHT:
                 goalPosition = new Pose2d(hubCenter.getTranslation().plus(new Translation2d(-2.62, -2)),
-                        new Rotation2d(Units.degreesToRadians(90) + .76));
+                        new Rotation2d(Units.degreesToRadians(90) + .7));
                 break;
             default:
                 goalPosition = AutoBuilder.getCurrentPose();
