@@ -14,7 +14,7 @@ import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.leds.LedController;
 
 public class LedOperation extends SubsystemBase {
-  public static final LedController leds = new LedController(240, 3, .75);
+  public static final LedController leds = new LedController(200, 9, 1);
   private LedColor color;
   private final SendableChooser<Runnable> m_chooser = new SendableChooser<>();
   private final SendableChooser<LedColor> m_color = new SendableChooser<>();
@@ -32,13 +32,13 @@ public class LedOperation extends SubsystemBase {
   public boolean isInRange = false;
 
   public LedOperation() {
-    leds.addSection("full", 0, 240);
+    leds.addSection("full", 0, 200);
     leds.addSection("right", 32, 80);
     leds.addSection("front", 81, 145);
     leds.addSection("left", 146, 191);
     leds.addSection("mechanismFrame", 32, 191);
     leds.addSection("underglow1", 0, 32);
-    leds.addSection("underglow", 191, 238);
+    leds.addSection("underglow", 191, 200);
 
     m_chooser.setDefaultOption("Solid", () -> leds.solid("mechanismFrame", color));
     m_chooser.addOption("Two Color Solid", () -> leds.solidTwoColor("mechanismFrame", LedColor.TURQUOISE, LedColor.PEACH));
@@ -83,7 +83,6 @@ public class LedOperation extends SubsystemBase {
   @Override
   public void periodic() {
     color = m_color.getSelected();
-    automaticLED = false;
 
     robotStatus();
 
@@ -107,7 +106,8 @@ public class LedOperation extends SubsystemBase {
       } else if (DriverStation.isFMSAttached()) {
         leds.carnival("front", LedColor.ORANGE, LedColor.WHITE, 2, 1);
       } else {
-        leds.breath("front", LedColor.ORANGE, 2);
+        //leds.breath("front", LedColor.ORANGE, 2);
+        leds.rainbow("full", 4);
       }
     }
 

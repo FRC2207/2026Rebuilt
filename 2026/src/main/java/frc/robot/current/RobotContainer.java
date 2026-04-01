@@ -21,6 +21,7 @@ import frc.robot.current.Constants.OperatorConstants;
 import frc.robot.current.subsystems.Climber;
 import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
+import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
 import frc.robot.current.Pather.Direction;
 import frc.robot.current.Pather.TrenchOptions;
@@ -64,6 +65,7 @@ public class RobotContainer {
   private Outtake outtake;
   private Hopper hopper;
   private Climber climber;
+  private LedOperation leds;
 
   private static final ControlType controlType = ControlType.ONEXBOX;
 
@@ -83,7 +85,7 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    // leds = new LedOperation();
+    leds = new LedOperation();
     // exPivot = new ExamplePivot(Constants.robot);
     switch (Constants.currentMode) {
       case REAL:
