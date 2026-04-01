@@ -65,7 +65,6 @@ public class Climber extends SubsystemBase {
     public void periodic() {
         leftClimbMotor.updateInputs();
         rightClimbMotor.updateInputs();
-
     }
 
     public double getRotations(Side side) {

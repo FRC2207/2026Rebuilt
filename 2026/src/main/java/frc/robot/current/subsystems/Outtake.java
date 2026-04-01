@@ -1,11 +1,13 @@
 package frc.robot.current.subsystems;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,13 +19,13 @@ import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorControllerIO;
-import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSim;
-import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
-import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
-import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Outtake extends SubsystemBase {
     private MotorController highMotor;
@@ -39,9 +41,12 @@ public class Outtake extends SubsystemBase {
     private final int lowMotorId = OuttakeConstants.lowMotorId;
     private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
 
+    private final LoggedNetworkNumber manualShooterSetpoint = new LoggedNetworkNumber("/Outtake/ShooterSetpoint", 1000.0);
+
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
         this.hopper = hopper;
+
         SparkFlexConfig lowConfig = new SparkFlexConfig();
         SparkFlexConfig highConfig = new SparkFlexConfig();
         lowConfig.inverted(false);
@@ -94,20 +99,14 @@ public class Outtake extends SubsystemBase {
                         new MotorControllerIO() {},
                         "Outtake/lowMotor");
                 break;
+
+            
         }
 
         // Set the prelearned distances (inches) with respective velocities (RPM)
-        launchMap.put(20.0, 1800.0);
-        launchMap.put(40.0, 2200.0);
-        launchMap.put(60.0, 2600.0);
-        launchMap.put(76.0, 3000.0);
-        launchMap.put(80.0, 3100.0);
-        launchMap.put(100.0, 3200.0);
-        launchMap.put(120.0, 3300.0);
-        launchMap.put(140.0, 3400.0);
-        launchMap.put(160.0, 3500.0);
-        launchMap.put(180.0, 3600.0);
-        launchMap.put(200.0, 3700.0);
+        launchMap.put(55.0, 3000.0); //tested
+        launchMap.put(75.0, 3200.0);
+        launchMap.put(200.0, 6000.0);
     }
 
     public void periodic() {
@@ -117,6 +116,10 @@ public class Outtake extends SubsystemBase {
         // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
         Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
         Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(
+                            checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                                    ? FieldConstants.Elements.redHubPose
+                                    : FieldConstants.Elements.blueHubPose))));
     }
 
     public Command timedLaunch(double seconds) {
@@ -152,14 +155,26 @@ public class Outtake extends SubsystemBase {
     public Command variableLaunchMap() {
         return Commands.sequence(
                 run(() -> {
-                    double velocity = getVelocityTarget(
+                    double distance = Units.metersToInches(
                             checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                                     ? FieldConstants.Elements.redHubPose
                                     : FieldConstants.Elements.blueHubPose));
+                    double velocity = getVelocityTarget(distance);
+                    Logger.recordOutput("Outtake/distance", distance);
+                    Logger.recordOutput("Outtake/velocitySet", velocity);
                     hopper.run();
                     highMotor.setSpeedRPM(velocity * 1.25);
                     lowMotor.setSpeedRPM(velocity);
                 }));
+    }
+
+    public Command manualTuningLaunch() {
+        return Commands.run(() -> {
+            double velocity = manualShooterSetpoint.get();
+            hopper.run();
+            highMotor.setSpeedRPM(velocity);
+            lowMotor.setSpeedRPM(500);
+        }, this);
     }
 
     public Command variableLaunchEquation() {

@@ -102,7 +102,7 @@ public class Pivot extends SubsystemBase {
       Commands.runOnce(() -> {
         pivotMotor.setPositionRotations(Constants.PivotConstants.intermediateRotations);
       }, this),
-      Commands.waitSeconds(2.0),
+      Commands.waitSeconds(0.8),
       Commands.runOnce(() -> {
         pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
       }, this)

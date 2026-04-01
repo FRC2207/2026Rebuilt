@@ -270,7 +270,8 @@ public class RobotContainer {
       case ONEXBOX:
         driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
         driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
-        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        // driveXbox.rightTrigger().onTrue(outtake.variableLaunchMap()).onFalse(outtake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.manualTuningLaunch()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
