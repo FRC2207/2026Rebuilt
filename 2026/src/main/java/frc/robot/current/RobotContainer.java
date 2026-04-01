@@ -221,33 +221,33 @@ public class RobotContainer {
             () -> -driveXbox.getLeftX(),
             () ->  -0.75 * driveXbox.getRightX()));
 
-    driveXbox.y()
-        .whileTrue(
-            DriveCommands.joystickDrive(
-                drive,
-                () -> -0.45 * driveXbox.getLeftY(),
-                () -> -0.45 * driveXbox.getLeftX(),
-                () -> -0.5 * driveXbox.getRightX()));
+    // driveXbox.y()
+    //     .whileTrue(
+    //         DriveCommands.joystickDrive(
+    //             drive,
+    //             () -> -0.45 * driveXbox.getLeftY(),
+    //             () -> -0.45 * driveXbox.getLeftX(),
+    //             () -> -0.5 * driveXbox.getRightX()));
 
-    // Lock to 0° when A button is held
-    driveXbox
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -driveXbox.getLeftY(),
-                () -> -driveXbox.getLeftX(),
-                () -> Rotation2d.kCCW_90deg));
+    // // Lock to 0° when A button is held
+    // driveXbox
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveAtAngle(
+    //             drive,
+    //             () -> -driveXbox.getLeftY(),
+    //             () -> -driveXbox.getLeftX(),
+    //             () -> Rotation2d.kCCW_90deg));
 
     driveXbox.back().whileTrue(
         Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
     driveXbox.start().whileTrue(
-        Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+       Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
 
-    driveXbox.leftBumper().whileTrue(
-        Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
-    driveXbox.rightBumper().whileTrue(
-        Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
+    // driveXbox.leftBumper().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
+    // driveXbox.rightBumper().whileTrue(
+    //    Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
     // driveXbox.povRight().whileTrue(
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
@@ -273,8 +273,8 @@ public class RobotContainer {
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        // driveXbox.leftBumper().climberUp();
-        // driveXbox.rightBumper().climberDown();
+        driveXbox.y().onTrue(climber.climbUp()).onFalse(climber.stop());
+        driveXbox.a().onTrue(climber.climbDown()).onFalse(climber.stop());
         break;
 
       case TWOXBOX:
@@ -299,7 +299,7 @@ public class RobotContainer {
         controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
         controlXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
-        controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
+        // controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
 
         driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
     }

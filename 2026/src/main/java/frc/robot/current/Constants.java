@@ -106,7 +106,7 @@ public final class Constants {
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
     public static final double storedRotations = 0.20;
-    public static final double collectionRotations = 0.02;
+    public static final double collectionRotations = 0.0;
     public static final double intermediateRotations = 0.08;
   }
 
@@ -144,13 +144,11 @@ public final class Constants {
   }
 
   public static class ClimberConstants{
-    public static final int leftClimbMotorID = 1000;
-    public static final int rightClimbMotorID = 1001;
-    public static final int leftPivotMotorID = 1002;
-    public static final int rightPivotMotorID = 1002;
+    public static final int leftClimbMotorID = 50;
+    public static final int rightClimbMotorID = 51;
 
     // The speed of the motor when climbing as a percentage
-    public static final double climbSpeed = 0.5;
+    public static final double climbSpeed = 0.3;
 
     // The maximum and minimum positions for the left climber in rotations
     public static final double leftClimbMax = 0.5;

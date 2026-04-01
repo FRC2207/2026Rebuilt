@@ -32,6 +32,7 @@ public class Climber extends SubsystemBase {
 
         leftClimbMotorConfig.idleMode(IdleMode.kBrake);
         rightClimbMotorConfig.idleMode(IdleMode.kBrake);
+        rightClimbMotorConfig.inverted(true);
 
         switch (Constants.currentMode) {
             case REAL:
@@ -50,15 +51,21 @@ public class Climber extends SubsystemBase {
                 break;
             default:
                 // Blank IO for REPLAY
-                leftClimbMotor = new MotorController(new MotorControllerIO() {}, "Climber/leftMotor");
-                rightClimbMotor = new MotorController(new MotorControllerIO() {}, "Climber/rightMotor");
+                leftClimbMotor = new MotorController(new MotorControllerIO() {
+                }, "Climber/leftMotor");
+                rightClimbMotor = new MotorController(new MotorControllerIO() {
+                }, "Climber/rightMotor");
                 break;
         }
+
+        leftClimbMotor.resetEncoder();
+        rightClimbMotor.resetEncoder();
     }
 
     public void periodic() {
         leftClimbMotor.updateInputs();
         rightClimbMotor.updateInputs();
+
     }
 
     public double getRotations(Side side) {
@@ -72,18 +79,43 @@ public class Climber extends SubsystemBase {
         }
     }
 
+    public Command climbUp() {
+        return Commands.runOnce(() -> {
+
+        leftClimbMotor.setMotorPercent(-climbSpeed * 1.25);
+        rightClimbMotor.setMotorPercent(-climbSpeed * 1.25);
+    }, this);
+    }
+
+    public Command climbDown() {
+        return Commands.runOnce(() -> {
+
+        leftClimbMotor.setMotorPercent(climbSpeed);
+        rightClimbMotor.setMotorPercent(climbSpeed);
+    }, this);
+    }
+
+    public Command stop() {
+        return Commands.runOnce(() -> {
+
+        leftClimbMotor.setMotorPercent(0);
+        rightClimbMotor.setMotorPercent(0);
+    });
+    }
+        
+
     public Command climbMax(Side side) {
         switch (side) {
             case LEFT:
                 return Commands.run(
                         () -> {
-                            leftClimbMotor.setMotorPercent(climbSpeed);
+                            leftClimbMotor.setMotorPercent(-climbSpeed);
                         }).until(() -> getRotations(side) >= leftClimbMax)
                         .finallyDo(() -> leftClimbMotor.setMotorPercent(0));
             case RIGHT:
                 return Commands.run(
                         () -> {
-                            rightClimbMotor.setMotorPercent(climbSpeed);
+                            rightClimbMotor.setMotorPercent(-climbSpeed);
                         }).until(() -> getRotations(side) >= rightClimbMax)
                         .finallyDo(() -> rightClimbMotor.setMotorPercent(0));
             default:
