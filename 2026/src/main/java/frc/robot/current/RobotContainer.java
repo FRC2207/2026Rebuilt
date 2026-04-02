@@ -24,7 +24,6 @@ import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
 import frc.robot.current.Pather.Direction;
-import frc.robot.current.Pather.TrenchOptions;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIO;
@@ -40,8 +39,6 @@ import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
-import frc.robot.lib.vision.Vision;
-import frc.robot.lib.vision.VisionIO;
 import static frc.robot.lib.vision.VisionConstants.*;
 
 import java.util.Set;
@@ -155,13 +152,6 @@ public class RobotContainer {
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
-    trenchOption = new LoggedDashboardChooser<>("Trench Option");
-
-    trenchOption.addDefaultOption("Nearest", TrenchOptions.NEAREST);
-    trenchOption.addOption("Clockwise", TrenchOptions.CLOCKWISE);
-    trenchOption.addOption("Counterclockwise", TrenchOptions.COUNTERCLOCKWISE);
-    trenchOption.addOption("Force Left", TrenchOptions.FORCELEFT);
-    trenchOption.addOption("Force Right", TrenchOptions.FORCERIGHT);
 
     // Add sysID routines to the SendableChooser for autos
     if (Constants.isTuningMode) {
