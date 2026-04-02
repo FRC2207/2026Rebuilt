@@ -67,7 +67,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private LedOperation leds;
 
-  private static final ControlType controlType = ControlType.TWOXBOX;
+  private static final ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -145,11 +145,14 @@ public class RobotContainer {
 
     leds = new LedOperation(outtake, intake, climber);
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(6));
+    NamedCommands.registerCommand("LaunchOff", outtake.stop());
     NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
+    NamedCommands.registerCommand("ClimbUp", climber.climbMaxBoth());
+    NamedCommands.registerCommand("ClimbDown", climber.climbMinBoth());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
 
@@ -263,7 +266,7 @@ public class RobotContainer {
         driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
         driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
         // driveXbox.rightTrigger().onTrue(outtake.variableLaunchMap()).onFalse(outtake.stop());
-        driveXbox.rightTrigger().onTrue(outtake.manualTuningLaunch()).onFalse(outtake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.launcherPro()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());

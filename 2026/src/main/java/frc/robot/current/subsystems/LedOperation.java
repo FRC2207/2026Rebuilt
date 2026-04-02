@@ -96,7 +96,7 @@ public class LedOperation extends SubsystemBase {
     if (DriverStation.isEStopped()) {
       leds.strobe("full", LedColor.RED, 2);
     } else if (DriverStation.isAutonomousEnabled()) {
-      leds.rainbow("front", 4);
+      leds.rainbow("full", 4);
     } else if (DriverStation.isTeleopEnabled()) {
       if (automaticLED) {
         updateState();
@@ -152,8 +152,12 @@ public class LedOperation extends SubsystemBase {
     }
 
     if (climber.isClimbingUp) {
+      if (climber.isAtMax) {
+        leds.carnival("top", LedColor.PURPLE, LedColor.RED, 2, 3);
+      } else {
       leds.zip("left", LedColor.PURPLE, 10, 1, 3, false);
       leds.zip("right", LedColor.PURPLE, 10, 1, 3, true);
+      }
     } else if (climber.isClimbingDown) {
       leds.zip("left", LedColor.PURPLE, 10, 1, 3, true);
       leds.zip("right", LedColor.PURPLE, 10, 1, 3, false);

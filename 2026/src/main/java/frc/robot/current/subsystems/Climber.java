@@ -70,6 +70,17 @@ public class Climber extends SubsystemBase {
     public void periodic() {
         leftClimbMotor.updateInputs();
         rightClimbMotor.updateInputs();
+
+        if (getRotations(Side.RIGHT) < -240 || getRotations(Side.LEFT) < -240) {
+            isAtMax = true;
+            isAtMin = false;
+        } else if (getRotations(Side.RIGHT) < 10 || getRotations(Side.LEFT) < 10) {
+            isAtMin = true;
+            isAtMax = false;
+        } else {
+            isAtMax = false;
+            isAtMin = false;
+        }
     }
 
     public double getRotations(Side side) {
@@ -85,31 +96,30 @@ public class Climber extends SubsystemBase {
 
     public Command climbUp() {
         return Commands.runOnce(() -> {
-        isClimbingUp = true;
-        isClimbingDown = false;
-        leftClimbMotor.setMotorPercent(-climbSpeed * 1.25);
-        rightClimbMotor.setMotorPercent(-climbSpeed * 1.25);
-    }, this);
+            isClimbingUp = true;
+            isClimbingDown = false;
+            leftClimbMotor.setMotorPercent(-climbSpeed * 1.25);
+            rightClimbMotor.setMotorPercent(-climbSpeed * 1.25);
+        }, this);
     }
 
     public Command climbDown() {
         return Commands.runOnce(() -> {
-        isClimbingDown = true;
-        isClimbingUp = false;
-        leftClimbMotor.setMotorPercent(climbSpeed);
-        rightClimbMotor.setMotorPercent(climbSpeed);
-    }, this);
+            isClimbingDown = true;
+            isClimbingUp = false;
+            leftClimbMotor.setMotorPercent(climbSpeed);
+            rightClimbMotor.setMotorPercent(climbSpeed);
+        }, this);
     }
 
     public Command stop() {
         return Commands.runOnce(() -> {
-        isClimbingUp = false;
-        isClimbingDown = false;
-        leftClimbMotor.setMotorPercent(0);
-        rightClimbMotor.setMotorPercent(0);
-    });
+            isClimbingUp = false;
+            isClimbingDown = false;
+            leftClimbMotor.setMotorPercent(0);
+            rightClimbMotor.setMotorPercent(0);
+        });
     }
-        
 
     public Command climbMax(Side side) {
         switch (side) {
@@ -117,13 +127,13 @@ public class Climber extends SubsystemBase {
                 return Commands.run(
                         () -> {
                             leftClimbMotor.setMotorPercent(-climbSpeed);
-                        }).until(() -> getRotations(side) >= leftClimbMax)
+                        }).until(() -> getRotations(side) <= ClimbMax)
                         .finallyDo(() -> leftClimbMotor.setMotorPercent(0));
             case RIGHT:
                 return Commands.run(
                         () -> {
                             rightClimbMotor.setMotorPercent(-climbSpeed);
-                        }).until(() -> getRotations(side) >= rightClimbMax)
+                        }).until(() -> getRotations(side) <= rightClimbMax)
                         .finallyDo(() -> rightClimbMotor.setMotorPercent(0));
             default:
                 return Commands.none();
@@ -136,13 +146,13 @@ public class Climber extends SubsystemBase {
                 return Commands.run(
                         () -> {
                             leftClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(side) <= leftClimbMin)
+                        }).until(() -> getRotations(side) >= prefferedMin)
                         .finallyDo(() -> leftClimbMotor.setMotorPercent(0));
             case RIGHT:
                 return Commands.run(
                         () -> {
                             rightClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(side) >= rightClimbMin)
+                        }).until(() -> getRotations(side) >= prefferedMin)
                         .finallyDo(() -> rightClimbMotor.setMotorPercent(0));
             default:
                 return Commands.none();
@@ -150,11 +160,27 @@ public class Climber extends SubsystemBase {
     }
 
     public Command climbMaxBoth() {
-        return Commands.parallel(climbMax(Side.LEFT), climbMax(Side.RIGHT));
+        return Commands.run(
+                () -> {
+                    leftClimbMotor.setMotorPercent(-climbSpeed * 2);
+                    rightClimbMotor.setMotorPercent(-climbSpeed * 2);
+                }).until(() -> getRotations(Side.LEFT) <= ClimbMax)
+                .finallyDo(() -> {
+                    leftClimbMotor.setMotorPercent(0);
+                    rightClimbMotor.setMotorPercent(0);
+                });
     }
 
     public Command climbMinBoth() {
-        return Commands.parallel(climbMin(Side.LEFT), climbMin(Side.RIGHT));
+        return Commands.run(
+                () -> {
+                    leftClimbMotor.setMotorPercent(climbSpeed);
+                    rightClimbMotor.setMotorPercent(climbSpeed);
+                }).until(() -> getRotations(Side.LEFT) >= prefferedMin)
+                .finallyDo(() -> {
+                    leftClimbMotor.setMotorPercent(0);
+                    rightClimbMotor.setMotorPercent(0);
+                });
     }
 
     public Command levelOneClimb() {

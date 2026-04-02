@@ -11,6 +11,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,6 +38,7 @@ public class Outtake extends SubsystemBase {
     private boolean hopperEmpty = false;
     public boolean outtaking = false;
     public boolean isInRage = false;
+    private boolean staticLaunch = false;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
 
@@ -109,8 +111,10 @@ public class Outtake extends SubsystemBase {
 
         }
 
+        SmartDashboard.putBoolean("Static Launch Speed", staticLaunch);
+
         // Set the prelearned distances (inches) with respective velocities (RPM)
-        launchMap.put(55.0, 2900.0); // this is the only tested number
+        launchMap.put(55.0, 2800.0); // this is the only tested number
         launchMap.put(75.0, 3500.0);
         launchMap.put(100.0, 4000.0);
     }
@@ -179,7 +183,11 @@ public class Outtake extends SubsystemBase {
      */
     public Command launcherPro() {
         if (lowMotor.getCurrent() < motorStalledCurrent) {
-            return variableLaunchMap();
+            if (staticLaunch) {
+            return continuousLaunch();
+            } else {
+                return variableLaunchEquation();
+            }
         } else {
             return Commands.sequence(
                     runOnce(() -> {
@@ -233,8 +241,8 @@ public class Outtake extends SubsystemBase {
                     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
                     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
                     hopper.run();
-                    highMotor.setSpeedRPM(velocity + 150);
-                    lowMotor.setSpeedRPM(velocity);
+                    highMotor.setSpeedRPM(velocity);
+                    lowMotor.setSpeedRPM(velocity * 1.15);
                 }, this));
     }
 
