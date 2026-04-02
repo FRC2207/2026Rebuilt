@@ -48,4 +48,6 @@ public interface MotorControllerIO {
     public default double getSetpoint() {return 0.0;};
 
     public default void setSpeedRPM(double speed) {};
+
+    public default void resetEncoder() {};
 }

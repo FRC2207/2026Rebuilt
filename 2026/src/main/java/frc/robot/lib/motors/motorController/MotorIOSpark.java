@@ -227,4 +227,8 @@ public class MotorIOSpark implements MotorControllerIO {
         closedLoopController.setSetpoint(clampSpeed, SparkBase.ControlType.kVelocity);
     }
 
+    public void resetEncoder() {
+        motor.getEncoder().setPosition(0);
+    }
+
 }

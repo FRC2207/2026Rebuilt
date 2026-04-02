@@ -4,36 +4,47 @@
 
 package frc.robot.current;
 
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.current.Constants.OperatorConstants;
-import frc.robot.current.subsystems.Intake;
-import frc.robot.current.subsystems.Outtake;
-import frc.robot.current.subsystems.Pivot;
+import frc.robot.current.subsystems.Climber;
 import frc.robot.current.subsystems.Hopper;
+import frc.robot.current.subsystems.Intake;
+import frc.robot.current.subsystems.LedOperation;
+import frc.robot.current.subsystems.Outtake;
+import frc.robot.current.Pather.Direction;
+import frc.robot.current.Pather.TrenchOptions;
+import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIO;
 import frc.robot.current.subsystems.swerveDrive.GyroIONavX;
 import frc.robot.current.subsystems.swerveDrive.ModuleIO;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSim;
 import frc.robot.current.subsystems.swerveDrive.ModuleIOSpark;
-
+import frc.robot.lib.ObjectVision.ObjectVision;
+import frc.robot.lib.ObjectVision.ObjectVisionIODetection;
 import frc.robot.lib.commands.DriveCommands;
+import frc.robot.lib.util.AllianceRotationUtil;
+import frc.robot.lib.vision.Vision;
+import frc.robot.lib.vision.VisionIO;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import frc.robot.lib.vision.Vision;
 import frc.robot.lib.vision.VisionIO;
 import static frc.robot.lib.vision.VisionConstants.*;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import java.util.Set;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -50,9 +61,14 @@ public class RobotContainer {
   private Drive drive;
   private Intake intake;
   private Pivot pivot;
+  @SuppressWarnings("unused")
   private Vision vision;
+  private ObjectVision objectVision;
   private Outtake outtake;
   private Hopper hopper;
+  private Climber climber;
+  @SuppressWarnings("unused")
+  private LedOperation leds;
 
   private static final ControlType controlType = ControlType.TWOXBOX;
 
@@ -70,7 +86,6 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    // leds = new LedOperation();
     // exPivot = new ExamplePivot(Constants.robot);
     switch (Constants.currentMode) {
       case REAL:
@@ -117,30 +132,75 @@ public class RobotContainer {
             });
 
         vision = new Vision(drive::addVisionMeasurement,
-            // new VisionIOPhotonVision(camera0Name, robotToCamera0),
             new VisionIO() {
             },
-            // new VisionIOPhotonVision(camera2Name, robotToCamera2),
             new VisionIO() {
             });
         break;
     }
 
     hopper = new Hopper();
+    objectVision = new ObjectVision(drive, new ObjectVisionIODetection());
     outtake = new Outtake(drive, hopper);
     intake = new Intake(drive);
     pivot = new Pivot();
+    climber = new Climber();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(5));
-    NamedCommands.registerCommand("IntakeOn", intake.intake());
+    leds = new LedOperation(outtake, intake, climber);
+
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
+    NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
+    trenchOption = new LoggedDashboardChooser<>("Trench Option");
 
+    trenchOption.addDefaultOption("Nearest", TrenchOptions.NEAREST);
+    trenchOption.addOption("Clockwise", TrenchOptions.CLOCKWISE);
+    trenchOption.addOption("Counterclockwise", TrenchOptions.COUNTERCLOCKWISE);
+    trenchOption.addOption("Force Left", TrenchOptions.FORCELEFT);
+    trenchOption.addOption("Force Right", TrenchOptions.FORCERIGHT);
+
+    // Add sysID routines to the SendableChooser for autos
+    if (Constants.isTuningMode) {
+      autoChooser.addOption("Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+      autoChooser.addOption("Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+      autoChooser.addOption("Drive SysId (Quasistatic Forward)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+      autoChooser.addOption("Drive SysId (Quasistatic Reverse)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+      autoChooser.addOption("FFCharacterization", DriveCommands.feedforwardCharacterization(drive));
+      autoChooser.addOption(
+          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+
+    }
+
+    SmartDashboard.putData("KindleCommand", objectVision.kindleCommand());
     // Configure the trigger bindings
     configureBindings();
+
+    SmartDashboard.putData("Point To Hub", DriveCommands.joystickDrivePointToTarget(
+        drive,
+        () -> -driveXbox.getLeftY(),
+        () -> -driveXbox.getLeftX(),
+        // compute absolute heading to the target (field frame) from current robot pose
+        () -> {
+          Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+          Pose2d robotPose = drive.getPose();
+          double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+          double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+          return Math.atan2(dy, dx);
+        }));
+
+    SmartDashboard.putData("Slow Mode", DriveCommands.joystickDrive(
+        drive,
+        () -> -0.45 * driveXbox.getLeftY(),
+        () -> -0.45 * driveXbox.getLeftX(),
+        () -> -0.5 * driveXbox.getRightX()));
+
+    Pather.configureKindleListeners();
   }
 
   /**
@@ -163,39 +223,37 @@ public class RobotContainer {
             drive,
             () -> -driveXbox.getLeftY(),
             () -> -driveXbox.getLeftX(),
-            () -> -driveXbox.getRightX()));
+            () ->  -0.75 * driveXbox.getRightX()));
 
-    driveXbox.y()
-        .whileTrue(
-            DriveCommands.joystickDrive(
-                drive,
-                () -> -0.45 * driveXbox.getLeftY(),
-                () -> -0.45 * driveXbox.getLeftX(),
-                () -> -0.5 * driveXbox.getRightX()));
+    // driveXbox.y()
+    //     .whileTrue(
+    //         DriveCommands.joystickDrive(
+    //             drive,
+    //             () -> -0.45 * driveXbox.getLeftY(),
+    //             () -> -0.45 * driveXbox.getLeftX(),
+    //             () -> -0.5 * driveXbox.getRightX()));
 
-    // Lock to 0° when A button is held
-    driveXbox
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -driveXbox.getLeftY(),
-                () -> -driveXbox.getLeftX(),
-                () -> Rotation2d.kCCW_90deg));
+    // // Lock to 0° when A button is held
+    // driveXbox
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveAtAngle(
+    //             drive,
+    //             () -> -driveXbox.getLeftY(),
+    //             () -> -driveXbox.getLeftX(),
+    //             () -> Rotation2d.kCCW_90deg));
+
+    driveXbox.back().whileTrue(
+        Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
+    driveXbox.start().whileTrue(
+       Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
 
     // driveXbox.leftBumper().whileTrue(
-    //     DriveCommands.joystickDrivePointToTarget(
-    //         drive,
-    //         () -> -driveXbox.getLeftY(),
-    //         () -> -driveXbox.getLeftX(),
-    //         // compute absolute heading to the target (field frame) from current robot pose
-    //         () -> {
-    //           Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
-    //           Pose2d robotPose = drive.getPose();
-    //           double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
-    //           double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
-    //           return Math.atan2(dy, dx);
-    //         }));
+    //     Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTLEFT), Set.of(drive)));
+    // driveXbox.rightBumper().whileTrue(
+    //    Commands.defer(() -> Pather.pathFinderPro(Pather.Target.HUBSHOOTRIGHT), Set.of(drive)));
+    // driveXbox.povRight().whileTrue(
+    //     Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
     driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -212,25 +270,43 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
-        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
+        driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
+        // driveXbox.rightTrigger().onTrue(outtake.variableLaunchMap()).onFalse(outtake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.manualTuningLaunch()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        driveXbox.leftBumper().onTrue(intake.spit());
+        driveXbox.y().onTrue(climber.climbUp()).onFalse(climber.stop());
+        driveXbox.a().onTrue(climber.climbDown()).onFalse(climber.stop());
         break;
+
       case TWOXBOX:
       default:
-        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
+        driveXbox.leftBumper().whileTrue(
+            DriveCommands.joystickDrivePointToTarget(
+                drive,
+                () -> -driveXbox.getLeftY(),
+                () -> -driveXbox.getLeftX(),
+                // compute absolute heading to the target (field frame) from current robot pose
+                () -> {
+                  Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+                  Pose2d robotPose = drive.getPose();
+                  double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+                  double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+                  return Math.atan2(dy, dx);
+                }));
 
-        controlXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        controlXbox.rightBumper().onTrue(outtake.continuousLaunch()).onFalse(outtake.stop());
 
         controlXbox.povUp().onTrue(pivot.gotoStoredPos());
         controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        controlXbox.leftTrigger().whileTrue(intake.intake()).onFalse(intake.stop());
-        controlXbox.leftBumper().onTrue(intake.spit());
+        controlXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
+        // controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
+
+        driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
     }
   }
 

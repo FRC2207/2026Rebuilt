@@ -1,11 +1,14 @@
 package frc.robot.current.subsystems;
 
+import org.ejml.equation.VariableType;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,13 +20,13 @@ import frc.robot.current.FieldConstants;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorControllerIO;
-import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSim;
-import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
-import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
-import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
+import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
+import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
+import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
 
 public class Outtake extends SubsystemBase {
     private MotorController highMotor;
@@ -31,17 +34,24 @@ public class Outtake extends SubsystemBase {
 
     private Drive swerve;
     private Hopper hopper;
-    private Boolean hopperEmpty = false;
+    private boolean hopperEmpty = false;
+    public boolean outtaking = false;
+    public boolean isInRage = false;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
 
     private final int highMotorId = OuttakeConstants.highMotorId;
     private final int lowMotorId = OuttakeConstants.lowMotorId;
     private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
+    private final double motorStalledCurrent = 30.0; // Current threshold to determine if the motor is stalled
+
+    private final LoggedNetworkNumber manualShooterSetpoint = new LoggedNetworkNumber("/Outtake/ShooterSetpoint",
+            1000.0);
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
         this.hopper = hopper;
+
         SparkFlexConfig lowConfig = new SparkFlexConfig();
         SparkFlexConfig highConfig = new SparkFlexConfig();
         lowConfig.inverted(false);
@@ -88,35 +98,48 @@ public class Outtake extends SubsystemBase {
             default:
                 // Blank IO for REPLAY
                 highMotor = new MotorController(
-                        new MotorControllerIO() {},
+                        new MotorControllerIO() {
+                        },
                         "Outtake/highMotor");
                 lowMotor = new MotorController(
-                        new MotorControllerIO() {},
+                        new MotorControllerIO() {
+                        },
                         "Outtake/lowMotor");
                 break;
+
         }
 
         // Set the prelearned distances (inches) with respective velocities (RPM)
-        launchMap.put(20.0, 1800.0);
-        launchMap.put(40.0, 2200.0);
-        launchMap.put(60.0, 2600.0);
-        launchMap.put(76.0, 3000.0);
-        launchMap.put(80.0, 3100.0);
-        launchMap.put(100.0, 3200.0);
-        launchMap.put(120.0, 3300.0);
-        launchMap.put(140.0, 3400.0);
-        launchMap.put(160.0, 3500.0);
-        launchMap.put(180.0, 3600.0);
-        launchMap.put(200.0, 3700.0);
+        launchMap.put(55.0, 2900.0); // this is the only tested number
+        launchMap.put(75.0, 3500.0);
+        launchMap.put(100.0, 4000.0);
     }
 
     public void periodic() {
         highMotor.updateInputs();
         lowMotor.updateInputs();
 
-        // NOTE: using getSetpointRotations() because their is no setpoint retrival for velocity control
-        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
-        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
+        if (checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                ? FieldConstants.Elements.redHubPose
+                : FieldConstants.Elements.blueHubPose) < 40
+                && checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                        ? FieldConstants.Elements.redHubPose
+                        : FieldConstants.Elements.blueHubPose) > 300) {
+            isInRage = false;
+        } else {
+            isInRage = true;
+        }
+
+        // NOTE: using getSetpointRotations() because their is no setpoint retrival for
+        // velocity control
+        Logger.runEveryN(5,
+                (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
+        Logger.runEveryN(5,
+                (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
+        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(
+                checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                        ? FieldConstants.Elements.redHubPose
+                        : FieldConstants.Elements.blueHubPose))));
     }
 
     public Command timedLaunch(double seconds) {
@@ -128,6 +151,7 @@ public class Outtake extends SubsystemBase {
                     hopper.run();
                     highMotor.setSpeedRPM(motorOneSpeed);
                     lowMotor.setSpeedRPM(motorTwoSpeed);
+                    outtaking = true;
                 }),
                 Commands.waitSeconds(seconds),
                 runOnce(() -> {
@@ -144,7 +168,26 @@ public class Outtake extends SubsystemBase {
                     hopper.run();
                     highMotor.setSpeedRPM(motorOneSpeed);
                     lowMotor.setSpeedRPM(motorTwoSpeed);
+                    outtaking = true;
                 }));
+    }
+
+    /**
+     * The launcher sometimes gets balls stuck in the front. Ideally, this code will
+     * spit that ball out if it occurs. Otherwise it will run the variable launch
+     * map
+     */
+    public Command launcherPro() {
+        if (lowMotor.getCurrent() < motorStalledCurrent) {
+            return variableLaunchMap();
+        } else {
+            return Commands.sequence(
+                    runOnce(() -> {
+                        lowMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -1);
+                    }),
+                    Commands.waitSeconds(0.1),
+                    variableLaunchMap());
+        }
     }
 
     // Runs the launcher at variable RPM in relation to distance from the hub.
@@ -152,33 +195,47 @@ public class Outtake extends SubsystemBase {
     public Command variableLaunchMap() {
         return Commands.sequence(
                 run(() -> {
-                    double velocity = getVelocityTarget(
+                    double distance = Units.metersToInches(
                             checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
                                     ? FieldConstants.Elements.redHubPose
                                     : FieldConstants.Elements.blueHubPose));
+                    double velocity = getVelocityTarget(distance);
+                    Logger.recordOutput("Outtake/distance", distance);
+                    Logger.recordOutput("Outtake/velocitySet", velocity);
                     hopper.run();
                     highMotor.setSpeedRPM(velocity * 1.25);
                     lowMotor.setSpeedRPM(velocity);
+                    outtaking = true;
                 }));
     }
 
-    public Command variableLaunchEquation() {
+    public Command manualTuningLaunch() {
         return Commands.run(() -> {
-            double distanceRaw = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                    ? FieldConstants.Elements.redHubPose
-                    : FieldConstants.Elements.blueHubPose);
-            double distance = distanceRaw - 0.5;
-            // The velocity the ball needs to be at to hit the target in m/s
-            double ball_velocity = (Math.sqrt((23.0526875 * Math.pow(distance, 2))/(distance + (-1.482/4.7046))))/0.978147;
-            double velocity = (ball_velocity * (60/ (0.0254 * Math.PI * 3))) + 200;
-            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
-            Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
-            // System.out.println("Velocity: " + velocity);
-            // System.out.println("Distance: " + distance);
+            double velocity = manualShooterSetpoint.get();
             hopper.run();
-            highMotor.setSpeedRPM(velocity + 150);
-            lowMotor.setSpeedRPM(velocity);
+            highMotor.setSpeedRPM(velocity);
+            lowMotor.setSpeedRPM(500);
         }, this);
+    }
+
+    public Command variableLaunchEquation() {
+        return Commands.parallel(Commands.runOnce(() -> outtaking = true),
+                Commands.run(() -> {
+                    double distanceRaw = checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                            ? FieldConstants.Elements.redHubPose
+                            : FieldConstants.Elements.blueHubPose);
+                    double distance = distanceRaw - 0.5;
+                    // The velocity the ball needs to be at to hit the target in m/s
+                    double ball_velocity = (Math
+                            .sqrt((23.0526875 * Math.pow(distance, 2)) / (distance + (-1.482 / 4.7046))))
+                            / 0.978147;
+                    double velocity = (ball_velocity * (60 / (0.0254 * Math.PI * 3))) + 200;
+                    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
+                    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
+                    hopper.run();
+                    highMotor.setSpeedRPM(velocity + 150);
+                    lowMotor.setSpeedRPM(velocity);
+                }, this));
     }
 
     /** Stops all the motors */
@@ -187,6 +244,7 @@ public class Outtake extends SubsystemBase {
             hopper.stop();
             highMotor.setSpeedRPM(0);
             lowMotor.setSpeedRPM(0);
+            outtaking = false;
         },
                 this);
     }
