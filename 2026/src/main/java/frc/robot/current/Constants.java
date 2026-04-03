@@ -98,21 +98,21 @@ public final class Constants {
     public static final double kV = 0;
     public static final double kA = 0;
     public static final double kG = 0;
-    public static final double kCos = 0.7;
+    public static final double kCos = 0.75;
 
     public static final double kSim_P = 12.6;
     public static final double kSim_I = 0;
     public static final double kSim_D = 18.9;
 
     // THESE VALUES ARE ROTATIONS AND NOT ANGLES, MAKE SURE THEY ARE SMALL
-    public static final double storedRotations = 0.20;
-    public static final double collectionRotations = -0.01;
-    public static final double intermediateRotations = 0.08;
+    public static final double storedRotations = 0.23;
+    public static final double collectionRotations = 0.0;
+    public static final double intermediateRotations = 0.15;
   }
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = -0.75; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.85; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {
@@ -127,7 +127,7 @@ public final class Constants {
     public static final double kSim_BottomGearReduction = 1.0; // Gear reduction of the bottom motor
 
     // The velocity for quick launch and continous launch
-    public static final double velocityDefault = 2600; //3267 - 1000; // 67!
+    public static final double velocityDefault = 3500;
 
     public static final double kP = 0.00008;
     public static final double kI = 0.0;
@@ -151,8 +151,9 @@ public final class Constants {
     public static final double climbSpeed = 0.3;
 
     // The maximum and minimum positions for the left climber in rotations
-    public static final double leftClimbMax = 0.5;
-    public static final double leftClimbMin = 0.5;
+    public static final double ClimbMax = -180;
+    public static final double prefferedMin = -60;
+    public static final double ClimbMin = 0;
 
     // The maximum and minimum positions for the right climber in rotations
     public static final double rightClimbMax = 0.5;

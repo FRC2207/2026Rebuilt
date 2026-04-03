@@ -10,6 +10,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,8 +34,12 @@ public class Outtake extends SubsystemBase {
 
     private Drive swerve;
     private Hopper hopper;
-    public boolean outtaking = false;
-    public boolean isInRange = false;
+    public static boolean outtaking = false;
+    public static boolean isInRange = false;
+    private boolean staticLaunch = false;
+
+    private double testVelocityHigh;
+    private double testVelovityLow;
 
     private InterpolatingDoubleTreeMap launchMap = new InterpolatingDoubleTreeMap();
 
@@ -43,8 +48,9 @@ public class Outtake extends SubsystemBase {
     private EncoderType encoderType = EncoderType.BUILTIN_RELATIVE;
     private final double motorStalledCurrent = 30.0; // Current threshold to determine if the motor is stalled
 
-    private final LoggedNetworkNumber manualShooterSetpoint = new LoggedNetworkNumber("/Outtake/ShooterSetpoint",
+    private final LoggedNetworkNumber manualShooterSetpointHigh = new LoggedNetworkNumber("/Outtake/ShooterSetpointHigh",
             1000.0);
+    private final LoggedNetworkNumber manualShooterSetpointLow = new LoggedNetworkNumber("/Outtake/ShootSetpointLow", 1000.0);
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
@@ -107,8 +113,10 @@ public class Outtake extends SubsystemBase {
 
         }
 
+        SmartDashboard.putBoolean("Static Launch Speed", staticLaunch);
+
         // Set the prelearned distances (inches) with respective velocities (RPM)
-        launchMap.put(55.0, 2900.0); // this is the only tested number
+        launchMap.put(55.0, 2800.0); // this is the only tested number
         launchMap.put(75.0, 3500.0);
         launchMap.put(100.0, 4000.0);
     }
@@ -116,6 +124,9 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         highMotor.updateInputs();
         lowMotor.updateInputs();
+
+        testVelocityHigh = manualShooterSetpointHigh.get();
+        testVelovityLow = manualShooterSetpointLow.get();
 
         double distanceMeters = checkDistanceToHub();
 
@@ -169,7 +180,11 @@ public class Outtake extends SubsystemBase {
      */
     public Command launcherPro() {
         if (lowMotor.getCurrent() < motorStalledCurrent) {
-            return variableLaunchMap();
+            if (staticLaunch) {
+            return manualTuningLaunch();
+            } else {
+                return variableLaunchEquation();
+            }
         } else {
             return Commands.sequence(
                     runOnce(() -> {
@@ -224,8 +239,9 @@ public class Outtake extends SubsystemBase {
 
     public Command manualTuningLaunch() {
         return Commands.run(() -> {
-            double velocity = manualShooterSetpoint.get();
-            launchWithSpeeds(velocity, 500);
+            double velocityHigh = testVelocityHigh;
+            double velocityLow = testVelovityLow;
+            launchWithSpeeds(velocityHigh, velocityLow);
         }, this);
     }
 
@@ -242,7 +258,7 @@ public class Outtake extends SubsystemBase {
                             / 0.978147;
                     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
                     double velocity = (ball_velocity * (60 / (0.0254 * Math.PI * 3))) + 200;
-                    launchWithSpeeds(velocity + 150, velocity);
+                    launchWithSpeeds(velocity - 1000, velocity);
                 }, this));
     }
 

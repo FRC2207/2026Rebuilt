@@ -25,20 +25,13 @@ public class LedOperation extends SubsystemBase {
 
   public boolean automaticLED = true;
 
-  private Outtake outtake;
-  private Intake intake;
-  private Climber climber;
-
-  public LedOperation(Outtake outtake, Intake intake, Climber climber) {
-    this.outtake = outtake;
-    this.intake = intake;
-    this.climber = climber;
+  public LedOperation() {
 
     leds.addSection("full", 0, 125);
     leds.addSection("left", 0, 30);
-    leds.addSection("leftEdge", 31, 38);
-    leds.addSection("top", 39, 67);
-    leds.addSection("rightEdge", 68, 75);
+    leds.addSection("leftEdge", 31, 37);
+    leds.addSection("top", 38, 65);
+    leds.addSection("rightEdge", 66, 72);
     leds.addSection("right", 76, 125);
 
     m_chooser.setDefaultOption("Solid", () -> leds.solid("mechanismFrame", color));
@@ -96,7 +89,7 @@ public class LedOperation extends SubsystemBase {
     if (DriverStation.isEStopped()) {
       leds.strobe("full", LedColor.RED, 2);
     } else if (DriverStation.isAutonomousEnabled()) {
-      leds.rainbow("front", 4);
+      leds.rainbow("full", 4);
     } else if (DriverStation.isTeleopEnabled()) {
       if (automaticLED) {
         updateState();
@@ -132,17 +125,17 @@ public class LedOperation extends SubsystemBase {
     // leds.rainbow("top", 3);
     // } else
 
-    if (intake.isIntaking) {
+    if (Intake.isIntaking) {
       leds.solidTwoColor("top", LedColor.GREEN, LedColor.BLACK);
     } else {
       leds.solid("top", LedColor.ORANGE);
     }
 
-    if (!outtake.isInRange) {
+    if (!Outtake.isInRange) {
       leds.strobe("left", LedColor.RED_ORANGE, 2);
       leds.strobe("right", LedColor.RED_ORANGE, 2);
-    } else if (outtake.isInRange) {
-      if (outtake.outtaking) {
+    } else if (Outtake.isInRange) {
+      if (Outtake.outtaking) {
         leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
         leds.fade("right", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
       } else {
@@ -151,10 +144,14 @@ public class LedOperation extends SubsystemBase {
       }
     }
 
-    if (climber.isClimbingUp) {
+    if (Climber.isClimbingUp) {
+      if (Climber.isAtMax) {
+        leds.carnival("top", LedColor.PURPLE, LedColor.RED, 2, 3);
+      } else {
       leds.zip("left", LedColor.PURPLE, 10, 1, 3, false);
       leds.zip("right", LedColor.PURPLE, 10, 1, 3, true);
-    } else if (climber.isClimbingDown) {
+      }
+    } else if (Climber.isClimbingDown) {
       leds.zip("left", LedColor.PURPLE, 10, 1, 3, true);
       leds.zip("right", LedColor.PURPLE, 10, 1, 3, false);
     }

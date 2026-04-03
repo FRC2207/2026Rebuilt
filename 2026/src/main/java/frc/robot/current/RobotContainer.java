@@ -67,7 +67,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private LedOperation leds;
 
-  private static final ControlType controlType = ControlType.TWOXBOX;
+  private static final ControlType controlType = ControlType.ONEXBOX;
 
   public enum ControlType {
     ONEXBOX, TWOXBOX
@@ -143,13 +143,16 @@ public class RobotContainer {
     pivot = new Pivot();
     climber = new Climber();
 
-    leds = new LedOperation(outtake, intake, climber);
+    leds = new LedOperation();
 
-    NamedCommands.registerCommand("Launch", outtake.timedLaunch(8));
+    NamedCommands.registerCommand("Launch", outtake.timedLaunch(6));
+    NamedCommands.registerCommand("LaunchOff", outtake.stop());
     NamedCommands.registerCommand("IntakeOn", intake.intakeSlow());
     NamedCommands.registerCommand("IntakeOff", intake.stop());
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
+    NamedCommands.registerCommand("ClimbUp", climber.climbMaxBoth());
+    NamedCommands.registerCommand("ClimbDown", climber.climbMinFlatBoth());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
 
@@ -246,7 +249,6 @@ public class RobotContainer {
     //     Commands.defer(() -> Pather.pathFinder(Pather.Target.OUTPOST, null), Set.of(drive)));
 
     // Switch to X pattern when X button is pressed
-    driveXbox.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
     driveXbox
@@ -260,16 +262,18 @@ public class RobotContainer {
 
     switch (controlType) {
       case ONEXBOX:
+
         driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
         driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
-        // driveXbox.rightTrigger().onTrue(outtake.variableLaunchMap()).onFalse(outtake.stop());
-        driveXbox.rightTrigger().onTrue(outtake.manualTuningLaunch()).onFalse(outtake.stop());
+
+        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.y().onTrue(climber.climbUp()).onFalse(climber.stop());
+        driveXbox.y().onTrue(climber.climbMaxBoth()).onFalse(climber.stop());
         driveXbox.a().onTrue(climber.climbDown()).onFalse(climber.stop());
+        driveXbox.x().onTrue(climber.climbDownStowed()).onFalse(climber.stop());
         break;
 
       case TWOXBOX:

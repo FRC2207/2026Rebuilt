@@ -7,9 +7,9 @@ import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
 import frc.robot.lib.motors.motorController.MotorControllerIO;
 import frc.robot.lib.motors.motorController.MotorIOSim;
-import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSim.ControlType;
 import frc.robot.lib.motors.motorController.MotorIOSim.MotorModelSim;
+import frc.robot.lib.motors.motorController.MotorIOSpark;
 import frc.robot.lib.motors.motorController.MotorIOSpark.EncoderType;
 import frc.robot.lib.motors.motorController.MotorIOSpark.MotorModel;
 import frc.robot.lib.motors.motorController.MotorIOSpark.SparkType;
@@ -19,6 +19,8 @@ public class Hopper extends SubsystemBase {
     private MotorController motor;
 
     public Hopper() {
+        sparkConfig.smartCurrentLimit(20);
+        
         switch (Constants.currentMode) {
             case REAL:
                 motor = new MotorController(new MotorIOSpark(Constants.HopperConstants.motorID, sparkConfig, SparkType.SparkMax, MotorModel.NeoV1, EncoderType.BUILTIN_RELATIVE),
