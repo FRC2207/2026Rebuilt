@@ -29,8 +29,8 @@ public class ObjectVision extends SubsystemBase {
     private final ObjectVisionIOInputsAutoLogged inputs = new ObjectVisionIOInputsAutoLogged();
 
     private static final double MIN_BALL_DISTANCE_M = 0.3; // Balls closer then this are ignored
-    private static final double DBSCAN_EPS = 0.5; // How close the balls have to be to be in a clump
-    private static final int DBSCAN_MIN_PTS = 4; // Min points for a cluster
+    private static final double DBSCAN_EPS = 10; // How close the balls have to be to be in a clump
+    private static final int DBSCAN_MIN_PTS = 1; // Min points for a cluster
 
     private static final double PASS_THROUGH_VEL = 1.5; // How fast the robot should end a sequence. This is good
 
