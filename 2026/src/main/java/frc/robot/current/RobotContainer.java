@@ -78,6 +78,7 @@ public class RobotContainer {
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
   private final LoggedDashboardChooser<Command> autoChooser;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -216,12 +217,12 @@ public class RobotContainer {
             drive,
             () -> -driveXbox.getLeftY(),
             () -> -driveXbox.getLeftX(),
-            () ->  -0.75 * driveXbox.getRightX()));
+            () -> -0.75 * driveXbox.getRightX()));
 
     driveXbox.back().whileTrue(
         Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
     driveXbox.start().whileTrue(
-       Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+        Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
 
     // Reset gyro to 0° when B button is pressed
     driveXbox
@@ -239,14 +240,28 @@ public class RobotContainer {
         driveXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
         driveXbox.leftBumper().whileTrue(intake.intakeFast()).onFalse(intake.stop());
 
-        driveXbox.rightTrigger().onTrue(outtake.variableLaunchEquation()).onFalse(outtake.stop());
+        driveXbox.rightTrigger().onTrue(outtake.launcherPro()).onFalse(outtake.stop());
+        driveXbox.rightBumper().onTrue(outtake.manualTuningLaunch()).onFalse(outtake.stop());
 
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
-        driveXbox.y().onTrue(climber.climbMaxBoth()).onFalse(climber.stop());
-        driveXbox.a().onTrue(climber.climbStowedBoth()).onFalse(climber.stop());
-        driveXbox.x().onTrue(climber.climbDownIndividual()).onFalse(climber.stop());
+        driveXbox.povRight().whileTrue(DriveCommands.joystickDrivePointToTarget(
+            drive,
+            () -> -driveXbox.getLeftY(),
+            () -> -driveXbox.getLeftX(),
+            // compute absolute heading to the target (field frame) from current robot pose
+            () -> {
+              Pose2d target = AllianceRotationUtil.apply(FieldConstants.Elements.blueHubPose);
+              Pose2d robotPose = drive.getPose();
+              double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
+              double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
+              return Math.atan2(dy, dx);
+            }));
+
+        driveXbox.y().whileTrue(climber.climbMaxBoth()).onFalse(climber.stop());
+        driveXbox.a().whileTrue(climber.climbStowedBoth()).onFalse(climber.stop());
+        driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber))).onFalse(climber.stop());
         break;
 
       case TWOXBOX:

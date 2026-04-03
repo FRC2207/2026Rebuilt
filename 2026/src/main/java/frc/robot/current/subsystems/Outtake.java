@@ -49,8 +49,8 @@ public class Outtake extends SubsystemBase {
     private final double motorStalledCurrent = 30.0; // Current threshold to determine if the motor is stalled
 
     private final LoggedNetworkNumber manualShooterSetpointHigh = new LoggedNetworkNumber("/Outtake/ShooterSetpointHigh",
-            1000.0);
-    private final LoggedNetworkNumber manualShooterSetpointLow = new LoggedNetworkNumber("/Outtake/ShootSetpointLow", 1000.0);
+            2000.0);
+    private final LoggedNetworkNumber manualShooterSetpointLow = new LoggedNetworkNumber("/Outtake/ShootSetpointLow", 3000.0);
 
     public Outtake(Drive drive, Hopper hopper) {
         this.swerve = drive;
@@ -142,8 +142,17 @@ public class Outtake extends SubsystemBase {
                 (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(distanceMeters)));
     }
 
+    public Command spit() {
+        return Commands.runOnce(() -> {
+            lowMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -.5);
+            highMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -.5);
+            hopper.runBackwards();
+            outtaking = true;
+        }, this);
+    }
+
     public Command timedLaunch(double seconds) {
-        double highMotorSpeed = OuttakeConstants.velocityDefault * 1.25;
+        double highMotorSpeed = OuttakeConstants.velocityDefault - 1000;
         double lowMotorSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
@@ -157,7 +166,7 @@ public class Outtake extends SubsystemBase {
     }
 
     public Command continuousLaunch() {
-        double highMotorSpeed = OuttakeConstants.velocityDefault * 1.25;
+        double highMotorSpeed = OuttakeConstants.velocityDefault - 1000;
         double lowMotorSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
@@ -181,7 +190,7 @@ public class Outtake extends SubsystemBase {
     public Command launcherPro() {
         if (lowMotor.getCurrent() < motorStalledCurrent) {
             if (staticLaunch) {
-            return manualTuningLaunch();
+            return Commands.runOnce(() -> launchWithSpeeds(3250.0, 2400.0));
             } else {
                 return variableLaunchEquation();
             }
@@ -258,7 +267,7 @@ public class Outtake extends SubsystemBase {
                             / 0.978147;
                     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
                     double velocity = (ball_velocity * (60 / (0.0254 * Math.PI * 3))) + 200;
-                    launchWithSpeeds(velocity - 1000, velocity);
+                    launchWithSpeeds(velocity, velocity + 1000);
                 }, this));
     }
 
@@ -283,7 +292,7 @@ public class Outtake extends SubsystemBase {
     }
 
     public double checkDistanceToHub() {
-        return checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+        return checkDistance((DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red)
                 ? FieldConstants.Elements.redHubPose
                 : FieldConstants.Elements.blueHubPose);
     }

@@ -46,6 +46,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Drive extends SubsystemBase {
   private final int loggerFrequency = 10;
@@ -68,8 +69,8 @@ public class Drive extends SubsystemBase {
           new SwerveModulePosition()
       };
 
-  private SwerveDrivePoseEstimator poseEstimator =
-      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, Pose2d.kZero);
+  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
+      lastModulePositions, Pose2d.kZero);
 
   // --- Reusable/temp buffers to avoid per-iteration allocations ---
   private final SwerveModulePosition[] tmpModulePositions = new SwerveModulePosition[] {
@@ -91,6 +92,8 @@ public class Drive extends SubsystemBase {
 
   // Pre-created Runnable to avoid lambda allocation each periodic loop
   private final Runnable gyroLogRunnable = () -> Logger.processInputs("Drive/Gyro", gyroInputs);
+
+  private final LoggedNetworkBoolean useVision = new LoggedNetworkBoolean(" Use Vision", true);
 
   public Drive(
       GyroIO gyroIO,
@@ -129,7 +132,8 @@ public class Drive extends SubsystemBase {
     // Avoid allocating a Pose2d[] every callback; log only the path length (cheap)
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.runEveryN(loggerFrequency, () -> Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0])));
+          Logger.runEveryN(loggerFrequency,
+              () -> Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0])));
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {
@@ -167,7 +171,8 @@ public class Drive extends SubsystemBase {
       }
     }
 
-    // Log empty setpoint states when disabled (use static empty arrays to avoid allocation)
+    // Log empty setpoint states when disabled (use static empty arrays to avoid
+    // allocation)
     if (DriverStation.isDisabled()) {
       Logger.recordOutput("SwerveStates/Setpoints", EMPTY_MODULE_STATES);
       Logger.recordOutput("SwerveStates/SetpointsOptimized", EMPTY_MODULE_STATES_OPT);
@@ -222,16 +227,17 @@ public class Drive extends SubsystemBase {
 
     // Log unoptimized setpoints
     Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveStates/Setpoints", setpointStates));
-    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds));
+    Logger.runEveryN(loggerFrequency,
+        (Runnable) () -> Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds));
 
     // Send setpoints to modules
     for (int i = 0; i < 4; i++) {
       modules[i].runSetpoint(setpointStates[i]);
     }
 
-    
     // Log optimized setpoints (runSetpoint mutates each state)
-    Logger.runEveryN(loggerFrequency, (Runnable) () -> Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates));
+    Logger.runEveryN(loggerFrequency,
+        (Runnable) () -> Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates));
   }
 
   /** Runs the drive in a straight line with the specified drive output. */
@@ -305,13 +311,14 @@ public class Drive extends SubsystemBase {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
-  /** Returns the magnitude of the robot's linear velocity in meters per second. */
+  /**
+   * Returns the magnitude of the robot's linear velocity in meters per second.
+   */
   @AutoLogOutput(key = "Drive/LinearVelocity")
   public double getLinearVelocity() {
     ChassisSpeeds speeds = getChassisSpeeds();
     return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
   }
-
 
   /**
    * 
@@ -360,8 +367,10 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    poseEstimator.addVisionMeasurement(
-        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    if (useVision.get()) {
+      poseEstimator.addVisionMeasurement(
+          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    }
   }
 
   /** Returns the maximum linear speed in meters per sec. */

@@ -28,7 +28,7 @@ public class Pivot extends SubsystemBase {
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
   private EncoderType encoderType = EncoderType.EXTERNAL_ABSOLUTE;
 
-  public static Boolean isUp = false;
+  public static Boolean isUp = true;
   public static Boolean pivotError = false;
 
   public Pivot() {

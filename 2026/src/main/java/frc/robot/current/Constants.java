@@ -151,8 +151,8 @@ public final class Constants {
     public static final double climbSpeed = 0.3;
 
     // The maximum and minimum positions for the left climber in rotations
-    public static final double legalMax = 180; // Physically, 240. Legally, 180
-    public static final double flatMin = 60;
+    public static final double legalMax = -180; // Physically, 240. Legally, 180
+    public static final double flatMin = -60;
     public static final double absoluteMin = 0;
   }
 }

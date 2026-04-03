@@ -31,6 +31,7 @@ public class Climber extends SubsystemBase {
     public static boolean isAtMax = false;
     public static boolean isAtMin = true;
     public static boolean climbError = false;
+    private int upPeriodicCount = 0;
 
     public Side side;
 
@@ -52,8 +53,8 @@ public class Climber extends SubsystemBase {
         rightClimbMotorConfig.idleMode(IdleMode.kBrake);
         rightClimbMotorConfig.inverted(true);
 
-        leftClimbMotorConfig.encoder.inverted(true);
-        rightClimbMotorConfig.encoder.inverted(true);
+        // leftClimbMotorConfig.encoder.inverted(true);
+        // rightClimbMotorConfig.encoder.inverted(true);
 
         switch (Constants.currentMode) {
             case REAL:
@@ -102,6 +103,8 @@ public class Climber extends SubsystemBase {
             isAtMax = false;
             isAtMin = false;
         }
+        if (isClimbingUp)
+            upPeriodicCount++;
     }
 
     // Utility methods for the climber subsystem.
@@ -124,22 +127,24 @@ public class Climber extends SubsystemBase {
      * Raises the left arm up at the default speed, multiplied by 2
      */
     private void setLeftUp() {
-        if (!Pivot.isWithinFrame()) {
-            throw new IllegalStateException("Cannot raise left arm: Pivot is not within frame.");
+        if (Pivot.isWithinFrame()) {
+            isClimbingUp = true;
+            leftClimbMotor.setMotorPercent(-climbSpeed * 2);
+        } else {
+            climbError = true;
         }
-        isClimbingUp = true;
-        leftClimbMotor.setMotorPercent(-climbSpeed * 2);
     }
 
     /**
      * Raises the right arm up at the default speed, multiplied by 2
      */
     private void setRightUp() {
-        if (!Pivot.isWithinFrame()) {
-            throw new IllegalStateException("Cannot raise right arm: Pivot is not within frame.");
+        if (Pivot.isWithinFrame()) {
+            isClimbingUp = true;
+            rightClimbMotor.setMotorPercent(-climbSpeed * 2);
+        } else {
+            climbError = true;
         }
-        isClimbingUp = true;
-        rightClimbMotor.setMotorPercent(-climbSpeed * 2);
     }
 
     /**
@@ -207,29 +212,30 @@ public class Climber extends SubsystemBase {
      * @return A command to raise both climb arms
      */
     public Command climbUpBoth() {
-        return Commands.runOnce(() -> {
-            try {
+        return Commands.run(() -> {
                 setLeftUp();
-                setRightUp();
-            } catch (IllegalStateException e) {
-                climbError = true;
-                Commands.none();
-            }
-        }, this);
+                setRightUp();        
+        }, this).until(() -> climbError);
     }
 
     /**
      * @return A command to lower both climb arms
      */
     public Command climbDownBoth() {
-        return Commands.runOnce(() -> {
+        return Commands.run(() -> {
             setLeftDown();
             setRightDown();
         }, this);
     }
 
     public Command climbDownIndividual() {
-        switch (m_chooser.get()) {
+        Side selected;
+        if (m_chooser.get() == null) {
+            selected = Side.LEFT;
+        } else {
+            selected = m_chooser.get();
+        }
+        switch (selected) {
             case LEFT:
                 return Commands.run(() -> setLeftDown());
             case RIGHT:
@@ -262,7 +268,7 @@ public class Climber extends SubsystemBase {
                     return Commands.run(
                             () -> {
                                 setLeftUp();
-                            }).until(() -> getLeftRotations() >= legalMax)
+                            }).until(() -> getLeftRotations() <= legalMax)
                             .finallyDo(() -> stop());
                 } catch (IllegalStateException e) {
                     climbError = true;
@@ -273,7 +279,7 @@ public class Climber extends SubsystemBase {
                     return Commands.run(
                             () -> {
                                 setRightUp();
-                            }).until(() -> getRightRotations() >= legalMax)
+                            }).until(() -> getRightRotations() <= legalMax)
                             .finallyDo(() -> stop());
                 } catch (IllegalStateException e) {
                     climbError = true;
@@ -290,14 +296,12 @@ public class Climber extends SubsystemBase {
      *         extended).
      */
     public Command climbMaxBoth() {
-        return Commands.runOnce(() -> {
-            try {
-                climbUpBoth();
-            } catch (IllegalStateException e) {
-                climbError = true;
-                Commands.none();
-            }
-        }, this).until(() -> getLeftRotations() >= legalMax && getRightRotations() >= legalMax).finallyDo(() -> stop());
+        return Commands.run(() -> {
+                setLeftUp();
+                setRightUp();
+        }, this).until(() -> (getLeftRotations() <= legalMax || getRightRotations() <= legalMax)).finallyDo(() -> {stop();
+           System.out.println("Climber Stop");});
+        // }, this).until(() -> (upPeriodicCount>30)
     }
 
     /**
@@ -312,13 +316,13 @@ public class Climber extends SubsystemBase {
                 return Commands.run(
                         () -> {
                             setLeftDown();
-                        }).until(() -> getLeftRotations() <= absoluteMin)
+                        }).until(() -> getLeftRotations() >= absoluteMin)
                         .finallyDo(() -> stop());
             case RIGHT:
                 return Commands.run(
                         () -> {
                             setRightDown();
-                        }).until(() -> getRightRotations() <= absoluteMin)
+                        }).until(() -> getRightRotations() >= absoluteMin)
                         .finallyDo(() -> stop());
             default:
                 return Commands.none();
@@ -333,8 +337,9 @@ public class Climber extends SubsystemBase {
     public Command climbStowedBoth() {
         return Commands.run(
                 () -> {
-                    climbDownBoth();
-                }).until(() -> getLeftRotations() <= absoluteMin || getRightRotations() <= absoluteMin)
+                    setLeftDown();
+                    setRightDown();
+                }).until(() -> getLeftRotations() >= absoluteMin || getRightRotations() >= absoluteMin)
                 .finallyDo(() -> stop());
     }
 
@@ -350,13 +355,13 @@ public class Climber extends SubsystemBase {
                 return Commands.run(
                         () -> {
                             setLeftDown();
-                        }).until(() -> getLeftRotations() <= flatMin)
+                        }).until(() -> getLeftRotations() >= flatMin)
                         .finallyDo(() -> stop());
             case RIGHT:
                 return Commands.run(
                         () -> {
                             setRightDown();
-                        }).until(() -> getRightRotations() <= flatMin)
+                        }).until(() -> getRightRotations() >= flatMin)
                         .finallyDo(() -> stop());
             default:
                 return Commands.none();
@@ -371,8 +376,9 @@ public class Climber extends SubsystemBase {
     public Command climbFlatBoth() {
         return Commands.run(
                 () -> {
-                    climbDownBoth();
-                }).until(() -> getLeftRotations() <= flatMin || getRightRotations() <= flatMin)
+                    setLeftDown();
+                    setRightDown();
+                }).until(() -> getLeftRotations() >= flatMin || getRightRotations() >= flatMin)
                 .finallyDo(() -> stop());
     }
 }

@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.current.Pather;
 import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.leds.LedController;
 
@@ -27,12 +28,12 @@ public class LedOperation extends SubsystemBase {
 
   public LedOperation() {
 
-    leds.addSection("full", 0, 125);
+    leds.addSection("full", 0, 110);
     leds.addSection("left", 0, 30);
     leds.addSection("leftEdge", 31, 37);
     leds.addSection("top", 38, 65);
     leds.addSection("rightEdge", 66, 72);
-    leds.addSection("right", 76, 125);
+    leds.addSection("right", 76, 110);
 
     m_chooser.setDefaultOption("Solid", () -> leds.solid("mechanismFrame", color));
     m_chooser.addOption("Two Color Solid",
@@ -105,25 +106,14 @@ public class LedOperation extends SubsystemBase {
         leds.breath("front", LedColor.ORANGE, 2);
       }
     }
-
-    // use orElse to avoid Optional.get() and default to BLUE if not present
-    Optional<Alliance> ally = DriverStation.getAlliance();
-
-    if (ally.orElse(Alliance.Blue) == Alliance.Blue) {
-      leds.solid("underglow", LedColor.BLUE);
-      leds.solid("underglow1", LedColor.BLUE);
-    } else {
-      leds.solid("underglow", LedColor.RED);
-      leds.solid("underglow1", LedColor.RED);
-    }
-
   }
 
   /* Method to set the LEDs automatically depending on the robots state */
   public void updateState() {
-    // if (isPathing) {
-    // leds.rainbow("top", 3);
-    // } else
+    if (Pather.isPathing) {
+    leds.rainbow("top", 3);
+    leds.rainbow("leftEdge", 5);
+    } else {
 
     if (Intake.isIntaking) {
       leds.solidTwoColor("top", LedColor.GREEN, LedColor.BLACK);
@@ -136,8 +126,8 @@ public class LedOperation extends SubsystemBase {
       leds.strobe("right", LedColor.RED_ORANGE, 2);
     } else if (Outtake.isInRange) {
       if (Outtake.outtaking) {
-        leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
-        leds.fade("right", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
+        leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 5);
+        leds.fade("right", LedColor.MAGENTA, LedColor.GREEN, 1, 5);
       } else {
         leds.solid("left", LedColor.GREEN);
         leds.solid("right", LedColor.GREEN);
@@ -155,6 +145,8 @@ public class LedOperation extends SubsystemBase {
       leds.zip("left", LedColor.PURPLE, 10, 1, 3, true);
       leds.zip("right", LedColor.PURPLE, 10, 1, 3, false);
     }
+
+  }
   }
 
   /* Method to set the LEDs to different states during the match */

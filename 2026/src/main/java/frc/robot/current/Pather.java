@@ -31,6 +31,7 @@ public class Pather {
 
     public boolean running = false;
     public static boolean inside;
+    public static boolean isPathing;
 
     // keep list static but populate only once
     public static List<Pose2d> trenchPositions = new ArrayList<>();
@@ -147,7 +148,8 @@ public class Pather {
         // debugging purposes
         Logger.recordOutput("PathFollower/GoalPosition", goalPosition);
 
-        return pathFinder(goalPosition, false);
+        return pathFinder(goalPosition, false).finallyDo(() -> isPathing = false);
+        
     }
 
     /**
@@ -178,6 +180,7 @@ public class Pather {
     }
 
     public static Command pathFinderPro(Target target) {
+        isPathing = true;
         if (isInside()) {
             return pathFinder(target);
         } else {
@@ -195,6 +198,7 @@ public class Pather {
     }
 
     public static Command trenchAlign(Direction direction) {
+        isPathing = true;
         // determine inside once
         double currentX = AutoBuilder.getCurrentPose().getX();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
@@ -219,7 +223,7 @@ public class Pather {
 
         // attempt to build the path-follow command once
         try {
-            return AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile(filename), constraints);
+            return AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile(filename), constraints).finallyDo(() -> isPathing = false);
         } catch (FileVersionException | IOException | ParseException e) {
             // Log and return a no-op command on error
             e.printStackTrace();
