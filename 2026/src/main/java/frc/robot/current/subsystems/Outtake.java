@@ -211,11 +211,11 @@ public class Outtake extends SubsystemBase {
                 lowMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
                 hopper.runBackwards();
                 }, this), 
-            Commands.waitSeconds(0.5),
+            Commands.waitSeconds(0.15),
             Commands.runOnce(() -> {
                 highMotor.setSpeedRPM(-1500);
             }, this),
-            Commands.waitSeconds(0.5),
+            Commands.waitSeconds(0.3),
             Commands.runOnce(() -> {
                 highMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
             }, this),
