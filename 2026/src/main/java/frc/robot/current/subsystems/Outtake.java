@@ -190,6 +190,38 @@ public class Outtake extends SubsystemBase {
                 }));
     }
 
+    public Command fancyLaunch() {
+        Command startup = Commands.sequence(
+            Commands.runOnce(() -> {
+                lowMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
+                hopper.runBackwards();
+                }, this), 
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                highMotor.setSpeedRPM(-1500);
+            }, this),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                highMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
+            }, this),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                hopper.run();
+            }, this)
+            );
+        
+        if (lowMotor.getCurrent() < motorStalledCurrent) {
+            return startup;
+        } else {
+            return Commands.sequence(
+                    runOnce(() -> {
+                        lowMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -1);
+                    }),
+                    Commands.waitSeconds(0.1),
+                    startup);
+        }
+    }
+
     public Command manualTuningLaunch() {
         return Commands.run(() -> {
             double velocity = manualShooterSetpoint.get();
