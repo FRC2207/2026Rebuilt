@@ -112,7 +112,7 @@ public final class Constants {
 
   public static class HopperConstants {
     public static final int motorID = 32;
-    public static final double motorSpeed = -0.75; // Motor Speed as a percentage
+    public static final double motorSpeed = -0.85; // Motor Speed as a percentage
   }
 
   public static class OuttakeConstants {
@@ -151,7 +151,7 @@ public final class Constants {
     public static final double climbSpeed = 0.3;
 
     // The maximum and minimum positions for the left climber in rotations
-    public static final double ClimbMax = -240;
+    public static final double ClimbMax = -180;
     public static final double prefferedMin = -60;
     public static final double ClimbMin = 0;
 

@@ -28,7 +28,8 @@ public class Pivot extends SubsystemBase {
   private final int pivotMotorID = Constants.PivotConstants.pivotID;
   private EncoderType encoderType = EncoderType.EXTERNAL_ABSOLUTE;
 
-  public Boolean isUp = false;
+  public static Boolean isUp = false;
+  public static Boolean pivotError = false;
 
   public Pivot() {
 
@@ -55,13 +56,16 @@ public class Pivot extends SubsystemBase {
             new MotorIOSpark(pivotMotorID, pivotConfig, SparkType.SparkMax, MotorModel.NeoV1, encoderType), "Pivot");
         break;
       case SIM:
-        pivotMotor = new MotorController(new MotorIOSim(MotorModelSim.NeoV1, ControlType.Position, PivotConstants.kSim_P,
-            PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 1), "Pivot");
+        pivotMotor = new MotorController(
+            new MotorIOSim(MotorModelSim.NeoV1, ControlType.Position, PivotConstants.kSim_P,
+                PivotConstants.kSim_I, PivotConstants.kSim_D, 0.0, 0.0, 0.3, 1),
+            "Pivot");
         break;
       default:
         // Blank IO for REPLAY
         pivotMotor = new MotorController(
-            new MotorControllerIO() {}, "Pivot");
+            new MotorControllerIO() {
+            }, "Pivot");
         break;
     }
 
@@ -80,7 +84,12 @@ public class Pivot extends SubsystemBase {
       isUp = false;
     }
 
-    Logger.runEveryN(2, (Runnable) () -> Logger.recordOutput("Pivot/ComponentPose", new Pose3d[] {new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0))}));
+    Logger.runEveryN(2, (Runnable) () -> Logger.recordOutput("Pivot/ComponentPose",
+        new Pose3d[] { new Pose3d(0.182, 0.13, 0.2, new Rotation3d(0, -pivotMotor.getPositionRadians(), 0)) }));
+  }
+
+  public static boolean isWithinFrame() {
+    return isUp;
   }
 
   public void initialization() {
@@ -92,20 +101,26 @@ public class Pivot extends SubsystemBase {
   }
 
   public Command gotoStoredPos() {
+    pivotError = false;
     return Commands.runOnce(() -> {
       pivotMotor.setPositionRotations(Constants.PivotConstants.storedRotations);
     }, this);
   }
 
   public Command gotoCollectionPos() {
-    return Commands.sequence(
-      Commands.runOnce(() -> {
-        pivotMotor.setPositionRotations(Constants.PivotConstants.intermediateRotations);
-      }, this),
-      Commands.waitSeconds(0.4),
-      Commands.runOnce(() -> {
-        pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
-      }, this)
-    );
+    if (Climber.isWithinFrame()) {
+      pivotError = false;
+      return Commands.sequence(
+          Commands.runOnce(() -> {
+            pivotMotor.setPositionRotations(Constants.PivotConstants.intermediateRotations);
+          }, this),
+          Commands.waitSeconds(0.4),
+          Commands.runOnce(() -> {
+            pivotMotor.setPositionRotations(Constants.PivotConstants.collectionRotations);
+          }, this));
+    } else {
+      pivotError = true;
+      return Commands.none();
+    }
   }
 }

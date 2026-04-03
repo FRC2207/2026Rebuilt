@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase {
   private final int intakeMotorId = Constants.IntakeConstants.intakeID;
   private final int followerMotorId = Constants.IntakeConstants.followerID;
 
-  public Boolean isIntaking = false;
+  public static Boolean isIntaking = false;
 
   public Intake(Drive drive) {
 
