@@ -3,12 +3,13 @@ package frc.robot.current.subsystems;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.current.Constants.ClimberConstants.*;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import frc.robot.current.Constants;
 import frc.robot.lib.motors.motorController.MotorController;
@@ -33,7 +34,7 @@ public class Climber extends SubsystemBase {
 
     public Side side;
 
-    private final SendableChooser<Side> m_chooser = new SendableChooser<>();
+    private final LoggedDashboardChooser<Side> m_chooser = new LoggedDashboardChooser<Side>("Climber Side");
 
     public enum Side {
         LEFT, RIGHT
@@ -45,9 +46,7 @@ public class Climber extends SubsystemBase {
 
         m_chooser.addOption("LEFT", Side.LEFT);
         m_chooser.addOption("RIGHT", Side.RIGHT);
-        m_chooser.setDefaultOption("LEFT", Side.LEFT);
-
-        SmartDashboard.putData("Climber Arm", m_chooser);
+        m_chooser.addDefaultOption("LEFT", Side.LEFT);
 
         leftClimbMotorConfig.idleMode(IdleMode.kBrake);
         rightClimbMotorConfig.idleMode(IdleMode.kBrake);
@@ -80,8 +79,13 @@ public class Climber extends SubsystemBase {
                 break;
         }
 
-        initialization(Side.LEFT);
-        initialization(Side.RIGHT);
+        SmartDashboard.putData("Reset Left",
+                Commands.runOnce(() -> resetEncoder(Side.LEFT)));
+        SmartDashboard.putData("Reset Right",
+                Commands.runOnce(() -> resetEncoder(Side.RIGHT)));
+
+        resetEncoder(Side.LEFT);
+        resetEncoder(Side.RIGHT);
     }
 
     public void periodic() {
@@ -105,7 +109,7 @@ public class Climber extends SubsystemBase {
     /**
      * Resets the encoders of either climb motor
      */
-    public void initialization(Side side) {
+    public void resetEncoder(Side side) {
         switch (side) {
             case LEFT:
                 leftClimbMotor.resetEncoder();
@@ -224,6 +228,17 @@ public class Climber extends SubsystemBase {
         }, this);
     }
 
+    public Command climbDownIndividual() {
+        switch (m_chooser.get()) {
+            case LEFT:
+                return Commands.run(() -> setLeftDown());
+            case RIGHT:
+                return Commands.run(() -> setRightDown());
+            default:
+                return Commands.none();
+        }
+    }
+
     /**
      * @return A command to stop both climb arms
      */
@@ -241,7 +256,7 @@ public class Climber extends SubsystemBase {
      *         position (fully extended).
      */
     public Command climbMaxIndividual() {
-        switch (m_chooser.getSelected()) {
+        switch (m_chooser.get()) {
             case LEFT:
                 try {
                     return Commands.run(
@@ -292,7 +307,7 @@ public class Climber extends SubsystemBase {
      *         position (inside the robot).
      */
     public Command climbStowedIndividual() {
-        switch (m_chooser.getSelected()) {
+        switch (m_chooser.get()) {
             case LEFT:
                 return Commands.run(
                         () -> {
@@ -330,7 +345,7 @@ public class Climber extends SubsystemBase {
      *         position.
      */
     public Command climbFlatIndividual() {
-        switch (m_chooser.getSelected()) {
+        switch (m_chooser.get()) {
             case LEFT:
                 return Commands.run(
                         () -> {
