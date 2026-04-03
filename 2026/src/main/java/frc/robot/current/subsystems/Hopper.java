@@ -47,6 +47,10 @@ public class Hopper extends SubsystemBase {
         motor.setMotorPercent(Constants.HopperConstants.motorSpeed);
     }
 
+    public void runBackwards(){
+        motor.setMotorPercent(-Constants.HopperConstants.motorSpeed);
+    }
+
     public void stop() {
         motor.setMotorPercent(0);
     }

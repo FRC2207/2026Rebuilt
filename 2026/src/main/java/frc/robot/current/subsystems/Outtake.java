@@ -34,9 +34,8 @@ public class Outtake extends SubsystemBase {
 
     private Drive swerve;
     private Hopper hopper;
-    private boolean hopperEmpty = false;
     public static boolean outtaking = false;
-    public static boolean isInRage = false;
+    public static boolean isInRange = false;
     private boolean staticLaunch = false;
 
     private double testVelocityHigh;
@@ -129,16 +128,9 @@ public class Outtake extends SubsystemBase {
         testVelocityHigh = manualShooterSetpointHigh.get();
         testVelovityLow = manualShooterSetpointLow.get();
 
-        if (checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                ? FieldConstants.Elements.redHubPose
-                : FieldConstants.Elements.blueHubPose) < 40
-                && checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                        ? FieldConstants.Elements.redHubPose
-                        : FieldConstants.Elements.blueHubPose) > 300) {
-            isInRage = false;
-        } else {
-            isInRage = true;
-        }
+        double distanceMeters = checkDistanceToHub();
+
+        isInRange = (distanceMeters < 40 && distanceMeters > 300) ? false : true;
 
         // NOTE: using getSetpointRotations() because their is no setpoint retrival for
         // velocity control
@@ -146,22 +138,17 @@ public class Outtake extends SubsystemBase {
                 (Runnable) () -> Logger.recordOutput("Outtake/highMotor/setpointRPM", highMotor.getSetpoint()));
         Logger.runEveryN(5,
                 (Runnable) () -> Logger.recordOutput("Outtake/lowMotor/setpointRPM", lowMotor.getSetpoint()));
-        Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(
-                checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                        ? FieldConstants.Elements.redHubPose
-                        : FieldConstants.Elements.blueHubPose))));
+        Logger.runEveryN(5,
+                (Runnable) () -> Logger.recordOutput("Outtake/distanceFromHub", Units.metersToInches(distanceMeters)));
     }
 
     public Command timedLaunch(double seconds) {
-        double motorOneSpeed = OuttakeConstants.velocityDefault * 1.25;
-        double motorTwoSpeed = OuttakeConstants.velocityDefault;
+        double highMotorSpeed = OuttakeConstants.velocityDefault * 1.25;
+        double lowMotorSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
                 runOnce(() -> {
-                    hopper.run();
-                    highMotor.setSpeedRPM(motorOneSpeed);
-                    lowMotor.setSpeedRPM(motorTwoSpeed);
-                    outtaking = true;
+                    launchWithSpeeds(highMotorSpeed, lowMotorSpeed);
                 }),
                 Commands.waitSeconds(seconds),
                 runOnce(() -> {
@@ -170,16 +157,20 @@ public class Outtake extends SubsystemBase {
     }
 
     public Command continuousLaunch() {
-        double motorOneSpeed = OuttakeConstants.velocityDefault * 1.25;
-        double motorTwoSpeed = OuttakeConstants.velocityDefault;
+        double highMotorSpeed = OuttakeConstants.velocityDefault * 1.25;
+        double lowMotorSpeed = OuttakeConstants.velocityDefault;
 
         return Commands.sequence(
                 runOnce(() -> {
-                    hopper.run();
-                    highMotor.setSpeedRPM(motorOneSpeed);
-                    lowMotor.setSpeedRPM(motorTwoSpeed);
-                    outtaking = true;
+                    launchWithSpeeds(highMotorSpeed, lowMotorSpeed);
                 }));
+    }
+
+    public void launchWithSpeeds(double highMotorSpeed, double lowMotorSpeed) {
+        hopper.run();
+        highMotor.setSpeedRPM(highMotorSpeed);
+        lowMotor.setSpeedRPM(lowMotorSpeed);
+        outtaking = true;
     }
 
     /**
@@ -209,27 +200,48 @@ public class Outtake extends SubsystemBase {
     public Command variableLaunchMap() {
         return Commands.sequence(
                 run(() -> {
-                    double distance = Units.metersToInches(
-                            checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
-                                    ? FieldConstants.Elements.redHubPose
-                                    : FieldConstants.Elements.blueHubPose));
-                    double velocity = getVelocityTarget(distance);
-                    Logger.recordOutput("Outtake/distance", distance);
-                    Logger.recordOutput("Outtake/velocitySet", velocity);
-                    hopper.run();
-                    highMotor.setSpeedRPM(velocity * 1.25);
-                    lowMotor.setSpeedRPM(velocity);
-                    outtaking = true;
+                    double velocity = getVelocityTarget(Units.metersToInches(checkDistanceToHub()));
+                    launchWithSpeeds(velocity * 1.25, velocity);
                 }));
+    }
+
+    public Command fancyLaunch() {
+        Command startup = Commands.sequence(
+            Commands.runOnce(() -> {
+                lowMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
+                hopper.runBackwards();
+                }, this), 
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                highMotor.setSpeedRPM(-1500);
+            }, this),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                highMotor.setSpeedRPM(getVelocityTarget(Units.metersToInches(checkDistanceToHub())));
+            }, this),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(() -> {
+                hopper.run();
+            }, this)
+            );
+        
+        if (lowMotor.getCurrent() < motorStalledCurrent) {
+            return startup;
+        } else {
+            return Commands.sequence(
+                    runOnce(() -> {
+                        lowMotor.setSpeedRPM(OuttakeConstants.velocityDefault * -1);
+                    }),
+                    Commands.waitSeconds(0.1),
+                    startup);
+        }
     }
 
     public Command manualTuningLaunch() {
         return Commands.run(() -> {
             double velocityHigh = testVelocityHigh;
             double velocityLow = testVelovityLow;
-            hopper.run();
-            highMotor.setSpeedRPM(velocityHigh);
-            lowMotor.setSpeedRPM(velocityLow);
+            launchWithSpeeds(velocityHigh, velocityLow);
         }, this);
     }
 
@@ -244,12 +256,9 @@ public class Outtake extends SubsystemBase {
                     double ball_velocity = (Math
                             .sqrt((23.0526875 * Math.pow(distance, 2)) / (distance + (-1.482 / 4.7046))))
                             / 0.978147;
-                    double velocity = (ball_velocity * (60 / (0.0254 * Math.PI * 3))) + 200;
                     Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/ballVelocity", ball_velocity));
-                    Logger.runEveryN(5, (Runnable) () -> Logger.recordOutput("Outtake/distance", distance));
-                    hopper.run();
-                    highMotor.setSpeedRPM(velocity - 1000);
-                    lowMotor.setSpeedRPM(velocity); // * 1.15
+                    double velocity = (ball_velocity * (60 / (0.0254 * Math.PI * 3))) + 200;
+                    launchWithSpeeds(velocity - 1000, velocity);
                 }, this));
     }
 
@@ -260,21 +269,22 @@ public class Outtake extends SubsystemBase {
             highMotor.setSpeedRPM(0);
             lowMotor.setSpeedRPM(0);
             outtaking = false;
-        },
-                this);
+        }, this);
     }
 
     public double getVelocityTarget(double distance) {
         return launchMap.get(distance);
     }
 
-    public Boolean getHopperEmpty() {
-        return hopperEmpty;
-    }
-
     /** Checks the distance from the bot to the target */
     public double checkDistance(Pose2d target) {
         double value = swerve.getPose().getTranslation().getDistance(target.getTranslation());
         return value;
+    }
+
+    public double checkDistanceToHub() {
+        return checkDistance((DriverStation.getAlliance().get() == Alliance.Red)
+                ? FieldConstants.Elements.redHubPose
+                : FieldConstants.Elements.blueHubPose);
     }
 }

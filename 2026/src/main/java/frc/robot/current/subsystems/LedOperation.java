@@ -131,10 +131,10 @@ public class LedOperation extends SubsystemBase {
       leds.solid("top", LedColor.ORANGE);
     }
 
-    if (!Outtake.isInRage) {
+    if (!Outtake.isInRange) {
       leds.strobe("left", LedColor.RED_ORANGE, 2);
       leds.strobe("right", LedColor.RED_ORANGE, 2);
-    } else if (Outtake.isInRage) {
+    } else if (Outtake.isInRange) {
       if (Outtake.outtaking) {
         leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
         leds.fade("right", LedColor.MAGENTA, LedColor.GREEN, 1, 3);
