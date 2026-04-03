@@ -53,6 +53,9 @@ public class Climber extends SubsystemBase {
         rightClimbMotorConfig.idleMode(IdleMode.kBrake);
         rightClimbMotorConfig.inverted(true);
 
+        leftClimbMotorConfig.encoder.inverted(true);
+        rightClimbMotorConfig.encoder.inverted(true);
+
         switch (Constants.currentMode) {
             case REAL:
                 leftClimbMotor = new MotorController(new MotorIOSpark(leftClimbMotorID, leftClimbMotorConfig,
@@ -77,24 +80,112 @@ public class Climber extends SubsystemBase {
                 break;
         }
 
-        leftClimbMotor.resetEncoder();
-        rightClimbMotor.resetEncoder();
+        initialization(Side.LEFT);
+        initialization(Side.RIGHT);
     }
 
     public void periodic() {
         leftClimbMotor.updateInputs();
         rightClimbMotor.updateInputs();
 
-        if (getRotations(Side.RIGHT) <= -240 || getRotations(Side.LEFT) <= -240) {
+        if (getRightRotations() <= -240 || getLeftRotations() <= -240) {
             isAtMax = true;
             isAtMin = false;
-        } else if (getRotations(Side.RIGHT) <= 10 || getRotations(Side.LEFT) <= 10) {
+        } else if (getRightRotations() <= 10 || getLeftRotations() <= 10) {
             isAtMin = true;
             isAtMax = false;
         } else {
             isAtMax = false;
             isAtMin = false;
         }
+    }
+
+    // Utility methods for the climber subsystem.
+
+    /**
+     * Resets the encoders of either climb motor
+     */
+    public void initialization(Side side) {
+        switch (side) {
+            case LEFT:
+                leftClimbMotor.resetEncoder();
+                break;
+            case RIGHT:
+                rightClimbMotor.resetEncoder();
+                break;
+        }
+    }
+
+    /**
+     * Raises the left arm up at the default speed, multiplied by 2
+     */
+    private void setLeftUp() {
+        if (!Pivot.isWithinFrame()) {
+            throw new IllegalStateException("Cannot raise left arm: Pivot is not within frame.");
+        }
+        isClimbingUp = true;
+        leftClimbMotor.setMotorPercent(-climbSpeed * 2);
+    }
+
+    /**
+     * Raises the right arm up at the default speed, multiplied by 2
+     */
+    private void setRightUp() {
+        if (!Pivot.isWithinFrame()) {
+            throw new IllegalStateException("Cannot raise right arm: Pivot is not within frame.");
+        }
+        isClimbingUp = true;
+        rightClimbMotor.setMotorPercent(-climbSpeed * 2);
+    }
+
+    /**
+     * Lowers the left arm down at the default speed
+     */
+    private void setLeftDown() {
+        isClimbingDown = true;
+        leftClimbMotor.setMotorPercent(climbSpeed);
+    }
+
+    /**
+     * Lowers the right arm down at the default speed
+     */
+    private void setRightDown() {
+        isClimbingDown = true;
+        rightClimbMotor.setMotorPercent(climbSpeed);
+    }
+
+    /**
+     * Stops the left climb arm
+     */
+    private void setLeftStop() {
+        isClimbingDown = false;
+        isClimbingUp = false;
+        leftClimbMotor.setMotorPercent(0);
+    }
+
+    /**
+     * Stops the right climb arm
+     */
+    private void setRightStop() {
+        isClimbingDown = false;
+        isClimbingUp = false;
+        rightClimbMotor.setMotorPercent(0);
+    }
+
+    /**
+     * 
+     * @return The current position of the left climb arm in rotations.
+     */
+    public double getLeftRotations() {
+        return leftClimbMotor.getPositionRotations();
+    }
+
+    /**
+     * 
+     * @return The current position of the right climb arm in rotations.
+     */
+    public double getRightRotations() {
+        return rightClimbMotor.getPositionRotations();
     }
 
     /**
@@ -106,141 +197,167 @@ public class Climber extends SubsystemBase {
         return isAtMin;
     }
 
-    public double getRotations(Side side) {
-        switch (side) {
-            case LEFT:
-                return leftClimbMotor.getPositionRotations();
-            case RIGHT:
-                return rightClimbMotor.getPositionRotations();
-            default:
-                return 0.0;
-        }
-    }
+    // End of the utility methods.
 
-    public Command climbUp() {
-        if (Pivot.isWithinFrame()) {
-            climbError = false;
-            return Commands.runOnce(() -> {
-                isClimbingUp = true;
-                isClimbingDown = false;
-                leftClimbMotor.setMotorPercent(-climbSpeed * 1.25);
-                rightClimbMotor.setMotorPercent(-climbSpeed * 1.25);
-            }, this);
-        } else {
-            climbError = true;
-            return Commands.none();
-        }
-    }
-
-    public Command climbDown() {
+    /**
+     * @return A command to raise both climb arms
+     */
+    public Command climbUpBoth() {
         return Commands.runOnce(() -> {
-            isClimbingDown = true;
-            isClimbingUp = false;
-            leftClimbMotor.setMotorPercent(climbSpeed);
-            rightClimbMotor.setMotorPercent(climbSpeed);
+            try {
+                setLeftUp();
+                setRightUp();
+            } catch (IllegalStateException e) {
+                climbError = true;
+                Commands.none();
+            }
         }, this);
     }
 
-    public Command stop() {
+    /**
+     * @return A command to lower both climb arms
+     */
+    public Command climbDownBoth() {
         return Commands.runOnce(() -> {
-            isClimbingUp = false;
-            isClimbingDown = false;
-            leftClimbMotor.setMotorPercent(0);
-            rightClimbMotor.setMotorPercent(0);
-        });
+            setLeftDown();
+            setRightDown();
+        }, this);
     }
 
-    public Command climbMax(Side side) {
-        if (!Pivot.isWithinFrame()) {
-            climbError = true;
-            return Commands.none();
-        } else {
-            climbError = false;
-            switch (side) {
-                case LEFT:
+    /**
+     * @return A command to stop both climb arms
+     */
+    public Command stop() {
+        return Commands.runOnce(() -> {
+            setLeftStop();
+            setRightStop();
+        }, this);
+    }
+
+    /**
+     * Arm is decided by a sendable chooser.
+     * 
+     * @return a command to individually raise the climb arms to the maximum
+     *         position (fully extended).
+     */
+    public Command climbMaxIndividual() {
+        switch (m_chooser.getSelected()) {
+            case LEFT:
+                try {
                     return Commands.run(
                             () -> {
-                                leftClimbMotor.setMotorPercent(-climbSpeed);
-                            }).until(() -> getRotations(side) <= ClimbMax)
+                                setLeftUp();
+                            }).until(() -> getLeftRotations() >= legalMax)
                             .finallyDo(() -> stop());
-                case RIGHT:
-                    return Commands.run(
-                            () -> {
-                                rightClimbMotor.setMotorPercent(-climbSpeed);
-                            }).until(() -> getRotations(side) <= rightClimbMax)
-                            .finallyDo(() -> stop());
-                default:
+                } catch (IllegalStateException e) {
+                    climbError = true;
                     return Commands.none();
-            }
+                }
+            case RIGHT:
+                try {
+                    return Commands.run(
+                            () -> {
+                                setRightUp();
+                            }).until(() -> getRightRotations() >= legalMax)
+                            .finallyDo(() -> stop());
+                } catch (IllegalStateException e) {
+                    climbError = true;
+                    return Commands.none();
+                }
+            default:
+                return Commands.none();
         }
     }
 
     /**
-     * Individually lowers the climb arm to the lowest position (inside the robot)
      * 
-     * @param side which selected climb arm
-     * @return
+     * @return A command to raise both climb arms to the maximum position (fully
+     *         extended).
      */
-    public Command climbDownStowed() {
+    public Command climbMaxBoth() {
+        return Commands.runOnce(() -> {
+            try {
+                climbUpBoth();
+            } catch (IllegalStateException e) {
+                climbError = true;
+                Commands.none();
+            }
+        }, this).until(() -> getLeftRotations() >= legalMax && getRightRotations() >= legalMax).finallyDo(() -> stop());
+    }
+
+    /**
+     * Arm is decided by a sendable chooser.
+     * 
+     * @return a Command to individually lower the climb arms to the absolute lowest
+     *         position (inside the robot).
+     */
+    public Command climbStowedIndividual() {
         switch (m_chooser.getSelected()) {
             case LEFT:
                 return Commands.run(
                         () -> {
-                            leftClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(m_chooser.getSelected()) >= ClimbMin)
+                            setLeftDown();
+                        }).until(() -> getLeftRotations() <= absoluteMin)
                         .finallyDo(() -> stop());
             case RIGHT:
                 return Commands.run(
                         () -> {
-                            rightClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(m_chooser.getSelected()) >= ClimbMin)
+                            setRightDown();
+                        }).until(() -> getRightRotations() <= absoluteMin)
                         .finallyDo(() -> stop());
             default:
                 return Commands.none();
         }
     }
 
-    public Command climbFlatMin(Side side) {
-        switch (side) {
+    /**
+     * 
+     * @return A command to lower both climb arms to the absolute lowest position
+     *         (inside the robot)
+     */
+    public Command climbStowedBoth() {
+        return Commands.run(
+                () -> {
+                    climbDownBoth();
+                }).until(() -> getLeftRotations() <= absoluteMin || getRightRotations() <= absoluteMin)
+                .finallyDo(() -> stop());
+    }
+
+    /**
+     * Arm is decided by a sendable chooser.
+     * 
+     * @return a Command to individually lower the climb arms to the lowest flat
+     *         position.
+     */
+    public Command climbFlatIndividual() {
+        switch (m_chooser.getSelected()) {
             case LEFT:
                 return Commands.run(
                         () -> {
-                            leftClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(side) >= prefferedMin)
+                            setLeftDown();
+                        }).until(() -> getLeftRotations() <= flatMin)
                         .finallyDo(() -> stop());
             case RIGHT:
                 return Commands.run(
                         () -> {
-                            rightClimbMotor.setMotorPercent(climbSpeed);
-                        }).until(() -> getRotations(side) >= prefferedMin)
+                            setRightDown();
+                        }).until(() -> getRightRotations() <= flatMin)
                         .finallyDo(() -> stop());
             default:
                 return Commands.none();
         }
     }
 
-    public Command climbMaxBoth() {
-        if (!Pivot.isWithinFrame()) {
-            climbError = true;
-            return Commands.none();
-        } else {
-            climbError = false;
-            return Commands.run(
-                    () -> {
-                        isClimbingUp = true;
-                        leftClimbMotor.setMotorPercent(-climbSpeed * 2);
-                        rightClimbMotor.setMotorPercent(-climbSpeed * 2);
-                    }).until(() -> getRotations(Side.LEFT) <= ClimbMax)
-                    .finallyDo(() -> stop());
-        }
-    }
-
-    public Command climbMinFlatBoth() {
+    /**
+     * Arm is decided by a sendable chooser.
+     * 
+     * @return a Command to lower both climb arms to the lowest flat position.
+     */
+    public Command climbFlatBoth() {
         return Commands.run(
                 () -> {
-                    leftClimbMotor.setMotorPercent(climbSpeed);
-                    rightClimbMotor.setMotorPercent(climbSpeed);
-                }).until(() -> getRotations(Side.LEFT) >= prefferedMin || getRotations(Side.RIGHT) >= prefferedMin)
+                    climbDownBoth();
+                }).until(() -> getLeftRotations() <= flatMin || getRightRotations() <= flatMin)
                 .finallyDo(() -> stop());
     }
 }

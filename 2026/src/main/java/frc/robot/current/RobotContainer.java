@@ -152,7 +152,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("PivotDown", pivot.gotoCollectionPos());
     NamedCommands.registerCommand("PivotUp", pivot.gotoStoredPos());
     NamedCommands.registerCommand("ClimbUp", climber.climbMaxBoth());
-    NamedCommands.registerCommand("ClimbDown", climber.climbMinFlatBoth());
+    NamedCommands.registerCommand("ClimbDown", climber.climbFlatBoth());
 
     autoChooser = new LoggedDashboardChooser<>("AutoChooser", AutoBuilder.buildAutoChooser());
 
@@ -272,8 +272,8 @@ public class RobotContainer {
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
         driveXbox.y().onTrue(climber.climbMaxBoth()).onFalse(climber.stop());
-        driveXbox.a().onTrue(climber.climbDown()).onFalse(climber.stop());
-        driveXbox.x().onTrue(climber.climbDownStowed()).onFalse(climber.stop());
+        driveXbox.a().onTrue(climber.climbStowedBoth()).onFalse(climber.stop());
+        driveXbox.x().onTrue(climber.climbStowedIndividual()).onFalse(climber.stop());
         break;
 
       case TWOXBOX:
