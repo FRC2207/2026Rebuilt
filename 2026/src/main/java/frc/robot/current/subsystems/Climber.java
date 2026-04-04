@@ -45,7 +45,6 @@ public class Climber extends SubsystemBase {
         SparkMaxConfig leftClimbMotorConfig = new SparkMaxConfig();
         SparkMaxConfig rightClimbMotorConfig = new SparkMaxConfig();
 
-        m_chooser.addOption("LEFT", Side.LEFT);
         m_chooser.addOption("RIGHT", Side.RIGHT);
         m_chooser.addDefaultOption("LEFT", Side.LEFT);
 
