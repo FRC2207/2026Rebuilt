@@ -262,6 +262,9 @@ public class RobotContainer {
         driveXbox.y().whileTrue(climber.climbMaxBoth()).onFalse(climber.stop());
         driveXbox.a().whileTrue(climber.climbStowedBoth()).onFalse(climber.stop());
         driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber))).onFalse(climber.stop());
+        
+        // Maybe test this out?
+        // driveXbox.povLeft().and(driveXbox.rightBumper()).whileTrue(objectVision.driveThroughClump());
         break;
 
       case TWOXBOX:
@@ -289,6 +292,8 @@ public class RobotContainer {
         // controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
 
         driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
+        // Maybe test this out
+        // driveXbox.povLeft().and(driveXbox.rightBumper()).whileTrue(objectVision.driveThroughClump());
     }
   }
 

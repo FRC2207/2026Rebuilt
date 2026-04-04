@@ -625,7 +625,7 @@ public class ObjectVision extends SubsystemBase {
 
     private static void expandCluster(
             Translation2d point, List<Translation2d> neighbors,
-            LinkedHashSet<Translation2d> cluster,   // ← was List
+            LinkedHashSet<Translation2d> cluster,
             Set<Translation2d> visited,
             List<Translation2d> allPoints) {
 
@@ -660,10 +660,11 @@ public class ObjectVision extends SubsystemBase {
     }
 
     public Command driveThroughClump() {
-        return Commands.deferredProxy(() -> {
+        System.out.println("TESTING TESTING");
+        return Commands.defer(() -> {
             Command c = buildDriveThroughClumpCommand();
             return c != null ? c : Commands.none();
-        });
+        }, Set.of(swerve));
     }
 
     public Command kindleCommand() {
