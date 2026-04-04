@@ -31,7 +31,6 @@ public class Climber extends SubsystemBase {
     public static boolean isAtMax = false;
     public static boolean isAtMin = true;
     public static boolean climbError = false;
-    private int upPeriodicCount = 0;
 
     public Side side;
 
@@ -103,8 +102,6 @@ public class Climber extends SubsystemBase {
             isAtMax = false;
             isAtMin = false;
         }
-        if (isClimbingUp)
-            upPeriodicCount++;
     }
 
     // Utility methods for the climber subsystem.
@@ -299,9 +296,12 @@ public class Climber extends SubsystemBase {
         return Commands.run(() -> {
                 setLeftUp();
                 setRightUp();
-        }, this).until(() -> (getLeftRotations() <= legalMax || getRightRotations() <= legalMax)).finallyDo(() -> {stop();
-           System.out.println("Climber Stop");});
-        // }, this).until(() -> (upPeriodicCount>30)
+        }, this)
+        .until(() -> (getLeftRotations() <= legalMax || getRightRotations() <= legalMax))
+        .finallyDo(() -> {
+            setLeftStop();
+            setRightStop();
+        });
     }
 
     /**
