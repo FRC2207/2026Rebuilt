@@ -29,8 +29,8 @@ public class ObjectVision extends SubsystemBase {
     private final ObjectVisionIOInputsAutoLogged inputs = new ObjectVisionIOInputsAutoLogged();
 
     private static final double MIN_BALL_DISTANCE_M = 0.3; // Balls closer then this are ignored
-    private static final double DBSCAN_EPS = 10; // How close the balls have to be to be in a clump
-    private static final int DBSCAN_MIN_PTS = 1; // Min points for a cluster
+    private static final double DBSCAN_EPS = 3; // How close the balls have to be to be in a clump
+    private static final int DBSCAN_MIN_PTS = 3; // Min points for a cluster
 
     private static final double PASS_THROUGH_VEL = 1.5; // How fast the robot should end a sequence. This is good
 
@@ -625,7 +625,7 @@ public class ObjectVision extends SubsystemBase {
 
     private static void expandCluster(
             Translation2d point, List<Translation2d> neighbors,
-            LinkedHashSet<Translation2d> cluster,   // ← was List
+            LinkedHashSet<Translation2d> cluster,
             Set<Translation2d> visited,
             List<Translation2d> allPoints) {
 
@@ -660,10 +660,11 @@ public class ObjectVision extends SubsystemBase {
     }
 
     public Command driveThroughClump() {
-        return Commands.deferredProxy(() -> {
+        System.out.println("TESTING TESTING");
+        return Commands.defer(() -> {
             Command c = buildDriveThroughClumpCommand();
             return c != null ? c : Commands.none();
-        });
+        }, Set.of(swerve));
     }
 
     public Command kindleCommand() {
