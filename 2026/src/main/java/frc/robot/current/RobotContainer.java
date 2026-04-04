@@ -259,9 +259,9 @@ public class RobotContainer {
               return Math.atan2(dy, dx);
             }));
 
-        driveXbox.y().whileTrue(climber.climbMaxBoth()).onFalse(climber.stop());
-        driveXbox.a().whileTrue(climber.climbStowedBoth()).onFalse(climber.stop());
-        driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber))).onFalse(climber.stop());
+        driveXbox.y().whileTrue(climber.climbMaxBoth());
+        driveXbox.a().whileTrue(climber.climbStowedBoth());
+        driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber)));
         
         // Maybe test this out?
         // driveXbox.povLeft().and(driveXbox.rightBumper()).whileTrue(objectVision.driveThroughClump());

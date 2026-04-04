@@ -242,16 +242,6 @@ public class Climber extends SubsystemBase {
     }
 
     /**
-     * @return A command to stop both climb arms
-     */
-    public Command stop() {
-        return Commands.runOnce(() -> {
-            setLeftStop();
-            setRightStop();
-        }, this);
-    }
-
-    /**
      * Arm is decided by a sendable chooser.
      * 
      * @return a command to individually raise the climb arms to the maximum
@@ -265,7 +255,10 @@ public class Climber extends SubsystemBase {
                             () -> {
                                 setLeftUp();
                             }).until(() -> getLeftRotations() <= legalMax)
-                            .finallyDo(() -> stop());
+                            .finallyDo(() -> {
+                                setLeftStop();
+                                setRightStop();
+                            });
                 } catch (IllegalStateException e) {
                     climbError = true;
                     return Commands.none();
@@ -276,7 +269,10 @@ public class Climber extends SubsystemBase {
                             () -> {
                                 setRightUp();
                             }).until(() -> getRightRotations() <= legalMax)
-                            .finallyDo(() -> stop());
+                            .finallyDo(() -> {
+                                setLeftStop();
+                                setRightStop();
+                            });
                 } catch (IllegalStateException e) {
                     climbError = true;
                     return Commands.none();
@@ -316,13 +312,19 @@ public class Climber extends SubsystemBase {
                         () -> {
                             setLeftDown();
                         }).until(() -> getLeftRotations() >= absoluteMin)
-                        .finallyDo(() -> stop());
+                        .finallyDo(() -> {
+                            setLeftStop();
+                            setRightStop();
+                        });
             case RIGHT:
                 return Commands.run(
                         () -> {
                             setRightDown();
                         }).until(() -> getRightRotations() >= absoluteMin)
-                        .finallyDo(() -> stop());
+                        .finallyDo(() -> {
+                            setLeftStop();
+                            setRightStop();
+                        });
             default:
                 return Commands.none();
         }
@@ -339,7 +341,10 @@ public class Climber extends SubsystemBase {
                     setLeftDown();
                     setRightDown();
                 }).until(() -> getLeftRotations() >= absoluteMin || getRightRotations() >= absoluteMin)
-                .finallyDo(() -> stop());
+                .finallyDo(() -> {
+                    setLeftStop();
+                    setRightStop();
+                });
     }
 
     /**
@@ -355,13 +360,19 @@ public class Climber extends SubsystemBase {
                         () -> {
                             setLeftDown();
                         }).until(() -> getLeftRotations() >= flatMin)
-                        .finallyDo(() -> stop());
+                        .finallyDo(() -> {
+                            setLeftStop();
+                            setRightStop();
+                        });
             case RIGHT:
                 return Commands.run(
                         () -> {
                             setRightDown();
                         }).until(() -> getRightRotations() >= flatMin)
-                        .finallyDo(() -> stop());
+                        .finallyDo(() -> {
+                            setLeftStop();
+                            setRightStop();
+                        });
             default:
                 return Commands.none();
         }
@@ -378,6 +389,9 @@ public class Climber extends SubsystemBase {
                     setLeftDown();
                     setRightDown();
                 }).until(() -> getLeftRotations() >= flatMin || getRightRotations() >= flatMin)
-                .finallyDo(() -> stop());
-    }
+                .finallyDo(() -> {
+                    setLeftStop();
+                    setRightStop();
+                }); 
+        }
 }
