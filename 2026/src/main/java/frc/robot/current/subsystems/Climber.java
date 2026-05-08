@@ -51,9 +51,6 @@ public class Climber extends SubsystemBase {
         rightClimbMotorConfig.idleMode(IdleMode.kBrake);
         rightClimbMotorConfig.inverted(true);
 
-        // leftClimbMotorConfig.encoder.inverted(true);
-        // rightClimbMotorConfig.encoder.inverted(true);
-
         switch (Constants.currentMode) {
             case REAL:
                 leftClimbMotor = new MotorController(new MotorIOSpark(leftClimbMotorID, leftClimbMotorConfig,

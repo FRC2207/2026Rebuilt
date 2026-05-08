@@ -73,7 +73,6 @@ public class RobotContainer {
     ONEXBOX, TWOXBOX
   }
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driveXbox = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController controlXbox = new CommandXboxController(OperatorConstants.kOtherControllerPort);
 
@@ -84,7 +83,6 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    // exPivot = new ExamplePivot(Constants.robot);
     switch (Constants.currentMode) {
       case REAL:
         drive = new Drive(
@@ -111,10 +109,9 @@ public class RobotContainer {
             new ModuleIOSim());
 
         vision = new Vision(drive::addVisionMeasurement,
-            // new VisionIOPhotonVision(camera0Name, robotToCamera0),
             new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose),
-            // new VisionIOPhotonVision(camera2Name, robotToCamera2),
             new VisionIOPhotonVisionSim(camera3Name, robotToCamera3, drive::getPose));
+
         break;
       default:
         drive = new Drive(
@@ -263,8 +260,6 @@ public class RobotContainer {
         driveXbox.a().whileTrue(climber.climbStowedBoth());
         driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber)));
         
-        // Maybe test this out?
-        // driveXbox.povLeft().and(driveXbox.rightBumper()).whileTrue(objectVision.driveThroughClump());
         break;
 
       case TWOXBOX:
@@ -289,11 +284,8 @@ public class RobotContainer {
         controlXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
         controlXbox.leftTrigger().whileTrue(intake.intakeSlow()).onFalse(intake.stop());
-        // controlXbox.leftBumper().onTrue(intake.intakeFast()).onFalse(intake.stop());
 
         driveXbox.povLeft().whileTrue(objectVision.kindleCommand());
-        // Maybe test this out
-        // driveXbox.povLeft().and(driveXbox.rightBumper()).whileTrue(objectVision.driveThroughClump());
     }
   }
 

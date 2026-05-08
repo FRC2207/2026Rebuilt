@@ -141,9 +141,7 @@ public class Pather {
         }
 
         Logger.recordOutput("PathFollower/PreflipGoalPosition", goalPosition);
-        // Takes the previous position and applies alliance rotation if need.
-        // goalPosition = AllianceRotationUtil.apply(goalPosition);
-
+        
         // Record the goal position and selected trench option to the logger for
         // debugging purposes
         Logger.recordOutput("PathFollower/GoalPosition", goalPosition);

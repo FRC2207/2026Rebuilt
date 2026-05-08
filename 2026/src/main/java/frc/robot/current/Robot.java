@@ -64,8 +64,6 @@ public class Robot extends LoggedRobot {
       PortForwarder.add(1186, "10.22.7.69", 1186);
     }
 
-    // Pathfinding.setPathfinder(new LocalADStarAK());
-
     Logger.start();
     m_robotContainer = new RobotContainer();
   }
