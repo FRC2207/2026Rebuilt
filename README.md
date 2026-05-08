@@ -1,4 +1,4 @@
-This is Team 2207's 2026 FRC Robot Code
+# Team 2207's 2026 Rebuilt FRC Robot Code
 
 Features:
 - Realtime Fuel Tracking
@@ -10,3 +10,5 @@ Features:
 - Elastic Dashboard button Triggers
 
 Read about it here: [Judging Printout 2026](https://docs.google.com/document/d/14zJtQwdbmbMtNztun-fFdL7TGzMgCiVi-JfFdO-kPsk/edit?usp=drive_link)
+
+
