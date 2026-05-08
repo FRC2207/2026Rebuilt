@@ -1,4 +1,6 @@
 {
+  "git.mergeEditor": true,
+  "git.enableSmartCommit": false,
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.server.launchMode": "Standard",
   "files.exclude": {

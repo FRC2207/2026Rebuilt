@@ -5,51 +5,59 @@
     "data": {
       "commands": [
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Sweep"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PivotDown"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOn"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOff"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Lower Trench to towerShoot"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "name": "Launch"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Hub to Top Trench"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Sweep"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Lower Trench to hub"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Hub to Tower"
+            "pathName": "towerShoot to Climb"
           }
         }
       ]

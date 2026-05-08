@@ -10,22 +10,20 @@ package frc.robot.current.subsystems.swerveDrive;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.robot.current.Constants.SwerveConstants;
 
 public class DriveConstants {
-  public static final double maxSpeedMetersPerSec = 6.858 * MathUtil.clamp(SwerveConstants.speedLimit, 0, 1);
+  public static final double maxSpeedMetersPerSec = 6.858;
   public static final double odometryFrequency = 100.0; // Hz
   public static final double trackWidth = Units.inchesToMeters(14.75);      // This is the robot's Y, but we needed to switch with wheelbase in order for it to spin properly
   public static final double wheelBase = Units.inchesToMeters(29.75);       // This is the robot's X   ^^^^^^^^^^^^^^^^^^^^
   public static final double driveBaseRadius = Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
   public static final Translation2d[] moduleTranslations =
       new Translation2d[] {
-        new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
+        new Translation2d(trackWidth / 2.0, wheelBase / 2.0), 
         new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
         new Translation2d(-trackWidth / 2.0, wheelBase / 2.0),
         new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
@@ -33,16 +31,13 @@ public class DriveConstants {
 
   // Zeroed rotation values for each module, see setup instructions
   public static final Rotation2d frontLeftZeroRotation =
-      new Rotation2d(Units.degreesToRadians(99.63));
+      new Rotation2d(Units.degreesToRadians(-80.32+180)); //36.85
   public static final Rotation2d frontRightZeroRotation =
-      new Rotation2d(Units.degreesToRadians(86.87));
+      new Rotation2d(Units.degreesToRadians(86.29)); //106/11
   public static final Rotation2d backLeftZeroRotation =
-      new Rotation2d(Units.degreesToRadians(-117.57));
+      new Rotation2d(Units.degreesToRadians(-117.71)); //70.16
   public static final Rotation2d backRightZeroRotation =
-      new Rotation2d(Units.degreesToRadians(137.57));
-
-  // Device CAN IDs
-  public static final int pigeonCanId = 53; // changed to random since we aren't using it
+      new Rotation2d(Units.degreesToRadians(-37.94+180)); //118.33
 
   public static final int frontLeftDriveCanId = 1;
   public static final int backLeftDriveCanId = 5;
@@ -75,6 +70,7 @@ public class DriveConstants {
 
   // Drive PID configuration
   public static final double driveKp = 0.0;
+  public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
   public static final double driveKs = 0.09903;
   public static final double driveKv = 0.08621;
@@ -97,6 +93,7 @@ public class DriveConstants {
       (2 * Math.PI) / 60.0 / turnMotorReduction; // Rotor RPM -> Wheel Rad/Sec
   // Turn PID configuration
   public static final double turnKp = 2.0;
+  public static final double turnKi = 0.0;
   public static final double turnKd = 0.0;
   public static final double turnSimP = 8.0;
   public static final double turnSimD = 0.0;

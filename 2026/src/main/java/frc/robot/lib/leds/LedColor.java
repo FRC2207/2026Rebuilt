@@ -72,6 +72,10 @@ public enum LedColor {
         return saturation;
     }
 
+    /**
+     * Returns the color's intrinsic brightness/value (0..255). Controller-level
+     * brightness is applied by LedEffects/LedController when writing to the buffer.
+     */
     public int value() {
         switch (this) {
             case BROWN:
@@ -79,11 +83,7 @@ public enum LedColor {
             case BLACK:
                 return 0;
             default:
-                if (LedController.ledBrightness > 0) {
-                    return (int) LedController.ledBrightness;
-                } else {
-                    return 225;
-                }
+                return 255;
         }
     }
 }

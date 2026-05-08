@@ -3,24 +3,24 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
+        "x": 3.425,
         "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.723899190724103,
+        "x": 3.148899190724103,
         "y": 3.662040130952075
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "HubCenter"
     },
     {
       "anchor": {
-        "x": 0.3,
+        "x": 0.425,
         "y": 0.675
       },
       "prevControl": {
-        "x": 0.9033816879165955,
+        "x": 1.0283816879165955,
         "y": 1.413212325953818
       },
       "nextControl": null,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 6.858,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

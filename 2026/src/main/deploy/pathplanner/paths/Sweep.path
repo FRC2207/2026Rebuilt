@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0,
-        "y": 7.425
+        "x": 3.75,
+        "y": 7.5
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.7627004921379745,
-        "y": 7.391334232003093
+        "x": 5.369072671328703,
+        "y": 7.633604785287023
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Top Trench"
     },
     {
       "anchor": {
@@ -20,92 +20,92 @@
         "y": 7.2946855156930335
       },
       "prevControl": {
-        "x": 6.406756581968111,
-        "y": 7.47328384778949
+        "x": 6.238324626926637,
+        "y": 7.332280186919004
       },
       "nextControl": {
-        "x": 7.49149245359854,
-        "y": 6.736499236433929
+        "x": 6.9189808326402495,
+        "y": 7.272960392767854
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.5,
-        "y": 6.75
+        "x": 7.335972650580552,
+        "y": 6.74484620949074
       },
       "prevControl": {
-        "x": 6.900248292820772,
-        "y": 7.18780287471527
+        "x": 7.267333969364996,
+        "y": 6.985239078438613
       },
       "nextControl": {
-        "x": 7.70192429242678,
-        "y": 6.602600610150706
+        "x": 7.555567769647369,
+        "y": 5.975759453385375
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.6,
-        "y": 4.0
+        "x": 7.467189525462963,
+        "y": 3.9827084056712962
       },
       "prevControl": {
-        "x": 7.574561568976491,
-        "y": 4.421629790153887
+        "x": 7.467189525462963,
+        "y": 3.63809388859685
       },
       "nextControl": {
-        "x": 7.62763354060958,
-        "y": 3.541987321558539
+        "x": 7.467189525462963,
+        "y": 4.335307318095549
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.5,
-        "y": 0.9386818532293182
+        "x": 7.2048786168981485,
+        "y": 1.3018620515046302
       },
       "prevControl": {
-        "x": 7.835972941565681,
-        "y": 1.4122146294772344
+        "x": 7.574064892822227,
+        "y": 1.8330160684768602
       },
       "nextControl": {
-        "x": 7.218573837586813,
-        "y": 0.5420293389664677
+        "x": 6.956790043242625,
+        "y": 0.9449331756080062
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.426936343432511,
-        "y": 0.5227815448113211
+        "x": 6.392292173032408,
+        "y": 0.5909063223379634
       },
       "prevControl": {
-        "x": 6.843629214349989,
-        "y": 0.5870667068393656
+        "x": 6.6415121232521965,
+        "y": 0.6106399589122538
       },
       "nextControl": {
-        "x": 6.116103296518632,
-        "y": 0.4748278739444951
+        "x": 6.0515812061964676,
+        "y": 0.5639282798879663
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.0,
-        "y": 0.625
+        "x": 3.75,
+        "y": 0.575
       },
       "prevControl": {
-        "x": 4.725866866149622,
-        "y": 0.6304269055555083
+        "x": 5.248085286458333,
+        "y": 0.5463938078703698
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Low Trench Down"
     }
   ],
   "rotationTargets": [
@@ -119,19 +119,40 @@
     }
   ],
   "constraintZones": [],
-  "pointTowardsZones": [],
+  "pointTowardsZones": [
+    {
+      "fieldPosition": {
+        "x": 6.0,
+        "y": 7.375
+      },
+      "rotationOffset": 0.0,
+      "minWaypointRelativePos": 0.0,
+      "maxWaypointRelativePos": 0.3595047757475083,
+      "name": "Leave Trench"
+    },
+    {
+      "fieldPosition": {
+        "x": 3.0,
+        "y": 0.575
+      },
+      "rotationOffset": 0.0,
+      "minWaypointRelativePos": 5.306530315614624,
+      "maxWaypointRelativePos": 5.931011212624584,
+      "name": "Enter Trench"
+    }
+  ],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 2.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": -90.0
+    "velocity": 1.5,
+    "rotation": 180.0
   },
   "reversed": false,
   "folder": null,
@@ -139,5 +160,5 @@
     "velocity": 0,
     "rotation": 0.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

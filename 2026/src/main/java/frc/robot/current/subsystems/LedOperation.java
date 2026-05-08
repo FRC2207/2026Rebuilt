@@ -1,20 +1,18 @@
 package frc.robot.current.subsystems;
 
-import java.util.Optional;
-
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.current.Pather;
 import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.leds.LedController;
 
 public class LedOperation extends SubsystemBase {
-  public static final LedController leds = new LedController(240, 3, .75);
+  public static final LedController leds = new LedController(125, 9, .75);
   private LedColor color;
   private final SendableChooser<Runnable> m_chooser = new SendableChooser<>();
   private final SendableChooser<LedColor> m_color = new SendableChooser<>();
@@ -22,26 +20,28 @@ public class LedOperation extends SubsystemBase {
   // Constants regarding automatic LED states
   public ShuffleboardTab tab = Shuffleboard.getTab("Robot");
   public GenericEntry hueValue = tab.add("Hue Value", 0).getEntry();
-  
-  public boolean automaticLED = false;
+
+  public boolean automaticLED = true;
 
   public LedOperation() {
-    leds.addSection("full", 0, 240);
-    leds.addSection("right", 32, 80);
-    leds.addSection("front", 81, 145);
-    leds.addSection("left", 146, 191);
-    leds.addSection("mechanismFrame", 32, 191);
-    leds.addSection("underglow1", 0, 32);
-    leds.addSection("underglow", 191, 238);
+
+    leds.addSection("full", 0, 110);
+    leds.addSection("left", 0, 30);
+    leds.addSection("leftEdge", 31, 37);
+    leds.addSection("top", 38, 65);
+    leds.addSection("rightEdge", 66, 72);
+    leds.addSection("right", 76, 110);
 
     m_chooser.setDefaultOption("Solid", () -> leds.solid("mechanismFrame", color));
-    m_chooser.addOption("Two Color Solid", () -> leds.solidTwoColor("mechanismFrame", LedColor.TURQUOISE, LedColor.PEACH));
+    m_chooser.addOption("Two Color Solid",
+        () -> leds.solidTwoColor("mechanismFrame", LedColor.TURQUOISE, LedColor.PEACH));
     m_chooser.addOption("Solid Black", () -> leds.solid("mechanismFrame", LedColor.BLACK));
     m_chooser.addOption("Rainbow", () -> leds.rainbow("mechanismFrame", 3));
     m_chooser.addOption("Fade Blue and Green", () -> leds.fade("mechanismFrame", LedColor.GREEN, LedColor.BLUE, 1, 3));
     m_chooser.addOption("Breath", () -> leds.breath("mechanismFrame", color, 3));
     m_chooser.addOption("Strobe", () -> leds.strobe("mechanismFrame", color, 1));
-    m_chooser.addOption("Carnival", () -> leds.carnival("mechanismFrame", LedColor.EASTER_GREEN, LedColor.EASTER_PURPLE, 2, 4));
+    m_chooser.addOption("Carnival",
+        () -> leds.carnival("mechanismFrame", LedColor.EASTER_GREEN, LedColor.EASTER_PURPLE, 2, 4));
     m_chooser.addOption("Fill", () -> leds.fill("mechanismFrame", color, 1, 2, true));
     m_chooser.addOption("Zip", () -> leds.zip("mechanismFrame", color, 10, 1, 2, true));
     m_chooser.addOption("Wave", () -> leds.wave("mechanismFrame", color, 3));
@@ -77,7 +77,6 @@ public class LedOperation extends SubsystemBase {
   @Override
   public void periodic() {
     color = m_color.getSelected();
-    automaticLED = false;
 
     robotStatus();
 
@@ -86,9 +85,9 @@ public class LedOperation extends SubsystemBase {
 
   public void robotStatus() {
     if (DriverStation.isEStopped()) {
-      leds.strobe("full", LedColor.RED, 1);
+      leds.strobe("full", LedColor.RED, 2);
     } else if (DriverStation.isAutonomousEnabled()) {
-      leds.rainbow("front", 4);
+      leds.rainbow("full", 4);
     } else if (DriverStation.isTeleopEnabled()) {
       if (automaticLED) {
         updateState();
@@ -99,31 +98,59 @@ public class LedOperation extends SubsystemBase {
       if (DriverStation.isDSAttached()) {
         leds.fill("front", LedColor.ORANGE, 2, 2, false);
       } else if (DriverStation.isFMSAttached()) {
-        leds.solid("front", LedColor.ORANGE);
+        leds.carnival("front", LedColor.ORANGE, LedColor.WHITE, 2, 1);
       } else {
         leds.breath("front", LedColor.ORANGE, 2);
-      }
-    }
-
-    Optional<Alliance> ally = DriverStation.getAlliance();
-    if (ally.isPresent()) {
-      if (ally.get() == Alliance.Blue) {
-        leds.solid("underglow", LedColor.BLUE);
-        leds.solid("underglow1", LedColor.BLUE);
-      } else {
-        leds.solid("underglow", LedColor.RED);
-        leds.solid("underglow1", LedColor.RED);
       }
     }
   }
 
   /* Method to set the LEDs automatically depending on the robots state */
   public void updateState() {
+    if (Pather.isPathing) {
+    leds.rainbow("top", 3);
+    leds.rainbow("leftEdge", 5);
+    } else {
 
+    if (Intake.isIntaking) {
+      leds.solidTwoColor("top", LedColor.GREEN, LedColor.BLACK);
+    } else {
+      leds.solid("top", LedColor.ORANGE);
+    }
+
+    if (!Outtake.isInRange) {
+      leds.strobe("left", LedColor.RED_ORANGE, 2);
+      leds.strobe("right", LedColor.RED_ORANGE, 2);
+    } else if (Outtake.isInRange) {
+      if (Outtake.outtaking) {
+        leds.fade("left", LedColor.MAGENTA, LedColor.GREEN, 1, 5);
+        leds.fade("right", LedColor.MAGENTA, LedColor.GREEN, 1, 5);
+      } else {
+        leds.solid("left", LedColor.GREEN);
+        leds.solid("right", LedColor.GREEN);
+      }
+    }
+
+    if (Climber.isClimbingUp) {
+      if (Climber.isAtMax) {
+        leds.carnival("top", LedColor.PURPLE, LedColor.RED, 2, 3);
+      } else {
+      leds.zip("left", LedColor.PURPLE, 10, 1, 3, false);
+      leds.zip("right", LedColor.PURPLE, 10, 1, 3, true);
+      }
+    } else if (Climber.isClimbingDown) {
+      leds.zip("left", LedColor.PURPLE, 10, 1, 3, true);
+      leds.zip("right", LedColor.PURPLE, 10, 1, 3, false);
+    }
+
+  }
   }
 
   /* Method to set the LEDs to different states during the match */
   public void manualState() {
-    m_chooser.getSelected().run();
+    Runnable choice = m_chooser.getSelected();
+    if (choice != null) {
+      choice.run();
+    }
   }
 }
