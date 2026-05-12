@@ -2,12 +2,20 @@ package frc.robot.lib.motors.motorController;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.lib.util.Elastic;
+
 //import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class MotorController{
     private MotorControllerIO io;
     private final MotorControllerIOInputsAutoLogged inputs = new MotorControllerIOInputsAutoLogged();
     private String loggingKey;
+
+    private Elastic.Notification elasticNotification = new Elastic.Notification();
+    private Alert alert;
+
 
     /** This is the central hub for all things motors! 
      * 
@@ -18,12 +26,16 @@ public class MotorController{
     public MotorController(MotorControllerIO io, String loggingKey) {
         this.io = io;
         this.loggingKey = loggingKey;
+
+        alert = new Alert("[Motor Overtemp] " + loggingKey + " is over 80 degrees Celsius", AlertType.kWarning);
+
     }
 
     public void updateInputs() {
         // Always update hardware inputs each loop (low-cost)
         io.updateInputs(inputs);
         Logger.runEveryN(5, (Runnable) () -> Logger.processInputs(loggingKey, inputs));
+        Logger.runEveryN(500, () -> motorOvertempWatchdog());
     }
 
     /** Sets the motor percentage from -1 to 1. This is known as <i> duty cycle. </i>
@@ -175,5 +187,16 @@ public class MotorController{
 
     public void resetEncoder() {
         io.resetEncoder();
+    }
+
+    public void motorOvertempWatchdog(){
+        if (getMotorTemp() >= 80.0){
+            Elastic.sendNotification(elasticNotification.
+            withLevel(Elastic.NotificationLevel.WARNING)
+            .withTitle("Motor Overtemp")
+            .withDescription(loggingKey + " is over 80 degrees Celsius")
+            .withDisplaySeconds(5));
+            alert.set(true);
+        }
     }
 }
