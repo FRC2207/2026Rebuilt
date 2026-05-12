@@ -23,7 +23,6 @@ import frc.robot.current.subsystems.Hopper;
 import frc.robot.current.subsystems.Intake;
 import frc.robot.current.subsystems.LedOperation;
 import frc.robot.current.subsystems.Outtake;
-import frc.robot.current.Pather.Direction;
 import frc.robot.current.subsystems.Pivot;
 import frc.robot.current.subsystems.swerveDrive.Drive;
 import frc.robot.current.subsystems.swerveDrive.GyroIO;
@@ -40,8 +39,6 @@ import frc.robot.lib.vision.VisionIO;
 import frc.robot.lib.vision.VisionIOPhotonVision;
 import frc.robot.lib.vision.VisionIOPhotonVisionSim;
 import static frc.robot.lib.vision.VisionConstants.*;
-
-import java.util.Set;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -212,14 +209,16 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -driveXbox.getLeftY(),
-            () -> -driveXbox.getLeftX(),
-            () -> -0.75 * driveXbox.getRightX()));
+            () -> -OperatorConstants.speedLimit * driveXbox.getLeftY(),
+            () -> -OperatorConstants.speedLimit * driveXbox.getLeftX(),
+            () -> -0.75 * OperatorConstants.speedLimit * driveXbox.getRightX()));
 
-    driveXbox.back().whileTrue(
+/*
+     driveXbox.back().whileTrue(
         Commands.defer(() -> Pather.trenchAlign(Direction.LEFT), Set.of(drive)));
     driveXbox.start().whileTrue(
-        Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive)));
+        Commands.defer(() -> Pather.trenchAlign(Direction.RIGHT), Set.of(drive))); 
+        */
 
     // Reset gyro to 0° when B button is pressed
     driveXbox
@@ -243,6 +242,7 @@ public class RobotContainer {
         driveXbox.povUp().onTrue(pivot.gotoStoredPos());
         driveXbox.povDown().onTrue(pivot.gotoCollectionPos());
 
+/*         
         driveXbox.povRight().whileTrue(DriveCommands.joystickDrivePointToTarget(
             drive,
             () -> -driveXbox.getLeftY(),
@@ -254,11 +254,12 @@ public class RobotContainer {
               double dx = target.getTranslation().getX() - robotPose.getTranslation().getX();
               double dy = target.getTranslation().getY() - robotPose.getTranslation().getY();
               return Math.atan2(dy, dx);
-            }));
+            })); 
+            */
 
         driveXbox.y().whileTrue(climber.climbMaxBoth());
         driveXbox.a().whileTrue(climber.climbStowedBoth());
-        driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber)));
+//        driveXbox.x().whileTrue(Commands.defer(() -> climber.climbDownIndividual(), Set.of(climber)));
         
         break;
 
