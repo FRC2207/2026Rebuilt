@@ -12,7 +12,7 @@ import frc.robot.lib.leds.LedColor;
 import frc.robot.lib.leds.LedController;
 
 public class LedOperation extends SubsystemBase {
-  public static final LedController leds = new LedController(125, 9, .75);
+  public static final LedController leds = new LedController(125, 8, .75);
   private LedColor color;
   private final SendableChooser<Runnable> m_chooser = new SendableChooser<>();
   private final SendableChooser<LedColor> m_color = new SendableChooser<>();
